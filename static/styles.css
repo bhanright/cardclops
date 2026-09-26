@@ -1,4 +1,4 @@
-/* Collection Gallery — flat neon, heavy ink. Inspired by Ultros: saturated psychedelic color,
+/* Cardclops — flat neon, heavy ink. Inspired by Ultros: saturated psychedelic color,
    thick black outlines, hard offset shadows, bulbous shapes on deep violet. */
 
 :root {
@@ -111,6 +111,7 @@ code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-siz
 .pupil { transition: transform .2s; }
 .logo-text { display: flex; flex-direction: column; font-family: var(--font-display); line-height: .92; }
 .logo-text .l1 { font-size: 1.05rem; color: var(--lime); -webkit-text-stroke: 0; text-shadow: 2px 2px 0 #000; }
+.logo-text .l2-card { color: var(--lime); }
 .logo-text .l2 { font-size: 1.45rem; color: var(--cream); text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; }
 .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
 .tabs > a {

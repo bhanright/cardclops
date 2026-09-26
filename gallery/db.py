@@ -1,7 +1,7 @@
 """SQLite schema and connection helper.
 
 Two database files, opened as one connection (paths.py says where they live):
-- gallery.sqlite, yours: the collection, recorded price history, decks and
+- cardclops.sqlite, yours: the collection, recorded price history, decks and
   their versions, watchlist, alerts and settings. None of it can be downloaded
   again, so it is backed up after every refresh.
 - cards.sqlite, cache: Scryfall's card data, rebuilt by the next refresh if lost.
@@ -300,13 +300,13 @@ def backup(connection, when=None):
     """Copy your database into Backups/ (SQLite's online backup, safe while the gallery runs); keep the newest 14."""
     when = when or datetime.now()
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
-    target = BACKUP_DIR / f"gallery-{when:%Y-%m-%d}.sqlite"
+    target = BACKUP_DIR / f"cardclops-{when:%Y-%m-%d}.sqlite"
     destination = sqlite3.connect(target)
     try:
         connection.backup(destination, name="main")
     finally:
         destination.close()
-    for old in sorted(BACKUP_DIR.glob("gallery-*.sqlite"))[:-BACKUPS_KEPT]:
+    for old in sorted(BACKUP_DIR.glob("cardclops-*.sqlite"))[:-BACKUPS_KEPT]:
         old.unlink()
     return target
 

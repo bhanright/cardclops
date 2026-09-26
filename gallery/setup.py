@@ -18,7 +18,8 @@ from . import db
 from .db import backup, get_meta, set_meta
 from .paths import CACHE_DIR, LOG_DIR, PROJECT_ROOT, USER_DIR
 
-TASK_NAME = "Collection Gallery daily refresh"
+TASK_NAME = "Cardclops daily refresh"
+LEGACY_TASK_NAME = "Collection Gallery daily refresh"      # before 0.1.1
 # Approximate download sizes shown for consent: Scryfall's default cards and
 # function tags; MTGJSON's 90-day prices and identifiers.
 DOWNLOAD_MB = {"scryfall": 85, "history": 62}
@@ -253,7 +254,8 @@ def set_daily_refresh(enabled, only_if_ours=False):
 $action = New-ScheduledTaskAction -Execute '{executable}' -Argument '{arguments}' -WorkingDirectory '{folder}'
 $trigger = New-ScheduledTaskTrigger -Daily -At 7:30am
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 1) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 30) -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-Register-ScheduledTask -TaskName '{TASK_NAME}' -Description 'Refreshes Collection Gallery card data and prices.' -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
+Register-ScheduledTask -TaskName '{TASK_NAME}' -Description 'Refreshes Cardclops card data and prices.' -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
+Unregister-ScheduledTask -TaskName '{LEGACY_TASK_NAME}' -Confirm:$false -ErrorAction SilentlyContinue
 """
     result = _powershell(script)
     if result.returncode != 0:

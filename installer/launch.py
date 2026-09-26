@@ -1,4 +1,4 @@
-"""PyInstaller's entry script for CollectionGallery.exe (see gallery/app.py)."""
+"""PyInstaller's entry script for Cardclops.exe (see gallery/app.py)."""
 import sys
 
 from gallery.app import main

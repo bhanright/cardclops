@@ -48,7 +48,7 @@ async function load({ quiet = false } = {}) {
   const y = scrollY;
   render();
   if (quiet) scrollTo({ top: y });
-  document.title = `${data.deck.name} · Decks · Collection Gallery`;
+  document.title = `${data.deck.name} · Decks · Cardclops`;
 }
 
 // ---------- helpers ----------

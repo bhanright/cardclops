@@ -1,4 +1,4 @@
-Collection Gallery
+Cardclops
 
 A free program for browsing, searching and understanding your Magic: The Gathering
 collection and decks. It runs entirely on your computer: nothing is uploaded, and
@@ -12,12 +12,12 @@ The first-run setup asks before downloading anything. Automatic daily updates an
 price-alert notifications are off until you turn them on.
 
 WHERE YOUR DATA GOES
-  - Your collection, decks, price history and settings: Documents\Collection Gallery
+  - Your collection, decks, price history and settings: Documents\Cardclops
     (backed up there after each update). Uninstalling leaves this folder alone.
-  - Card data and images (cache, safe to delete): %LOCALAPPDATA%\CollectionGallery
+  - Card data and images (cache, safe to delete): %LOCALAPPDATA%\Cardclops
 
 FAN CONTENT NOTICE
-Collection Gallery is unofficial Fan Content permitted under the Fan Content Policy.
+Cardclops is unofficial Fan Content permitted under the Fan Content Policy.
 Not approved/endorsed by Wizards. Portions of the materials used are property of
 Wizards of the Coast. (c) Wizards of the Coast LLC.
 

@@ -1,4 +1,4 @@
-# Collection Gallery
+# Cardclops
 
 A local gallery for a Magic: The Gathering collection exported from ManaBox, with
 Scryfall's card data, Scryfall-syntax search across your own cards, price history,
@@ -10,13 +10,13 @@ card scrolls into view (then from the image cache).
 
 ## Installing (for anyone)
 
-`installer\Output\CollectionGallery-Setup-<version>.exe` installs the gallery like any Windows
+`installer\Output\Cardclops-Setup-<version>.exe` installs the gallery like any Windows
 program: for the current user by default (no administrator prompt), or for everyone under Program
 Files. The first time it opens, a setup wizard asks before downloading Scryfall's card data (and,
 optionally, 90 days of price history), then imports a collection CSV from ManaBox, Moxfield,
 Archidekt, Deckbox, TCGplayer, Dragon Shield, Delver Lens or Helvault, or starts empty. Daily
 updates and price-alert notifications stay off unless the user turns them on. Uninstalling keeps
-the user's data in Documents\Collection Gallery.
+the user's data in Documents\Cardclops.
 
 Build it with `scripts\build_installer.ps1` (needs `pip install pyinstaller certifi` and Inno Setup 6).
 
@@ -42,15 +42,15 @@ and open http://localhost:8765.
 - `import` replaces the collection with a ManaBox export (ManaBox → Collection → Export → CSV) and
   pulls today's Scryfall data. Re-run it whenever the collection changes.
 - `history` backfills the last 90 days of daily prices from MTGJSON (about 4 minutes, 47 MB).
-- `refresh` pulls today's card data and prices. A Windows scheduled task, **Collection Gallery
+- `refresh` pulls today's card data and prices. A Windows scheduled task, **Cardclops
   daily refresh**, runs it every day at 7:30 AM (after Scryfall's and MTGJSON's morning
   rebuilds), catches up at the next start if the PC was off, and retries three times if the
-  network is down. Its output goes to `%LOCALAPPDATA%\CollectionGallery\logs\refresh.log`. A running gallery notices the new
+  network is down. Its output goes to `%LOCALAPPDATA%\Cardclops\logs\refresh.log`. A running gallery notices the new
   data within a minute and reloads. If the PC is off for a stretch, running `history` again
   fills any gap shorter than 90 days.
 
   To change or remove the task: Task Scheduler → Task Scheduler Library, or
-  `Unregister-ScheduledTask -TaskName "Collection Gallery daily refresh"` in PowerShell.
+  `Unregister-ScheduledTask -TaskName "Cardclops daily refresh"` in PowerShell.
 
 ## How much price history is kept
 
@@ -114,13 +114,13 @@ scripts/          notify.ps1, the Windows notification for price alerts
 
 ## Where your data lives
 
-- **Documents\Collection Gallery** is yours: `gallery.sqlite` holds your collection, decks and
+- **Documents\Cardclops** is yours: `cardclops.sqlite` holds your collection, decks and
   their history, the price history the gallery has recorded, your watchlist, alerts and settings.
   None of it can be downloaded again, so every refresh copies it into `Backups\` (the newest 14
   are kept). This is the folder to back up.
-- **%LOCALAPPDATA%\CollectionGallery** is cache: `cards.sqlite` (Scryfall's card data), the
+- **%LOCALAPPDATA%\Cardclops** is cache: `cards.sqlite` (Scryfall's card data), the
   downloaded bulk files, card images and logs. Deleting it is safe; the next refresh rebuilds it.
 
-Set `COLLECTION_GALLERY_HOME` or `COLLECTION_GALLERY_CACHE` to move either folder. Before
+Set `CARDCLOPS_HOME` or `CARDCLOPS_CACHE` to move either folder. Before
 September 2026 everything lived in this project's `data/` folder; the first run after the change
 moved it and renamed the old folder `data.migrated-<date>`.

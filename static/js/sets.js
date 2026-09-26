@@ -128,7 +128,7 @@ async function showSetPage(code) {
   }
   if (mine !== pageToken) return;
   renderSetPage(code, data, params);
-  document.title = `${data.set.name} · Sets · Collection Gallery`;
+  document.title = `${data.set.name} · Sets · Cardclops`;
 }
 
 function renderSetPage(code, data, params) {

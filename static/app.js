@@ -139,7 +139,7 @@ function showTab() {
   if (tab === 'sets') showSets(setCode);
   $('#alertBell').toggleAttribute('aria-current', tab === 'alerts');
   const titles = { gallery: 'Gallery', decks: 'Decks', sets: 'Sets', build: 'What can I build?', dashboard: 'Dashboard', radar: 'Reprint radar', alerts: 'Price alerts', deck: 'Deck check', extras: 'Trade binder' };
-  document.title = `${titles[tab]} · Collection Gallery`;
+  document.title = `${titles[tab]} · Cardclops`;
 }
 
 function route() {

@@ -1,29 +1,29 @@
-; Inno Setup script for Collection Gallery. Build with scripts\build_installer.ps1, which runs
-; PyInstaller first (dist\CollectionGallery) and then this script.
+; Inno Setup script for Cardclops. Build with scripts\build_installer.ps1, which runs
+; PyInstaller first (dist\Cardclops) and then this script.
 ;
 ; Installs for the current user by default (no administrator prompt, into
 ; %LOCALAPPDATA%\Programs), or for everyone into Program Files if the user picks that.
 ; The program's data never lives here: see ABOUT.txt and gallery/paths.py.
 
-#define AppName "Collection Gallery"
-#define AppVersion GetEnv("COLLECTION_GALLERY_VERSION")
+#define AppName "Cardclops"
+#define AppVersion GetEnv("CARDCLOPS_VERSION")
 #if AppVersion == ""
   #define AppVersion "0.1.0"
 #endif
-#define AppExe "CollectionGallery.exe"
+#define AppExe "Cardclops.exe"
 
 [Setup]
 AppId={{6E1D4C2A-7A3B-4F0E-9C51-2B8E5D9A1F37}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppPublisher=Collection Gallery
+AppPublisher=Cardclops
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=Output
-OutputBaseFilename=CollectionGallery-Setup-{#AppVersion}
+OutputBaseFilename=Cardclops-Setup-{#AppVersion}
 SetupIconFile=icon.ico
 UninstallDisplayIcon={app}\{#AppExe}
 InfoBeforeFile=ABOUT.txt
@@ -38,7 +38,7 @@ CloseApplications=yes
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Shortcuts:"; Flags: unchecked
 
 [Files]
-Source: "..\dist\CollectionGallery\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\Cardclops\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "ABOUT.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
@@ -57,5 +57,5 @@ Filename: "{app}\{#AppExe}"; Parameters: "--remove-task"; Flags: runhidden waitu
 
 [UninstallDelete]
 ; Only the cache (card data, images, logs) is removed. Your collection, decks and price
-; history in Documents\Collection Gallery stay.
-Type: filesandordirs; Name: "{localappdata}\CollectionGallery"
+; history in Documents\Cardclops stay.
+Type: filesandordirs; Name: "{localappdata}\Cardclops"

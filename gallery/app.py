@@ -1,13 +1,13 @@
-"""The installed app's entry point (CollectionGallery.exe).
+"""The installed app's entry point (Cardclops.exe).
 
-  CollectionGallery.exe                 start the gallery and open it in the browser; if it is
+  Cardclops.exe                 start the gallery and open it in the browser; if it is
                                         already running, just open the browser
-  CollectionGallery.exe --refresh       the daily refresh (what the scheduled task runs)
-  CollectionGallery.exe --quit          stop a running gallery (the uninstaller uses this)
-  CollectionGallery.exe --remove-task   remove the daily-refresh task (the uninstaller uses this)
+  Cardclops.exe --refresh       the daily refresh (what the scheduled task runs)
+  Cardclops.exe --quit          stop a running gallery (the uninstaller uses this)
+  Cardclops.exe --remove-task   remove the daily-refresh task (the uninstaller uses this)
 
 The exe has no console window, so output goes to logs in the cache folder.
-Set COLLECTION_GALLERY_PORT to use a port other than 8765, and COLLECTION_GALLERY_NO_BROWSER=1 to
+Set CARDCLOPS_PORT to use a port other than 8765, and CARDCLOPS_NO_BROWSER=1 to
 start without opening a browser (for testing).
 """
 import json
@@ -16,7 +16,7 @@ import sys
 import urllib.request
 import webbrowser
 
-PORT = int(os.environ.get("COLLECTION_GALLERY_PORT", "8765"))
+PORT = int(os.environ.get("CARDCLOPS_PORT", "8765"))
 BASE = f"http://127.0.0.1:{PORT}"
 
 
@@ -31,7 +31,7 @@ def _log_to_file(name):
     sys.stdout = sys.stderr = log
 
 
-def _message(text, title="Collection Gallery"):
+def _message(text, title="Cardclops"):
     if sys.platform == "win32":
         import ctypes
         ctypes.windll.user32.MessageBoxW(None, text, title, 0x40)
@@ -40,7 +40,7 @@ def _message(text, title="Collection Gallery"):
 
 
 def _running():
-    """Is a Collection Gallery already answering on our port?"""
+    """Is a Cardclops already answering on our port?"""
     try:
         request = urllib.request.Request(f"{BASE}/api/setup/status", headers={"Host": f"localhost:{PORT}"})
         with urllib.request.urlopen(request, timeout=2) as response:
@@ -77,9 +77,9 @@ def main(argv=None):
     from . import db
     from .server import serve
     try:
-        serve(db.connect(), PORT, open_browser=not os.environ.get("COLLECTION_GALLERY_NO_BROWSER"))
+        serve(db.connect(), PORT, open_browser=not os.environ.get("CARDCLOPS_NO_BROWSER"))
     except OSError as error:
-        _message(f"Collection Gallery couldn't start: port {PORT} is in use by another program.\n\n{error}")
+        _message(f"Cardclops couldn't start: port {PORT} is in use by another program.\n\n{error}")
         return 1
     return 0
 

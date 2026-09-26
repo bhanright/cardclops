@@ -36,7 +36,7 @@ from gallery.ingest import oracle_id_of  # noqa: E402
 from gallery.paths import RAW_DIR  # noqa: E402
 
 API = "https://api.scryfall.com/cards/search"
-HEADERS = {"User-Agent": "CollectionGallery/0.1", "Accept": "application/json"}
+HEADERS = {"User-Agent": "Cardclops/0.1", "Accept": "application/json"}
 
 QUERIES = [
     "c:b mv<3 o:/destroy target nonland permanent/",

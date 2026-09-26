@@ -159,7 +159,7 @@ async function showDraft(commanderId, partnerId) {
   if (mine !== draftToken) return;
   if (draft.error) { clear(page).append(h('a.back-link', { href: '#/build' }, '← All commanders'), errorBox(draft.error)); return; }
   renderDraft(draft, commanderId, partnerId);
-  document.title = `${draft.commander?.name || 'Draft'} · Build · Collection Gallery`;
+  document.title = `${draft.commander?.name || 'Draft'} · Build · Cardclops`;
   partnerChoice(draft.commander, commanderId, partnerId, mine);
 }
 

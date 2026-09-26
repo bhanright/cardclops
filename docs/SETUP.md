@@ -62,7 +62,7 @@ Nothing is downloaded, scheduled or turned on without the user choosing it.
  "has_card_data": false, "card_data_date": null,
  "has_collection": false, "collection_rows": 0,
  "has_price_history": false,
- "data_dir": "C:\\Users\\…\\Documents\\Collection Gallery", "cache_dir": "C:\\Users\\…\\AppData\\Local\\CollectionGallery",
+ "data_dir": "C:\\Users\\…\\Documents\\Cardclops", "cache_dir": "C:\\Users\\…\\AppData\\Local\\Cardclops",
  "downloads": {"scryfall_mb": 85, "history_mb": 62},        // approximate sizes shown for consent
  "daily_refresh_scheduled": false, "platform": "win32",
  "ask_available": false,             // the local `claude` CLI, for the Ask box
@@ -96,5 +96,5 @@ small "Updating card data and prices…" notice. `POST /api/refresh` starts one 
 ## The installed app
 
 - `POST /api/quit` → `{"quitting": true}` — stops the server (the installed app has no console window;
-  the Tools menu has **Quit Collection Gallery**). Same local-only rules as other writes.
+  the Tools menu has **Quit Cardclops**). Same local-only rules as other writes.
 - `GET /api/summary` gains `"app": {"version": "0.1.0", "installed": true}`.

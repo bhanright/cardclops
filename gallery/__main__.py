@@ -5,8 +5,8 @@
   history               backfill the last 90 days of prices from MTGJSON (see gallery/history.py)
   serve [--port 8765]   run the gallery at http://localhost:8765
 
-Your data lives in the Collection Gallery folder in Documents, and the card cache in
-CollectionGallery under %LOCALAPPDATA% (see gallery/paths.py).
+Your data lives in the Cardclops folder in Documents, and the card cache in
+Cardclops under %LOCALAPPDATA% (see gallery/paths.py).
 """
 import argparse
 import sys

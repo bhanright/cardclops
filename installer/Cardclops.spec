@@ -1,4 +1,4 @@
-# PyInstaller build for CollectionGallery.exe: python -m PyInstaller installer/CollectionGallery.spec
+# PyInstaller build for Cardclops.exe: python -m PyInstaller installer/Cardclops.spec
 # A one-folder build (starts fast, and Inno Setup packs the folder); no console window.
 from pathlib import Path
 
@@ -17,9 +17,9 @@ pyz = PYZ(analysis.pure)
 exe = EXE(
     pyz, analysis.scripts, [],
     exclude_binaries=True,
-    name="CollectionGallery",
+    name="Cardclops",
     icon=str(ROOT / "installer" / "icon.ico"),
     console=False,
     version=None,
 )
-collect = COLLECT(exe, analysis.binaries, analysis.datas, name="CollectionGallery")
+collect = COLLECT(exe, analysis.binaries, analysis.datas, name="Cardclops")

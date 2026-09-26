@@ -169,11 +169,11 @@ export function quitApp() {
     closeDialog();
     document.body.replaceChildren(h('main.stopped', h('div.panel.stopped-card',
       h('div.blob-eye', { 'aria-hidden': 'true' }),
-      h('h1', 'Collection Gallery has stopped'),
-      h('p', 'You can close this tab. Start Collection Gallery again from the Start menu whenever you like.'))));
-    document.title = 'Collection Gallery (stopped)';
+      h('h1', 'Cardclops has stopped'),
+      h('p', 'You can close this tab. Start Cardclops again from the Start menu whenever you like.'))));
+    document.title = 'Cardclops (stopped)';
   } }, 'Quit');
-  const closeDialog = dialog('Quit Collection Gallery?', h('div',
+  const closeDialog = dialog('Quit Cardclops?', h('div',
     h('p', 'This stops the gallery on this computer. Nothing is lost; your collection and decks are saved.'),
     h('div.form-row', yes, h('button.btn.ghost', { type: 'button', onclick: () => closeDialog() }, 'Cancel'))));
   yes.focus();
@@ -189,7 +189,7 @@ export async function runSetupIfNeeded() {
 }
 
 function wizard(status, resolve) {
-  const root = h('div.setup', { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Set up Collection Gallery' });
+  const root = h('div.setup', { role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Set up Cardclops' });
   document.body.classList.add('in-setup');
   document.body.append(root);
   const saved = store.get(STEP_KEY, 0);
@@ -208,7 +208,7 @@ function wizard(status, resolve) {
   function draw() {
     const body = [welcome, cardData, collection, options, done][step]();
     clear(root).append(h('div.setup-card.panel',
-      h('div.setup-brand', h('span.setup-logo', document.querySelector('.logo-mark')?.cloneNode(true)), h('span.logo-text', h('span.l1', 'Collection'), h('span.l2', 'Gallery')), h('span.muted.small', 'First-time setup')),
+      h('div.setup-brand', h('span.setup-logo', document.querySelector('.logo-mark')?.cloneNode(true)), h('span.logo-text', h('span.l2', h('span.l2-card', 'Card'), 'clops')), h('span.muted.small', 'First-time setup')),
       h('ol.setup-steps', STEPS.map((name, i) => h('li', { class: i === step ? 'on' : i < step ? 'done' : '', 'aria-current': i === step ? 'step' : null },
         h('span.ss-num', i < step ? '✓' : String(i + 1)), h('span.ss-name', name)))),
       h('div.setup-body', body)));
@@ -218,7 +218,7 @@ function wizard(status, resolve) {
 
   function welcome() {
     return [h('h2', 'Welcome!'),
-      h('p', 'Collection Gallery shows your Magic cards as a gallery you can search like Scryfall, tracks what they’re worth, checks decks against what you own and a lot more.'),
+      h('p', 'Cardclops shows your Magic cards as a gallery you can search like Scryfall, tracks what they’re worth, checks decks against what you own and a lot more.'),
       h('ul.setup-facts',
         h('li', h('b', 'Free, and it stays on this computer. '), 'Nothing you import is uploaded anywhere. The only things it downloads are public card data and prices, and card images as you look at them.'),
         h('li', h('b', 'Your data lives in '), h('code', status.data_dir || '—'), h('span.muted', ' (your collection, decks, backups)')),
@@ -252,7 +252,7 @@ function wizard(status, resolve) {
     // Resuming mid-download: pick the progress back up.
     api.setup.progress().then(p => { if (p && !p.done && p.job === 'download') { download.disabled = true; follow(); } }).catch(() => {});
     return [h('h2', 'Card data'),
-      h('p', 'To show and search your cards, Collection Gallery needs Scryfall’s card database: every card, printing, image link and today’s price.'),
+      h('p', 'To show and search your cards, Cardclops needs Scryfall’s card database: every card, printing, image link and today’s price.'),
       cardDataReady ? h('div.setup-ok', `✓ Card data is here${status.card_data_date ? ` (from ${status.card_data_date})` : ''}. You can move on.`) : h('div.setup-choice',
         h('div.setup-item', h('b', 'Scryfall card data'), h('span.muted', ` · about ${int(mb.scryfall_mb)} MB · required`)),
         h('label.setup-item.check', history, h('span', h('b', ' Price history for the last 90 days'), h('span.muted', ` · MTGJSON · about ${int(mb.history_mb)} MB · optional`),

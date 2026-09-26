@@ -331,15 +331,15 @@ class FormatTests(unittest.TestCase):
             self.assertEqual(detect_format(header.split(",")), expected, header)
 
 
-# A real ManaBox export to check against: set COLLECTION_GALLERY_TEST_EXPORT to its path. The card
+# A real ManaBox export to check against: set CARDCLOPS_TEST_EXPORT to its path. The card
 # cache is the one a refresh built (gallery.paths). Without both, these tests are skipped.
-REAL_EXPORT = Path(os.environ.get("COLLECTION_GALLERY_TEST_EXPORT", "no-such-file"))
+REAL_EXPORT = Path(os.environ.get("CARDCLOPS_TEST_EXPORT", "no-such-file"))
 REAL_CACHE = CACHE_DATABASE_PATH
 LANGUAGE_NAMES = {"en": "English", "fr": "French", "de": "German", "ja": "Japanese"}
 
 
 @unittest.skipUnless(REAL_EXPORT.exists() and REAL_CACHE.exists(),
-                     "set COLLECTION_GALLERY_TEST_EXPORT to a ManaBox export, and run a refresh first")
+                     "set CARDCLOPS_TEST_EXPORT to a ManaBox export, and run a refresh first")
 class RealDataTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
