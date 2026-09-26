@@ -1,5 +1,6 @@
 // Card tiles and thumbnails shared by every view, plus the lazy image loader.
 import { h, money, changeChip, finishLabel, int } from './util.js';
+import { handMark } from './addcards.js';
 import { resize } from './api.js';
 
 /** One observer for every lazy <img data-src>: images load only as they near the viewport. */
@@ -78,6 +79,7 @@ export function cardTile(card, { onOpen, changeKey = 'd7' } = {}) {
       h('div.tile-name', { title: card.name }, card.name),
       h('div.tile-meta',
         rarityGem(card.rarity),
+        handMark(card.source),
         h('span.set-code', card.printings > 1 && card.row_id == null ? `${card.printings} prints` : (card.set_code || '').toUpperCase()),
         h('span.price', money(card.price_usd)),
         changeChip(change, { small: true }))));

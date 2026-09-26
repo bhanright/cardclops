@@ -1,5 +1,6 @@
 // Card detail modal: big image, rules text, price chart, holdings, tags, legality, other printings, similar.
 import { h, $, clear, money, signedMoney, signedClass, manaCost, rulesText, finishLabel, formatLabel, sortFormats, spinner, errorBox, int, titleCase } from './util.js';
+import { openAddDialog, handMark } from './addcards.js';
 import { watchButton } from './alerts.js';
 import { api, resize } from './api.js';
 import { cardFace, thumb, rarityGem } from './cards.js';
@@ -133,7 +134,7 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
     links.push(h('a.btn.small.ghost', { href: url, target: '_blank', rel: 'noopener' }, titleCase(key) + ' ↗'));
   }
 
-  const left = h('div.d-left', h('div.d-image', face), h('div.price-badges', priceBadges), h('div.d-links', links), watchButton(card, holdings));
+  const left = h('div.d-left', h('div.d-image', face), h('div.price-badges', priceBadges), h('div.d-links', links), h('div.form-row.d-actions', h('button.btn.small.go', { type: 'button', onclick: () => openAddDialog({ oracleId: card.oracle_id, name: card.name, scryfallId: card.scryfall_id, quantity: 1 }) }, '＋ Add to collection')), watchButton(card, holdings));
 
   const facesBlock = faces.map((f, i) => h('div.face-block',
     faces.length > 1 ? h('div.face-name', h('span', f.name), ' ', manaCost(f.mana_cost)) : null,
@@ -159,7 +160,7 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
     h('tbody', holdings.map(x => h('tr', { class: x.scryfall_id === card.scryfall_id ? 'this-printing' : '' },
       manyPrintings ? h('td', { title: x.scryfall_id === card.scryfall_id ? 'This printing' : '' },
         `${(x.set_code || '').toUpperCase()} #${x.collector_number || '?'}${x.scryfall_id === card.scryfall_id ? ' ●' : ''}`) : null,
-      h('td', finishLabel(x.finish)), h('td', x.condition ? titleCase(x.condition) : '—'), h('td', (x.language || '').toUpperCase() || '—'),
+      h('td', finishLabel(x.finish), ' ', handMark(x.source, { text: true })), h('td', x.condition ? titleCase(x.condition) : '—'), h('td', (x.language || '').toUpperCase() || '—'),
       h('td.num', int(x.quantity)), h('td.num', money(x.purchase_price)), h('td.num', money(x.price_usd)),
       h('td.num', { class: 'gain ' + signedClass(x.gain_usd) }, x.gain_usd == null ? '—' : signedMoney(x.gain_usd)),
       h('td', (x.added_at || '').slice(0, 10) || '—')))),

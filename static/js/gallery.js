@@ -1,5 +1,6 @@
 // Gallery view: toolbar, answer strip, and a virtualised grid / list over paged search results.
 import { h, $, clear, int, money, signedMoney, changeChip, manaCost, finishLabel, formatLabel, sortFormats, spinner, errorBox, signedClass } from './util.js';
+import { handMark } from './addcards.js';
 import { api } from './api.js';
 import { cardTile, rarityGem, unobserve, attachHoverPreview, hideHoverPreview } from './cards.js';
 import { breakdownPanels } from './breakdown.js';
@@ -303,7 +304,7 @@ function listRow(card, open) {
   const gain = paid != null && card.price_usd != null ? (card.price_usd - paid) * card.quantity : null;
   const row = h('div.lrow', { role: 'button', tabindex: '0', 'aria-label': `${card.name}, ${card.set_code}`, onclick: open,
     onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } } },
-    h('span.c-name', rarityGem(card.rarity), h('span.nm', card.name), card.finish !== 'normal' ? h('span.foil-mark', { title: finishLabel(card.finish) }, '✦') : null),
+    h('span.c-name', rarityGem(card.rarity), h('span.nm', card.name), handMark(card.source), card.finish !== 'normal' ? h('span.foil-mark', { title: finishLabel(card.finish) }, '✦') : null),
     h('span.c-set', { title: card.set_name }, h('a.set-link', { href: `#/sets/${encodeURIComponent((card.set_code || '').toLowerCase())}`, onclick: e => e.stopPropagation(), tabindex: '-1' }, (card.set_code || '').toUpperCase()), h('span.muted', ' #' + (card.collector_number || ''))),
     h('span.c-cost', manaCost(card.mana_cost)),
     h('span.c-type', { title: card.type_line }, card.type_line),

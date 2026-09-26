@@ -12,6 +12,7 @@ import { showRadar } from './js/radar.js';
 import { showBuild } from './js/build.js';
 import { showAlerts, initBell } from './js/alerts.js';
 import { showSets } from './js/sets.js';
+import { openHandAdded } from './js/addcards.js';
 import { runSetupIfNeeded, checkBackgroundJob, updateCollection, refreshNow, quitApp } from './js/setup.js';
 
 const TABS = ['gallery', 'decks', 'sets', 'build', 'dashboard', 'radar', 'deck', 'extras', 'alerts'];
@@ -113,6 +114,7 @@ function initToolsMenu() {
   });
   list.addEventListener('click', e => { if (e.target.closest('a, button')) close(false); });
   $('#toolUpdate').addEventListener('click', updateCollection);
+  $('#toolAdd').addEventListener('click', openHandAdded);
   $('#toolRefresh').addEventListener('click', refreshNow);
   $('#toolQuit').addEventListener('click', quitApp);
   document.addEventListener('click', e => { if (!e.target.closest('.tools-menu')) close(false); });
@@ -179,6 +181,12 @@ async function init() {
   setDetailHooks({ search: searchFromElsewhere });
   initDashboard({ search: searchFromElsewhere });
   addEventListener('hashchange', route);
+  // Cards added or edited by hand: refresh whatever view is open once the server has reloaded.
+  addEventListener('cardclops:collection-changed', () => {
+    loadHeaderSummary();
+    if (tab === 'gallery') updateGallery(state, { force: true });
+    else if (!document.querySelector('.dialog')) route();
+  });
   addEventListener('popstate', route);
   initToolsMenu();
   route();

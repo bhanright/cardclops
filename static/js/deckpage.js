@@ -1,6 +1,7 @@
 // One deck: header (rename, format, status, priority, notes, replace/copy/delete), the list with
 // allocations and pins, statistics, value history, suggestions from the collection and a sample hand.
 import { h, clear, int, money, spinner, errorBox, manaCost, finishLabel, copyText, toast } from './util.js';
+import { openAddDialog } from './addcards.js';
 import { api } from './api.js';
 import { attachHoverPreview, hideHoverPreview, cardFace, thumb } from './cards.js';
 import { openCard } from './detail.js';
@@ -360,7 +361,11 @@ function lineRow(line) {
     h('button.dl-card', { type: 'button', disabled: !line.card, onclick: () => openLine(line) },
       h('span.dl-name', line.name), line.card?.mana_cost ? manaCost(line.card.mana_cost) : null),
     h('span.dl-status', { title: st.title || '' }, st.text),
-    h('span.dl-copies', allocs.map(a => copyChip(a, { price: false }))),
+    h('span.dl-copies', allocs.map(a => copyChip(a, { price: false })),
+      line.missing && line.missing_reason === 'not_owned' && line.oracle_id && line.section !== 'maybeboard'
+        ? h('button.add-own', { type: 'button', title: 'Record copies you have that aren’t in your collection yet',
+          onclick: () => openAddDialog({ oracleId: line.oracle_id, name: line.name, scryfallId: line.requested ? line.card?.scryfall_id : null, quantity: line.missing }) },
+        `＋ Add ${line.missing} to my collection`) : null),
     h('span.dl-value', value ? money(value) : line.card?.price_usd != null ? h('span.muted', money(line.card.price_usd)) : '—'),
     hasPanel ? h('button.dl-more', { type: 'button', 'aria-expanded': String(open), 'aria-controls': panelId, dataset: { focus: `more-${line.line_id}` }, title: 'Choose which copies this line uses',
       onclick: () => {

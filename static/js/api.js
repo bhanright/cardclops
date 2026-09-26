@@ -68,6 +68,12 @@ export const api = {
   },
   refresh: () => request('/api/refresh', { method: 'POST', body: {} }),
   quit: () => request('/api/quit', { method: 'POST', body: {} }),
+  collection: {
+    add: row => request('/api/collection/add', { method: 'POST', body: row }),
+    manual: () => request('/api/collection/manual'),
+    updateManual: (id, fields) => request(`/api/collection/manual/${id}`, { method: 'PATCH', body: fields }),
+    removeManual: id => request(`/api/collection/manual/${id}`, { method: 'DELETE' }),
+  },
   lookup: params => request('/api/cards/lookup?' + qs(params)),
   reprints: params => request('/api/reprints?' + qs(params || {})),
   build: {

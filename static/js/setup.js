@@ -1,4 +1,5 @@
 // First-run setup wizard, the shared collection-import flow, background-job banner, and the
+import { reconciledList } from './addcards.js';
 // housekeeping actions in the Tools menu (update collection, refresh card data, quit). docs/SETUP.md.
 import { h, $, clear, int, spinner, errorBox, store, toast } from './util.js';
 import { api } from './api.js';
@@ -127,7 +128,8 @@ export function importFlow({ onDone, intro } = {}) {
           approxCount != null ? h('div.bignum.c-yellow', { title: 'Matched by name when the set or number didn’t line up' }, h('div.bn-value', int(approxCount)), h('div.bn-label', 'Approximate')) : null,
           h('div', { class: 'bignum ' + (unmatched.length ? 'c-orange' : 'c-mute') }, h('div.bn-value', int(Math.max(unmatched.length, (r.rows || 0) - (r.matched || 0)))), h('div.bn-label', 'Not matched'))),
         rowList(unmatched, `${unmatched.length} row${unmatched.length === 1 ? '' : 's'} not matched${unmatched.length >= 200 ? ' (first 200)' : ''}`),
-        rowList(approx, `${approx.length} approximate match${approx.length === 1 ? '' : 'es'} — worth a look`)),
+        rowList(approx, `${approx.length} approximate match${approx.length === 1 ? '' : 'es'} — worth a look`),
+        reconciledList(r.manual_reconciled)),
       h('div.form-row', h('button.btn.ghost', { type: 'button', onclick: pick }, 'Import a different file')));
     onDone?.(r);
   };
