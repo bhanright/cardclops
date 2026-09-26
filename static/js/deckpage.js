@@ -241,7 +241,7 @@ function noticeBox() {
 function commanderPicker(deck) {
   const needsOne = /commander|brawl|oathbreaker|predh|duel/.test(deck.format || '') && !data.lines.some(l => l.section === 'commander');
   if (!needsOne) return null;
-  const can = l => l.oracle_id && l.card && /Legendary/.test(l.card.type_line || '') && /Creature|Planeswalker|Background/.test(l.card.type_line || '');
+  const can = l => l.oracle_id && l.card && l.can_be_commander;     // the server applies rule 903.3
   const candidates = data.lines.filter(l => l.section !== 'maybeboard' && can(l));
   const chosen = new Set();
   const save = h('button.btn.go', { type: 'button', disabled: true, onclick: () => patch({ commanders: [...chosen] }, 'Commander set') }, 'Set commander');
@@ -261,7 +261,7 @@ function commanderPicker(deck) {
     h('h2', '★ Choose a commander'),
     h('p', `This ${deckFormatLabel(deck.format)} deck has nobody in the command zone, so color identity and legality can't be judged yet. `,
       'Pick one card below (or two partners).'),
-    candidates.length ? h('div.pick-grid', buttons) : h('p.muted', 'No legendary creatures in the list. Replace the list with a commander section, or change the format.'),
+    candidates.length ? h('div.pick-grid', buttons) : h('p.muted', 'No card in the list can be a commander. Replace the list with a commander section, or change the format.'),
     candidates.length ? h('div.form-row', save) : null);
   return picker;
 }
@@ -390,7 +390,7 @@ function copiesPanel(line, id) {
     catch (error) { toast('Could not pin: ' + error.message); button.disabled = false; }
   };
   const isCommanderFormat = /commander|brawl|oathbreaker|predh|duel/.test(data.deck.format || '');
-  const canLead = isCommanderFormat && line.section === 'main' && /Legendary/.test(line.card?.type_line || '') && /Creature|Planeswalker/.test(line.card?.type_line || '');
+  const canLead = isCommanderFormat && line.section === 'main' && line.can_be_commander;
   return h('div.copies-panel', { id },
     h('div.cp-col',
       h('h4', 'Using now'),

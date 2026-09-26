@@ -28,7 +28,7 @@ import re
 import time
 from collections import Counter, defaultdict
 
-from .deckstats import (COLORS, DeckCard, card_pips, category_of, compute_deck_stats, front_type_line,
+from .deckstats import (can_be_commander, COLORS, DeckCard, card_pips, category_of, compute_deck_stats, front_type_line,
                         is_basic_land, is_land, land_source_keys, mana_value, oracle_text)
 from .decks import fold
 from .manafix import enters_tapped
@@ -138,8 +138,8 @@ class _Card:
         main_types = type_line.split("—")[0].split()
         self.playable = (self.legal and lead.layout not in NOT_PLAYABLE_LAYOUTS
                          and "Token" not in main_types and "Emblem" not in main_types)
-        self.can_lead = self.legal and (("Legendary" in main_types and "Creature" in main_types)
-                                        or "can be your commander" in oracle_text(card).lower())
+        # Backgrounds lead only alongside a partner, so they aren't ranked on their own.
+        self.can_lead = self.legal and can_be_commander(card) and "Background" not in type_line
         self.background = "Background" in type_line
         # Colors whose spells the card rewards ("Black spells you cast cost {1} less"): Jet
         # Medallion is colorless, so it passes the identity check, but does nothing in a red deck.

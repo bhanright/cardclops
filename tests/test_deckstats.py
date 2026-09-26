@@ -287,7 +287,7 @@ class LegalityTests(unittest.TestCase):
     def test_commander_eligibility(self):
         bears = make_card("Plain Bear", "Creature — Bear", "{1}{G}", 2, ["G"])
         stats = compute_deck_stats(self.commander_deck(commander=bears), "commander", TAGS)
-        self.assertIn(("Plain Bear", "not a legendary creature, so it cannot be a commander"), self.reasons(stats))
+        self.assertIn(("Plain Bear", "not legendary, so it cannot be a commander"), self.reasons(stats))
         walker = make_card("Teferi, Temporal Archmage", "Legendary Planeswalker — Teferi", "{4}{U}{U}", 6, ["U"],
                            oracle_text="Teferi, Temporal Archmage can be your commander.")
         islands = [line(walker, section="commander"), line(basic("Island", "U"), 99)]
@@ -370,3 +370,40 @@ class FunctionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CommanderEligibilityTests(unittest.TestCase):
+    """Rule 903.3 as updated for Edge of Eternities (2025)."""
+
+    def card(self, type_line, text="", power=None, toughness=None, faces=None):
+        card = {"name": "X", "type_line": type_line, "oracle_text": text, "layout": "normal"}
+        if power is not None:
+            card.update(power=power, toughness=toughness)
+        if faces:
+            card = {"name": "X", "layout": "transform", "card_faces": faces}
+        return card
+
+    def test_the_new_rule_and_its_edges(self):
+        from gallery.deckstats import can_be_commander
+        yes = {
+            "legendary creature": self.card("Legendary Creature — Elf Druid"),
+            "legendary Spacecraft with P/T (Hearthhull)": self.card("Legendary Artifact — Spacecraft",
+                                                                    "Station (…)", "6", "7"),
+            "legendary Vehicle": self.card("Legendary Artifact — Vehicle", "Crew 3", "5", "5"),
+            "Background": self.card("Legendary Enchantment — Background"),
+            "says so": self.card("Legendary Planeswalker — Teferi", "Teferi can be your commander."),
+            "Grist": self.card("Legendary Planeswalker — Grist",
+                               "As long as Grist isn't on the battlefield, it's a 1/1 Insect creature."),
+        }
+        no = {
+            "legendary Spacecraft without P/T": self.card("Legendary Artifact — Spacecraft", "Station (…)"),
+            "legendary artifact": self.card("Legendary Artifact — Equipment"),
+            "plain creature": self.card("Creature — Goblin"),
+            "planeswalker outside Brawl": self.card("Legendary Planeswalker — Jace"),
+            "token": self.card("Legendary Token Creature — Spirit"),
+        }
+        for label, card in yes.items():
+            self.assertTrue(can_be_commander(card), label)
+        for label, card in no.items():
+            self.assertFalse(can_be_commander(card), label)
+        self.assertTrue(can_be_commander(self.card("Legendary Planeswalker — Jace"), "brawl"))

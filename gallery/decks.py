@@ -19,6 +19,7 @@ from datetime import datetime
 
 from . import scryfall, versions
 from .collection import build_entry
+from .deckstats import can_be_commander
 
 SECTIONS = ("commander", "companion", "main", "sideboard", "maybeboard")
 USES_COPIES = ("commander", "companion", "main", "sideboard")      # maybeboard reserves nothing
@@ -640,6 +641,7 @@ class DeckBook:
                            "finish": row["requested_finish"]}
                           if row["requested_set"] or row["requested_finish"] else None),
             "card": summary, "category": category, "tags": sorted(entry.tags) if entry else [],
+            "can_be_commander": bool(entry) and can_be_commander(entry.card, self.decks[row["deck_id"]]["format"]),
             "allocations": [{**self.pool_info(pool), "quantity": quantity, "pinned": pinned}
                             for pool, quantity, pinned in state.allocations],
             "owned": state.owned, "missing": state.missing, "missing_reason": state.missing_reason,
@@ -813,10 +815,8 @@ class DeckBook:
         card = self.card_data(first.row["scryfall_id"]) if first and first.row["scryfall_id"] else None
         if not card or first.row["quantity"] != 1:
             return
-        front = (card.get("card_faces") or [card])[0]
-        type_line = front.get("type_line") or card.get("type_line", "")
-        text = card.get("oracle_text") or front.get("oracle_text") or ""
-        if ("Legendary" in type_line and "Creature" in type_line) or "can be your commander" in text:
+        from .deckstats import can_be_commander
+        if can_be_commander(card, fmt) and "Background" not in (card.get("type_line") or ""):
             connection.execute("UPDATE deck_lines SET section = 'commander' WHERE line_id = ?", (first.row["line_id"],))
 
     def _type_line(self, state):

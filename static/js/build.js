@@ -82,7 +82,7 @@ async function loadList() {
     h('span', 'Checking ', count, ' commanders against your spare cards… the first look can take a few seconds.'))));
   clear(grid);
   // How many commanders are about to be checked, for the spinner (cheap search, best effort).
-  api.search({ q: 't:legendary (t:creature or o:"can be your commander") spare>=1', limit: 1, unique: 'cards' })
+  api.search({ q: 'is:commander f:commander spare>=1', limit: 1, unique: 'cards' })
     .then(r => { if (r.totals?.unique_cards) count.textContent = int(r.totals.unique_cards); }).catch(() => {});
   let response;
   try {

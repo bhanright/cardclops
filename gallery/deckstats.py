@@ -617,6 +617,36 @@ def _is_legendary(card):
     return "Legendary" in front_type_line(card).split("—")[0].split()
 
 
+BRAWL_FORMATS = ("brawl", "standardbrawl")
+
+
+def can_be_commander(card, deck_format=None):
+    """Whether a card may be chosen as a commander, per Commander rule 903.3 as updated for Edge of
+    Eternities (2025): a legendary creature, or a legendary Vehicle or Spacecraft with a power/toughness
+    box on its front face; a Background (it leads alongside a "Choose a Background" creature); a card
+    whose text says it can be your commander; and in Brawl, a legendary planeswalker.
+    Format legality is a separate question (legalities["commander"])."""
+    type_line = front_type_line(card)
+    main_types = type_line.split("—")[0].split()
+    subtypes = type_line.split("—")[1].split() if "—" in type_line else []
+    text = oracle_text(card).lower()
+    if "Token" in main_types:
+        return False
+    if "can be your commander" in text:
+        return True
+    if "Legendary" not in main_types:
+        return False
+    if "Creature" in main_types or "Background" in subtypes:
+        return True
+    front = front_face(card)
+    has_power_toughness = (front.get("power") if front.get("power") is not None else card.get("power")) is not None
+    if ("Vehicle" in subtypes or "Spacecraft" in subtypes) and has_power_toughness:
+        return True
+    if "isn't on the battlefield, it's a" in text and "creature" in text:
+        return True                                   # Grist, the Hunger Tide
+    return deck_format in BRAWL_FORMATS and "Planeswalker" in main_types
+
+
 def _commander_problems(commanders, deck_format, facts):
     """Errors for commanders that plainly cannot lead; warnings where the rules are too varied to be sure."""
     problems, warnings = [], []
@@ -631,19 +661,16 @@ def _commander_problems(commanders, deck_format, facts):
         return problems, warnings
     for line, name in zip(commanders, names):
         card = line.card
-        types = facts[id(card)]["types"]
-        text = oracle_text(card).lower()
-        if "can be your commander" in text:
+        if "Background" in front_type_line(card) and len(commanders) == 1:
+            problems.append({"name": name, "reason": "a Background leads only alongside a \"Choose a Background\" commander"})
             continue
-        if len(commanders) == 2 and "Background" in front_type_line(card):
-            continue                          # checked with its partner below
-        if _is_legendary(card) and ("Creature" in types or (deck_format in ("brawl", "standardbrawl")
-                                                            and "Planeswalker" in types)):
-            continue
+        if can_be_commander(card, deck_format):
+            continue                          # a pair is checked below
         if _is_legendary(card):
-            warnings.append({"name": name, "reason": "legendary but not a creature; check it can be a commander"})
+            problems.append({"name": name, "reason": "legendary, but not a creature, Vehicle or Spacecraft with power "
+                                                     "and toughness, so it cannot be a commander"})
         else:
-            problems.append({"name": name, "reason": "not a legendary creature, so it cannot be a commander"})
+            problems.append({"name": name, "reason": "not legendary, so it cannot be a commander"})
     if len(commanders) == 2:
         first, second = (line.card for line in commanders)
 
