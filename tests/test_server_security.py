@@ -6,6 +6,7 @@ import http.client
 import json
 import threading
 import unittest
+from unittest import mock
 from http.server import ThreadingHTTPServer
 
 from gallery import server
@@ -87,6 +88,18 @@ class SecurityTests(unittest.TestCase):
                                           {"Content-Type": "application/json", "Origin": origin}), 403, origin)
         self.assertEqual(self.request("DELETE", "/api/decks/3", headers={"Origin": "https://evil.example"}), 403)
         self.assertEqual(self.gallery.writes, [])
+
+    def test_a_hosted_name_is_accepted_only_when_configured(self):
+        self.assertEqual(self.request("GET", "/api/summary", headers={"Host": "cardclops.com"}), 403)
+        with mock.patch.object(server, "HOSTED_NAMES", {"cardclops.com"}):
+            self.assertEqual(self.request("GET", "/api/summary", headers={"Host": "cardclops.com"}), 200)
+            self.assertEqual(self.request("POST", "/api/alerts/seen", '{"all": true}',
+                                          {"Host": "cardclops.com", "Content-Type": "application/json",
+                                           "Origin": "https://cardclops.com"}), 200)
+            self.assertEqual(self.request("POST", "/api/alerts/seen", '{"all": true}',
+                                          {"Host": "cardclops.com", "Content-Type": "application/json",
+                                           "Origin": "http://cardclops.com"}), 403)      # only over https
+            self.assertEqual(self.request("GET", "/api/summary", headers={"Host": "evil.cardclops.com"}), 403)
 
     def test_host_parsing(self):
         self.assertEqual(server._host_name("LOCALHOST:8765"), "localhost")

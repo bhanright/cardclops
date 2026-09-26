@@ -4,6 +4,7 @@ Stdlib only. Everything is read from the in-memory Collection; the database
 is touched for price series, the portfolio and a few reference tables.
 """
 import json
+import os
 import re
 import socket
 import threading
@@ -732,6 +733,11 @@ def _breakdown(entries):
 #   the browser ask first (a CORS preflight this server never grants), and must not
 #   carry another site's Origin.
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]"}
+# A hosted copy is reached through a Cloudflare Tunnel under its own name (and Cloudflare Access
+# decides who may reach it). CARDCLOPS_ALLOWED_HOSTS lists those names, e.g. "cardclops.com";
+# pages served under them are https.
+HOSTED_NAMES = {name.strip().lower() for name in os.environ.get("CARDCLOPS_ALLOWED_HOSTS", "").split(",")
+                if name.strip()}
 
 
 def _host_name(value):
@@ -744,7 +750,8 @@ def _host_name(value):
 
 def _is_local_origin(origin):
     parsed = urllib.parse.urlsplit(origin)
-    return parsed.scheme == "http" and _host_name(parsed.netloc) in LOCAL_HOSTS
+    host = _host_name(parsed.netloc)
+    return (parsed.scheme == "http" and host in LOCAL_HOSTS) or (parsed.scheme == "https" and host in HOSTED_NAMES)
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -753,7 +760,7 @@ class Handler(SimpleHTTPRequestHandler):
     def _refused(self, write):
         """Answers 403 and returns True when a request fails the checks above."""
         reason = None
-        if _host_name(self.headers.get("Host")) not in LOCAL_HOSTS:
+        if _host_name(self.headers.get("Host")) not in LOCAL_HOSTS | HOSTED_NAMES:
             reason = "This server only answers requests addressed to localhost."
         elif write:
             origin = self.headers.get("Origin")
