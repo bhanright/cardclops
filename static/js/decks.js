@@ -1,0 +1,440 @@
+// Decks tab: the deck grid with totals, filters and sorting, plus the import panel (paste or files).
+import { h, $, clear, int, money, spinner, errorBox, store, symbol, formatLabel, toast } from './util.js';
+import { api } from './api.js';
+import { lazyImg } from './cards.js';
+import { showDeckPage, hideDeckPage } from './deckpage.js';
+
+export const DECK_FORMATS = ['commander', 'standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'paupercommander',
+  'oathbreaker', 'brawl', 'standardbrawl', 'historic', 'timeless', 'alchemy', 'explorer', 'penny', 'premodern',
+  'oldschool', 'predh', 'duel', 'gladiator', 'casual'];
+export const deckFormatLabel = f => (f === 'casual' ? 'Casual' : f ? formatLabel(f) : 'No format');
+
+const PREFS_KEY = 'gallery.decks';
+const prefs = { filter: 'all', sort: 'name', ...store.get(PREFS_KEY, {}) };
+let built = false;
+let home, page, grid, totalsBox, toolbar, importPanel;
+let lastData = null;
+
+/** Show the deck grid (deckId null) or one deck's page. */
+export function showDecks(deckId) {
+  const root = $('#view-decks');
+  if (!built) {
+    built = true;
+    home = h('div.decks-home');
+    page = h('div.deck-page', { hidden: true });
+    root.append(home, page);
+    buildHome();
+  }
+  if (deckId != null) {
+    home.hidden = true;
+    page.hidden = false;
+    showDeckPage(page, deckId);
+  } else {
+    hideDeckPage();
+    page.hidden = true;
+    home.hidden = false;
+    load();
+  }
+}
+
+// ---------- home ----------
+function buildHome() {
+  const importBtn = h('button.btn.go', { type: 'button', 'aria-expanded': 'false', onclick: () => toggleImport() }, '＋ Import decks');
+  toolbar = h('div.panel-tools');
+  totalsBox = h('div.deck-totals');
+  importPanel = buildImportPanel();
+  importPanel.hidden = true;
+  grid = h('div.deck-grid', { 'aria-live': 'polite' });
+  home.append(
+    h('section.panel.decks-head',
+      h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, importBtn)),
+      totalsBox),
+    importPanel,
+    grid);
+  home.importBtn = importBtn;
+  buildToolbar();
+}
+
+function toggleImport(force) {
+  const open = force ?? importPanel.hidden;
+  importPanel.hidden = !open;
+  home.importBtn.setAttribute('aria-expanded', String(open));
+  home.importBtn.textContent = open ? '× Close import' : '＋ Import decks';
+  if (open) importPanel.querySelector('input, textarea')?.focus();
+}
+
+function buildToolbar() {
+  clear(toolbar);
+  const seg = h('div.seg', { role: 'group', 'aria-label': 'Show decks' },
+    [['active', 'Active'], ['inactive', 'Inactive'], ['all', 'All']].map(([value, label]) => h('button.seg-btn', {
+      type: 'button', class: prefs.filter === value ? 'on' : null, 'aria-pressed': String(prefs.filter === value),
+      onclick: () => { prefs.filter = value; store.set(PREFS_KEY, prefs); buildToolbar(); renderGrid(); } }, label)));
+  const sort = h('select.select', { 'aria-label': 'Sort decks', onchange: e => { prefs.sort = e.target.value; store.set(PREFS_KEY, prefs); renderGrid(); } },
+    [['name', 'Name'], ['value', 'Value'], ['updated', 'Recently updated']].map(([v, l]) => h('option', { value: v, selected: prefs.sort === v }, l)));
+  toolbar.append(seg, sort);
+}
+
+async function load() {
+  if (!lastData) clear(grid).append(spinner('Shuffling decks…'));
+  try {
+    lastData = await api.decks.list();
+  } catch (error) {
+    clear(grid).append(errorBox(error.message));
+    return;
+  }
+  renderTotals(lastData.totals || {});
+  renderGrid();
+}
+
+function renderTotals(t) {
+  clear(totalsBox).append(h('div.bignums',
+    h('div.bignum.c-lime', h('div.bn-value', int(t.active ?? 0)), h('div.bn-label', 'Active decks')),
+    h('div.bignum.c-violet', h('div.bn-value', int(t.inactive ?? 0)), h('div.bn-label', 'Inactive')),
+    h('div.bignum.c-cyan', h('div.bn-value', int(t.copies_in_decks ?? 0)), h('div.bn-label', 'Copies in decks')),
+    h('div.bignum.c-yellow', h('div.bn-value', money(t.value_in_decks_usd ?? 0, { whole: (t.value_in_decks_usd ?? 0) >= 1000 })), h('div.bn-label', 'Value in decks')),
+    h('div', { class: 'bignum ' + (t.conflicts ? 'c-pink' : 'c-mute'), title: 'Deck lines short of copies because another active deck holds them' },
+      h('div.bn-value', (t.conflicts ? '⚠ ' : '') + int(t.conflicts ?? 0)), h('div.bn-label', 'Conflicts'))));
+}
+
+function renderGrid() {
+  if (!lastData) return;
+  const decks = (lastData.decks || []).filter(d => prefs.filter === 'all' || d.status === prefs.filter);
+  const sorters = {
+    name: (a, b) => a.name.localeCompare(b.name),
+    value: (a, b) => (b.value_usd || 0) - (a.value_usd || 0),
+    updated: (a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''),
+  };
+  decks.sort(sorters[prefs.sort] || sorters.name);
+  clear(grid);
+  if (!lastData.decks?.length) {
+    grid.append(h('div.empty', h('div.blob-eye', { 'aria-hidden': 'true' }),
+      h('p', 'No decks yet. Paste a list or drop some deck files to get started.'),
+      h('button.btn.go', { type: 'button', onclick: () => toggleImport(true) }, '＋ Import decks')));
+    return;
+  }
+  if (!decks.length) { grid.append(h('div.chart-empty', `No ${prefs.filter} decks.`)); return; }
+  grid.append(...decks.map(deckTile));
+}
+
+export function colorPips(identity) {
+  const colors = (identity || []).filter(c => 'WUBRG'.includes(c));
+  return h('span.pips', { 'aria-label': colors.length ? `Color identity ${colors.join('')}` : 'Colorless' },
+    colors.length ? colors.map(c => symbol(c)) : symbol('C'));
+}
+
+function deckTile(d) {
+  const total = (d.owned || 0) + (d.missing || 0);
+  const pct = total ? Math.round((d.owned / total) * 100) : 100;
+  const conflict = d.status === 'active' && d.missing_used_elsewhere > 0;   // an inactive deck reserves nothing, so it can't conflict
+  return h('a', { class: `deck-tile ${d.status}`, href: `#/decks/${d.deck_id}`, 'aria-label': `${d.name}, ${deckFormatLabel(d.format)}, ${d.status}` },
+    h('div.dt-cover',
+      d.cover ? lazyImg(d.cover, '', 'dt-art') : h('div.dt-art.placeholder', { 'aria-hidden': 'true' }),
+      h('span', { class: 'status-pill ' + (d.status === 'active' ? 'on' : 'off') }, d.status === 'active' ? '● Active' : '○ Inactive'),
+      h('span', { class: 'legal-pill ' + (d.legal ? 'ok' : 'bad'), title: d.legal ? `Legal in ${deckFormatLabel(d.format)}` : `Not legal in ${deckFormatLabel(d.format)}` },
+        d.legal ? '✓ Legal' : '✗ Not legal'),
+      conflict ? h('span.conflict-pill', { title: `${d.missing_used_elsewhere} missing ${d.missing_used_elsewhere === 1 ? 'copy is' : 'copies are'} held by other active decks` }, `⇄ ${d.missing_used_elsewhere} used elsewhere`) : null),
+    h('div.dt-body',
+      h('div.dt-name', d.name),
+      h('div.dt-meta', h('span.fmt', deckFormatLabel(d.format)), colorPips(d.color_identity), h('span.muted', `${int(d.card_count)} cards`),
+        d.copy_policy && d.copy_policy !== 'default' ? h('span', { class: 'policy-mark ' + d.copy_policy, title: d.copy_policy === 'budget' ? 'Uses your cheapest copies' : 'Uses your fanciest copies' }, d.copy_policy === 'budget' ? '$ budget' : '✦ bling') : null),
+      h('div.progress', { role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': pct, 'aria-label': 'Copies owned' },
+        h('span.progress-fill', { class: pct >= 100 ? 'full' : null, style: { width: pct + '%' } })),
+      h('div.dt-foot',
+        h('span', d.missing ? [h('b', int(d.owned)), `/${int(total)} · `, h('span.miss', `${int(d.missing)} missing`)] : [h('b', '✓ '), 'complete']),
+        h('span.dt-value', money(d.value_usd, { whole: d.value_usd >= 1000 })))));
+}
+
+// ---------- import ----------
+function formatSelect(label, value = '') {
+  return h('select.select', { 'aria-label': label },
+    h('option', { value: '', selected: !value }, 'Auto-detect'),
+    DECK_FORMATS.map(f => h('option', { value: f, selected: f === value }, deckFormatLabel(f))));
+}
+
+function statusSeg(get, set) {
+  const seg = h('div.seg', { role: 'group', 'aria-label': 'Status' });
+  const draw = () => {
+    clear(seg).append(...[['active', 'Active'], ['inactive', 'Inactive']].map(([v, l]) =>
+      h('button.seg-btn', { type: 'button', class: get() === v ? 'on' : null, 'aria-pressed': String(get() === v), onclick: () => { set(v); draw(); } }, l)));
+  };
+  draw();
+  return seg;
+}
+
+function buildImportPanel() {
+  let status = 'active';
+  const files = [];                       // {name, text, source}
+  const name = h('input.text-input', { type: 'text', placeholder: 'Deck name', 'aria-label': 'Deck name' });
+  const format = formatSelect('Format');
+  const text = h('textarea.deck-text', { spellcheck: 'false', 'aria-label': 'Decklist',
+    placeholder: 'Commander\n1 Atraxa, Praetors\' Voice\n\nDeck\n1 Sol Ring (C21) 263\n1 Arcane Signet *F*\n…' });
+  const fileInput = h('input', { type: 'file', multiple: true, accept: '.txt,.dek,.dck,.csv,text/plain,text/csv', hidden: true });
+  const fileList = h('ul.file-list');
+  const results = h('div.import-results', { 'aria-live': 'polite' });
+  const go = h('button.btn.go', { type: 'submit' }, 'Import');
+
+  const drawFiles = () => {
+    clear(fileList);
+    files.forEach((f, i) => fileList.append(h('li',
+      h('input.text-input', { type: 'text', value: f.name, 'aria-label': `Deck name for ${f.file}`, oninput: e => { f.name = e.target.value; } }),
+      h('span.muted.small', `${f.file} · ${f.lines} lines`),
+      h('button.link-btn', { type: 'button', 'aria-label': `Remove ${f.file}`, onclick: () => { files.splice(i, 1); drawFiles(); } }, 'remove'))));
+  };
+  const addFiles = async list => {
+    for (const file of list) {
+      if (!/\.(txt|dek|dck|csv)$/i.test(file.name)) { toast(`Skipped ${file.name}: not a .txt/.dek/.dck/.csv file`); continue; }
+      const raw = await readFile(file);
+      const parsed = normalizeDeckFile(file.name, raw);
+      files.push({ file: file.name, name: parsed.name, text: parsed.text, lines: parsed.text.split('\n').filter(l => /^\s*\d/.test(l)).length });
+    }
+    drawFiles();
+  };
+  fileInput.addEventListener('change', () => { addFiles([...fileInput.files]); fileInput.value = ''; });
+
+  const drop = h('div.dropzone', { tabindex: '0', role: 'button', 'aria-label': 'Choose deck files or drop them here',
+    onclick: () => fileInput.click(),
+    onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } } },
+  h('div.dz-blob', { 'aria-hidden': 'true' }, '⇩'),
+  h('div', h('b', 'Drop deck files here'), ' or click to choose'),
+  h('div.muted.small', '.txt · .dek (MTGO) · .dck (Forge/XMage) · .csv — several at once is fine'));
+  for (const type of ['dragenter', 'dragover']) drop.addEventListener(type, e => { e.preventDefault(); drop.classList.add('over'); });
+  for (const type of ['dragleave', 'drop']) drop.addEventListener(type, e => { e.preventDefault(); drop.classList.remove('over'); });
+  drop.addEventListener('drop', e => addFiles([...(e.dataTransfer?.files || [])]));
+
+  const form = h('form.panel.import-panel', { onsubmit: async event => {
+    event.preventDefault();
+    const decks = [];
+    const fmt = format.value || null;
+    if (text.value.trim()) decks.push({ name: name.value.trim() || 'Pasted deck', text: text.value, format: fmt, status, source: 'paste', source_url: null });
+    for (const f of files) decks.push({ name: f.name.trim() || f.file, text: f.text, format: fmt, status, source: 'file', source_url: null });
+    if (!decks.length) { clear(results).append(errorBox('Paste a list or add at least one file first.')); return; }
+    go.disabled = true;
+    clear(results).append(spinner(`Importing ${decks.length} deck${decks.length === 1 ? '' : 's'}…`));
+    try {
+      const response = await api.decks.import(decks);
+      renderImportResults(results, response);
+      text.value = ''; name.value = ''; files.length = 0; drawFiles();
+      load();
+    } catch (error) {
+      clear(results).append(errorBox(error.message));
+    } finally { go.disabled = false; }
+  } },
+  h('div.panel-head', h('h2', 'Import decks'), h('span.muted.small', 'MTGO, Arena, Moxfield and Archidekt exports. Set codes and *F* markers pick printings.')),
+  h('div.import-grid',
+    h('div.import-paste',
+      h('h3', 'Paste a list'),
+      h('div.form-row', name),
+      text,
+      h('p.hint', h('b', 'From Moxfield: '), 'More → Export → Copy for Moxfield, then paste here (keeps printings and foils).')),
+    h('div.import-files',
+      h('h3', 'Or import files'),
+      drop, fileInput, fileList)),
+  h('div.form-row.import-opts',
+    h('label.inline-label', 'Format ', format),
+    h('span.inline-label', 'Status ', statusSeg(() => status, v => { status = v; })),
+    go),
+  results,
+  archidektSection(() => status, results));
+  return form;
+}
+
+/** Archidekt import: paste deck links, or list a user's public decks and pick. One deck a second server-side. */
+function archidektSection(getStatus, results) {
+  const urls = h('textarea.url-text', { spellcheck: 'false', 'aria-label': 'Archidekt deck links, one per line',
+    placeholder: 'https://archidekt.com/decks/123456/my_deck\nhttps://archidekt.com/decks/654321/…' });
+  const user = h('input.text-input', { type: 'text', placeholder: 'Archidekt username', 'aria-label': 'Archidekt username', autocomplete: 'off' });
+  const listBox = h('div.arch-list');
+  const run = async (list, button) => {
+    if (!list.length) return;
+    button.disabled = true;
+    const seconds = list.length;
+    const started = Date.now();
+    const elapsed = h('b', '0 s');
+    clear(results).append(h('div.asking-box', spinner(), h('div', `Fetching ${list.length} deck${list.length === 1 ? '' : 's'} from Archidekt, one a second — about ${seconds} s. `, elapsed)));
+    const timer = setInterval(() => { elapsed.textContent = Math.round((Date.now() - started) / 1000) + ' s'; }, 500);
+    try {
+      const response = await api.decks.importArchidekt(list, getStatus());
+      renderImportResults(results, response);
+      load();
+    } catch (error) { clear(results).append(errorBox(error.message)); }
+    finally { clearInterval(timer); button.disabled = false; }
+  };
+  const importUrls = h('button.btn', { type: 'button', onclick: e => run(urls.value.split(/[\s,]+/).filter(u => /archidekt\.com\/decks\/\d+/.test(u) || /^\d+$/.test(u)), e.target) }, 'Import links');
+  const lookUp = async () => {
+    const name = user.value.trim();
+    if (!name) return user.focus();
+    find.disabled = true;
+    clear(listBox).append(spinner(`Looking up ${name}’s decks…`));
+    try {
+      const { decks = [] } = await api.decks.archidektUser(name);
+      drawChecklist(decks, name);
+    } catch (error) { clear(listBox).append(errorBox(error.message)); }
+    finally { find.disabled = false; }
+  };
+  const find = h('button.btn', { type: 'button', onclick: lookUp }, 'Find decks');
+  // Not a nested <form>: Enter in the username box looks decks up instead of submitting the import form.
+  user.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); lookUp(); } });
+  const userForm = h('div.form-row', user, find);
+  const drawChecklist = (decks, name) => {
+    clear(listBox);
+    if (!decks.length) { listBox.append(h('p.muted', `No public decks for “${name}”.`)); return; }
+    const chosen = new Set(decks.map(d => d.url));
+    const count = h('span');
+    const go = h('button.btn.go', { type: 'button', onclick: e => run(decks.filter(d => chosen.has(d.url)).map(d => d.url), e.target) });
+    const sync = () => {
+      count.textContent = `${chosen.size} of ${decks.length} selected`;
+      go.textContent = `Import ${chosen.size} deck${chosen.size === 1 ? '' : 's'} (~${chosen.size} s)`;
+      go.disabled = !chosen.size;
+      all.checked = chosen.size === decks.length;
+      all.indeterminate = chosen.size > 0 && chosen.size < decks.length;
+    };
+    const all = h('input', { type: 'checkbox', checked: true, 'aria-label': 'Select all decks', onchange: () => {
+      if (all.checked) decks.forEach(d => chosen.add(d.url)); else chosen.clear();
+      for (const box of listBox.querySelectorAll('.arch-deck input')) box.checked = all.checked;
+      sync();
+    } });
+    listBox.append(
+      h('label.arch-all', all, ' Select all ', count),
+      h('ul.arch-decks', decks.map(d => h('li', h('label.arch-deck',
+        h('input', { type: 'checkbox', checked: true, onchange: e => { if (e.target.checked) chosen.add(d.url); else chosen.delete(d.url); sync(); } }),
+        d.featured ? h('img', { src: d.featured, alt: '', loading: 'lazy' }) : h('span.arch-noart'),
+        h('span.arch-name', h('b', d.name), h('span.muted.small', ` ${d.format ? deckFormatLabel(d.format) + ' · ' : ''}${int(d.size)} cards${d.updated_at ? ' · updated ' + String(d.updated_at).slice(0, 10) : ''}`)))))),
+      h('div.form-row', go));
+    sync();
+  };
+  return h('details.arch-box',
+    h('summary', 'Import from Archidekt'),
+    h('div.import-grid',
+      h('div.import-paste', h('h3', 'Deck links'), urls, h('div.form-row', importUrls)),
+      h('div.import-files', h('h3', 'All decks of a user'), userForm,
+        h('p.hint', 'Only public and unlisted decks can be read; private decks don’t show up.'), listBox)),
+    h('p.hint', 'Exact printings, foils, commander, companion and sideboard come across. The status above applies to these too.'));
+}
+
+function renderImportResults(box, response) {
+  clear(box);
+  const imported = response.imported || [];
+  const warnings = response.warnings || [];
+  box.append(h('div.import-done',
+    h('h3', `Imported ${imported.length} deck${imported.length === 1 ? '' : 's'}`),
+    h('ul.import-list', imported.map(d => {
+      const w = warnings.filter(x => x.deck === d.name);
+      return h('li',
+        h('a.deck-link', { href: `#/decks/${d.deck_id}` }, d.name),
+        h('span.muted', ` · ${deckFormatLabel(d.format)} · ${int(d.card_count)} cards · `),
+        d.missing ? h('span.miss', `${int(d.missing)} missing`) : h('span.gain.up', '✓ all owned'),
+        w.length ? h('details.warn-list', h('summary', `⚠ ${w.length} line${w.length === 1 ? '' : 's'} not understood`),
+          h('ul', w.map(x => h('li', h('code', x.line), ' — ', x.message)))) : null);
+    })),
+    warnings.filter(x => !imported.some(d => d.name === x.deck)).map(x => h('div.warn', '⚠ ', x.deck ? h('b', x.deck + ': ') : null, x.line ? h('code', x.line) : null, ' ', x.message))));
+}
+
+function readFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(file);
+  });
+}
+
+/**
+ * Turn a deck file into list text the server understands. Plain text and Moxfield/Arena exports pass through;
+ * MTGO .dek XML, Forge/XMage .dck and CSV exports are rewritten as "N Name (SET) number" lines with section headers.
+ */
+export function normalizeDeckFile(fileName, raw) {
+  let name = fileName.replace(/\.[^.]+$/, '');
+  const text = (raw.charCodeAt(0) === 0xFEFF ? raw.slice(1) : raw).replace(/\r\n?/g, '\n');   // drop a byte-order mark
+  if (/\.dek$/i.test(fileName) || /^\s*<\?xml|<Deck\b/i.test(text)) {
+    const main = [], side = [];
+    for (const m of text.matchAll(/<Cards\b([^>]*)\/?>/gi)) {
+      const attr = key => (m[1].match(new RegExp(`${key}="([^"]*)"`, 'i')) || [])[1];
+      const qty = attr('Quantity'), card = attr('Name');
+      if (!qty || !card) continue;
+      (attr('Sideboard') === 'true' ? side : main).push(`${qty} ${decodeXml(card)}`);
+    }
+    return { name, text: ['Deck', ...main, '', 'Sideboard', ...side].join('\n') };
+  }
+  if (/\.dck$/i.test(fileName)) {
+    const out = [];
+    for (let line of text.split('\n')) {
+      line = line.trim();
+      if (!line || line.startsWith('#')) continue;
+      const header = line.match(/^\[(\w+)\]$/);
+      if (header) {
+        const key = header[1].toLowerCase();
+        if (key !== 'metadata') out.push('', { main: 'Deck', sideboard: 'Sideboard', commander: 'Commander', planes: 'Maybeboard' }[key] || header[1]);
+        continue;
+      }
+      const meta = line.match(/^Name[=:](.+)$/i);                                    // Forge "Name=", XMage "NAME:"
+      if (meta) { name = meta[1].trim(); continue; }
+      if (/^\w+=/.test(line) || /^LAYOUT\b/i.test(line)) continue;
+      let side = false;
+      if (/^SB:\s*/i.test(line)) { side = true; line = line.replace(/^SB:\s*/i, ''); }
+      const xmage = line.match(/^(\d+)\s+\[([A-Z0-9]+):([^\]]+)\]\s+(.+)$/i);        // 4 [M10:146] Lightning Bolt
+      const forge = line.match(/^(\d+)\s+([^|]+)\|([A-Z0-9]+)(?:\|(\S+))?/i);          // 4 Lightning Bolt|M10|1
+      let entry = line;
+      if (xmage) entry = `${xmage[1]} ${xmage[4]} (${xmage[2]}) ${xmage[3]}`;
+      else if (forge) entry = `${forge[1]} ${forge[2].trim()} (${forge[3]})`;
+      if (!/^\d/.test(entry)) continue;
+      if (side) { if (!out.includes('Sideboard')) out.push('', 'Sideboard'); }
+      out.push(entry);
+    }
+    return { name, text: out.join('\n').trim() };
+  }
+  if (/\.csv$/i.test(fileName)) return { name, text: csvToList(text) };
+  return { name, text };
+}
+
+function decodeXml(s) {
+  return s.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+}
+
+function parseCsvLine(line) {
+  const cells = [];
+  let cur = '', quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (quoted) {
+      if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else cur += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ',') { cells.push(cur); cur = ''; }
+    else cur += c;
+  }
+  cells.push(cur);
+  return cells.map(s => s.trim());
+}
+
+function csvToList(text) {
+  const rows = text.split('\n').filter(l => l.trim()).map(parseCsvLine);
+  if (!rows.length) return '';
+  const head = rows[0].map(c => c.toLowerCase());
+  const find = (...keys) => head.findIndex(c => keys.includes(c));
+  const nameCol = find('name', 'card name', 'card', 'cardname');
+  if (nameCol < 0) return text;                       // not a recognizable export; let the server try
+  const qtyCol = find('quantity', 'qty', 'count', 'amount');
+  const setCol = find('set code', 'set', 'edition', 'set_code');
+  const numCol = find('collector number', 'collector_number', 'number', 'card number');
+  const finCol = find('foil', 'finish', 'printing');
+  const secCol = find('section', 'board', 'category', 'zone');
+  const groups = new Map();
+  for (const row of rows.slice(1)) {
+    const card = row[nameCol];
+    if (!card) continue;
+    const qty = parseInt(row[qtyCol] ?? '1', 10) || 1;
+    const set = setCol >= 0 && row[setCol] && row[setCol].length <= 6 ? ` (${row[setCol].toUpperCase()})` : '';
+    const num = set && numCol >= 0 && row[numCol] ? ` ${row[numCol]}` : '';
+    const fin = finCol >= 0 ? (/etched/i.test(row[finCol]) ? ' *E*' : /foil|true|yes/i.test(row[finCol]) && !/non/i.test(row[finCol]) ? ' *F*' : '') : '';
+    const rawSection = secCol >= 0 ? (row[secCol] || '').toLowerCase() : '';
+    const section = /command/.test(rawSection) ? 'Commander' : /side/.test(rawSection) ? 'Sideboard' : /maybe/.test(rawSection) ? 'Maybeboard' : /compan/.test(rawSection) ? 'Companion' : 'Deck';
+    if (!groups.has(section)) groups.set(section, []);
+    groups.get(section).push(`${qty} ${card}${set}${num}${fin}`);
+  }
+  const order = ['Commander', 'Companion', 'Deck', 'Sideboard', 'Maybeboard'];
+  return order.filter(s => groups.has(s)).map(s => [s, ...groups.get(s)].join('\n')).join('\n\n');
+}
+
+/** Called by the deck page after a delete / rename so the grid refreshes next visit. */
+export function invalidateDecks() { lastData = null; }

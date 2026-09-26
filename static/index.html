@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Collection Gallery</title>
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#140a24">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4C50 4 60 16 58 32S46 60 30 60 4 50 6 32 16 4 32 4Z' fill='%23ff3fa4' stroke='%23000' stroke-width='5'/%3E%3Cellipse cx='32' cy='32' rx='14' ry='12' fill='%23fff6e8' stroke='%23000' stroke-width='4'/%3E%3Ccircle cx='34' cy='33' r='6' fill='%23000'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Rubik:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body data-tab="gallery">
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="logo" href="#/gallery" aria-label="Collection Gallery home">
+      <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M32 4C50 4 60 16 58 32S46 60 30 60 4 50 6 32 16 4 32 4Z" fill="var(--pink)" stroke="#000" stroke-width="5"/>
+        <path d="M14 20c6-4 10-3 13 1M50 20c-5-4-9-3-12 1" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="32" cy="35" rx="15" ry="12" fill="var(--cream)" stroke="#000" stroke-width="4"/>
+        <circle class="pupil" cx="34" cy="36" r="6.5" fill="#000"/>
+        <circle cx="36.5" cy="33.5" r="2" fill="var(--cream)"/>
+      </svg>
+      <span class="logo-text"><span class="l1">Collection</span><span class="l2">Gallery</span></span>
+    </a>
+    <nav class="tabs" aria-label="Views">
+      <a href="#/gallery" data-tab="gallery">Gallery</a>
+      <a href="#/decks" data-tab="decks">Decks</a>
+      <a href="#/sets" data-tab="sets">Sets</a>
+      <a href="#/build" data-tab="build">Build</a>
+      <a href="#/dashboard" data-tab="dashboard">Dashboard</a>
+      <div class="tools-menu">
+        <button type="button" class="tools-btn" id="toolsBtn" aria-haspopup="true" aria-expanded="false" aria-controls="toolsList">Tools <span aria-hidden="true">▾</span></button>
+        <div class="tools-list" id="toolsList" hidden>
+          <a href="#/radar" data-tab="radar"><b>Reprint radar</b><span>Your cards in upcoming sets</span></a>
+          <a href="#/deck" data-tab="deck"><b>Deck check</b><span>Paste a list, see what you own</span></a>
+          <a href="#/extras" data-tab="extras"><b>Extras</b><span>Trade binder of spare copies</span></a>
+          <a href="#/alerts" data-tab="alerts"><b>Price alerts</b><span>Alerts, watchlist and targets</span></a>
+          <hr class="tools-sep">
+          <button type="button" id="toolUpdate"><b>Update my collection</b><span>Import a fresh CSV export</span></button>
+          <button type="button" id="toolRefresh"><b>Refresh card data now</b><span>Download today’s cards and prices</span></button>
+          <button type="button" id="toolQuit" hidden><b>Quit Collection Gallery</b><span>Stop the app on this computer</span></button>
+        </div>
+      </div>
+    </nav>
+    <a class="bell" id="alertBell" href="#/alerts" aria-label="Price alerts" title="Price alerts">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4c-5 0-8 4-8 9v5l-3 5h22l-3-5v-5c0-5-3-9-8-9Z" fill="var(--yellow)" stroke="#000" stroke-width="3" stroke-linejoin="round"/><path d="M12.5 25.5a3.5 3.5 0 0 0 7 0" fill="var(--yellow)" stroke="#000" stroke-width="3"/></svg>
+      <span class="bell-count" hidden>0</span>
+    </a>
+    <div class="header-stats" id="headerStats" aria-live="polite"></div>
+  </header>
+
+  <div class="job-banner" id="jobBanner" role="status" aria-live="polite" hidden></div>
+  <main id="main">
+    <section id="view-gallery" class="view" aria-label="Gallery">
+      <div id="searchbar" class="panel searchbar"></div>
+      <div id="answerStrip" class="panel answer" hidden></div>
+      <div id="toolbar" class="toolbar"></div>
+      <div id="results" class="results"></div>
+    </section>
+    <section id="view-decks" class="view" aria-label="Decks" hidden></section>
+    <section id="view-sets" class="view" aria-label="Sets" hidden></section>
+    <section id="view-build" class="view" aria-label="What can I build?" hidden></section>
+    <section id="view-dashboard" class="view" aria-label="Dashboard" hidden></section>
+    <section id="view-radar" class="view" aria-label="Reprint radar" hidden></section>
+    <section id="view-alerts" class="view" aria-label="Price alerts" hidden></section>
+    <section id="view-deck" class="view" aria-label="Deck check" hidden></section>
+    <section id="view-extras" class="view" aria-label="Extras" hidden></section>
+  </main>
+
+  <div id="modal" class="modal" hidden></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">This gallery needs JavaScript.</p></noscript>
+</body>
+</html>
