@@ -50,6 +50,7 @@ class Entry:
     price_usd: float | None = None    # for this entry's finish
     price_eur: float | None = None
     price_tix: float | None = None
+    source: str = "import"            # import (a collection CSV) | manual (added in Cardclops)
     # Filled in by the deck allocator (gallery/decks.py) after loading:
     used: int = 0                     # copies of this row allocated to active decks
     decks: tuple = ()                 # (deck name, status) for every deck whose list includes this card
@@ -121,6 +122,7 @@ def build_entry(holding, card, tags):
         purchase_price=holding["purchase_price"],
         added_at=holding["added_at"] or "",
         misprint=bool(holding["misprint"]),
+        source=(holding["source"] if "source" in holding.keys() else "import") or "import",
         card=card,
         oracle_id=oracle_id,
         name=card["name"],

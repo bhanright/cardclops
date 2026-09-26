@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS holdings (
     proxy             INTEGER,
     condition         TEXT,
     language          TEXT,
-    added_at          TEXT                -- ISO timestamp from ManaBox
+    added_at          TEXT,               -- ISO timestamp from ManaBox, or when added by hand
+    source            TEXT NOT NULL DEFAULT 'import'   -- import (a collection CSV) | manual (added in Cardclops)
 );
 CREATE INDEX IF NOT EXISTS holdings_by_card ON holdings(scryfall_id);
 
@@ -355,6 +356,7 @@ def migrate_legacy():
 # leaves an existing table alone, so they are added here. The decks table holds
 # the owner's own work and cannot be rebuilt from a download.
 LATE_COLUMNS = [("user", "decks", "copy_policy", "TEXT NOT NULL DEFAULT 'default'"),
+                ("user", "holdings", "source", "TEXT NOT NULL DEFAULT 'import'"),
                 ("cache", "sets", "printed_size", "INTEGER"),
                 ("cache", "sets", "digital", "INTEGER"),
                 ("cache", "sets", "parent_set_code", "TEXT"),

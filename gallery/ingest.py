@@ -62,14 +62,37 @@ HOLDING_COLUMNS = ("scryfall_id", "name", "set_code", "collector_number", "finis
 
 
 def store_holdings(connection, rows, source):
-    """Replace the collection with `rows` (dicts keyed by HOLDING_COLUMNS), from any importer."""
-    connection.execute("DELETE FROM holdings")
+    """Replace the imported part of the collection with `rows` (dicts keyed by HOLDING_COLUMNS).
+
+    Cards added by hand in Cardclops (source 'manual') stay. Where the import now holds the same
+    printing and finish, its copies take over: the manual quantity drops by the imported quantity,
+    so a card added by hand and later entered in ManaBox isn't counted twice. Returns those
+    adjustments as [{"name", "finish", "removed"}]."""
+    connection.execute("DELETE FROM holdings WHERE source != 'manual'")
     connection.executemany(
         f"INSERT INTO holdings ({', '.join(HOLDING_COLUMNS)}) VALUES ({', '.join('?' * len(HOLDING_COLUMNS))})",
         [tuple(row.get(column) for column in HOLDING_COLUMNS) for row in rows])
+    imported = {}
+    for row in rows:
+        key = (row.get("scryfall_id"), row.get("finish") or "normal")
+        imported[key] = imported.get(key, 0) + int(row.get("quantity") or 0)
+    reconciled = []
+    for manual in connection.execute(
+            "SELECT row_id, scryfall_id, finish, quantity, name FROM holdings WHERE source = 'manual'").fetchall():
+        covered = imported.get((manual["scryfall_id"], manual["finish"]), 0)
+        if not covered:
+            continue
+        removed = min(covered, manual["quantity"])
+        imported[(manual["scryfall_id"], manual["finish"])] = covered - removed
+        if removed == manual["quantity"]:
+            connection.execute("DELETE FROM holdings WHERE row_id = ?", (manual["row_id"],))
+        else:
+            connection.execute("UPDATE holdings SET quantity = quantity - ? WHERE row_id = ?", (removed, manual["row_id"]))
+        reconciled.append({"name": manual["name"], "finish": manual["finish"], "removed": removed})
     set_meta(connection, "manabox_file", str(source))
     set_meta(connection, "manabox_imported_at", date.today().isoformat())
     connection.commit()
+    return reconciled
 
 
 def oracle_id_of(card):

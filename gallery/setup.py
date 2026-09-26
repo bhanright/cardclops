@@ -141,7 +141,7 @@ class Jobs:
                 if not parsed["rows"]:
                     raise RuntimeError("No cards in that file matched. Is it a collection export?")
                 self._update(stage="Saving your collection", percent=48)
-                ingest.store_holdings(connection, parsed["rows"], filename)
+                reconciled = ingest.store_holdings(connection, parsed["rows"], filename)
                 log, progress = self._logger(50, 75)
                 self._update(stage="Card details and today's prices")
                 ingest.refresh_scryfall(connection, log=log, progress=progress)
@@ -158,7 +158,8 @@ class Jobs:
             copies = sum(r["quantity"] for r in parsed["rows"])
             return {"format": parsed.get("format"), "rows": len(parsed["rows"]), "copies": copies,
                     "matched": len(parsed["rows"]), "approximate": parsed.get("approximate", [])[:200],
-                    "unmatched": parsed.get("unmatched", [])[:200], "total_rows": parsed.get("total_rows")}
+                    "unmatched": parsed.get("unmatched", [])[:200], "total_rows": parsed.get("total_rows"),
+                    "manual_reconciled": reconciled}
         return self.start("import", work)
 
     def refresh(self):

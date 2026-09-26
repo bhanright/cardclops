@@ -124,3 +124,29 @@ Uses the local `claude` CLI; can take 5–20 s.
 `GET /img/<scryfall_id>/<front|back>/<small|normal|large|art_crop|png>` → the image, fetched from
 Scryfall the first time and served from `data/images/` afterwards. Use `loading="lazy"` or an
 IntersectionObserver; do not preload off-screen images.
+
+## Adding cards by hand
+
+Cards can be added to the collection in Cardclops itself, for the times a card never made it
+into ManaBox. Each holdings row has a `source`: `import` (from a collection CSV) or `manual`.
+
+- Importing a CSV replaces only `import` rows; `manual` rows stay.
+- When an import contains a printing and finish you had added by hand, the imported copies
+  take over: the manual row's quantity drops by the imported quantity (and the row goes at 0),
+  so nothing is counted twice. The import result lists these as `manual_reconciled`.
+
+`POST /api/collection/add` body `{"scryfall_id", "finish": "normal"|"foil"|"etched", "quantity": 1,
+"condition": "near_mint", "language": "en", "purchase_price": null}` → `{"row": ManualRow, "copies": n}`
+(`copies` = the collection's total after the change). The printing needn't be in the card cache
+yet; the server fetches it from Scryfall. The collection reloads, which takes a few seconds.
+
+`GET /api/collection/manual` → `{"rows": [ManualRow]}`, newest first, where ManualRow is
+`{"row_id", "scryfall_id", "name", "set_code", "set_name", "collector_number", "finish", "quantity",
+"condition", "language", "purchase_price", "added_at", "price_usd", "image"}`.
+
+`PATCH /api/collection/manual/<row_id>` body any of `{"quantity", "finish", "condition", "language",
+"purchase_price"}` → ManualRow · `DELETE /api/collection/manual/<row_id>` → `{"deleted": row_id}`.
+Only `manual` rows can be changed here; imported rows change by re-importing.
+
+Printings for the picker come from `GET /api/cards/lookup?q=<name>` or `?oracle_id=` (see TOOLS2.md).
+CardSummary and card-detail holdings rows gain `"source": "import" | "manual"`.

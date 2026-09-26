@@ -22,6 +22,7 @@ from .collection import COLOR_ORDER, Collection
 from .db import get_meta
 from .deckcheck import DeckChecker
 from . import __version__
+from . import manual
 from . import setup as setup_module
 from .decks import DeckBook
 from .setup import Jobs
@@ -108,6 +109,7 @@ class Gallery:
             "price_usd": entry.price_usd,
             "value_usd": round((entry.price_usd or 0) * quantity, 2),
             "purchase_price": entry.purchase_price,
+            "source": entry.source,
             "change": {f"d{w}": self.prices.change_percent(entry, w) for w in (1, 7, 30)},
             "image": f"/img/{entry.scryfall_id}/front/normal",
         }
@@ -291,7 +293,7 @@ class Gallery:
             "card": detail,
             "tags": [{"slug": slug, "description": labels.get(slug, "")} for slug in tags],
             "holdings": [
-                {"row_id": e.row_id, "scryfall_id": e.scryfall_id, "set_code": e.set_code,
+                {"row_id": e.row_id, "scryfall_id": e.scryfall_id, "set_code": e.set_code, "source": e.source,
                  "collector_number": e.collector_number,
                  "finish": e.finish, "quantity": e.quantity, "condition": e.condition,
                  "language": e.language, "purchase_price": e.purchase_price, "added_at": e.added_at,
@@ -446,6 +448,23 @@ class Gallery:
         for row in rows:
             copies = sum(e.quantity for e in self.collection.by_oracle_id.get(row["oracle_id"], []))
             result.append({**dict(row), "copies": copies})
+        return result
+
+    # ---- adding cards by hand (docs/API.md) --------------------------------
+
+    def collection_change(self, method, parts, body):
+        """Add, edit or remove hand-added cards, then reload so every view (and deck) sees the change."""
+        with self.lock:
+            if method == "POST" and parts[2:] == ["add"]:
+                result = {"row": manual.add(self.connection, body)}
+            elif method == "PATCH" and len(parts) == 4 and parts[2] == "manual":
+                result = {"row": manual.update(self.connection, int(parts[3]), body)}
+            elif method == "DELETE" and len(parts) == 4 and parts[2] == "manual":
+                result = manual.delete(self.connection, int(parts[3]))
+            else:
+                raise LookupError("unknown collection request")
+        self.load()
+        result["copies"] = sum(e.quantity for e in self.collection.entries)
         return result
 
     # ---- price alerts (docs/TOOLS2.md) --------------------------------------
@@ -859,6 +878,9 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._json(gallery.jobs.progress())
             if route in ALERT_ROUTES:
                 return self._alert_request("GET", parts, params, {})
+            if route == "collection" and parts[2:] == ["manual"]:
+                with gallery.lock:
+                    return self._json({"rows": manual.rows(gallery.connection)})
             if route == "build" and len(parts) == 3 and parts[2] == "commanders":
                 return self._json(gallery.build_commanders(params))
             if route == "build" and len(parts) == 3 and parts[2] == "draft":
@@ -911,6 +933,8 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._deck_write("POST", path, body)
             if path.startswith("/api/setup/") or path in ("/api/refresh", "/api/quit"):
                 return self._setup_request(path, body)
+            if path.startswith("/api/collection/"):
+                return self._collection_request("POST", path, body)
             post_parts = path.strip("/").split("/")
             if len(post_parts) > 1 and post_parts[1] in ALERT_ROUTES:
                 return self._alert_request("POST", post_parts, {}, body)
@@ -961,6 +985,14 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _collection_request(self, method, path, body):
+        try:
+            return self._json(self.gallery.collection_change(method, path.strip("/").split("/"), body))
+        except KeyError as error:
+            return self._json({"error": str(error).strip("'")}, HTTPStatus.NOT_FOUND)
+        except (ValueError, LookupError) as error:
+            return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
+
     def _alert_request(self, method, parts, params, body):
         try:
             return self._json(self.gallery.alert_request(method, parts, params, body))
@@ -989,6 +1021,8 @@ class Handler(SimpleHTTPRequestHandler):
             path = urllib.parse.urlsplit(self.path).path
             if path.startswith("/api/decks/"):
                 return self._deck_write(method, path, body)
+            if path.startswith("/api/collection/"):
+                return self._collection_request(method, path, body)
             write_parts = path.strip("/").split("/")
             if len(write_parts) > 1 and write_parts[1] in ALERT_ROUTES:
                 return self._alert_request(method, write_parts, {}, body)
