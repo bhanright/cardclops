@@ -1154,8 +1154,12 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--lime); }
 .tools-list a[aria-current="page"] span { color: #3a1d00; }
 @media (max-width: 700px) {
   .tools-btn { font-size: .86rem; padding: 6px 8px 5px; }
-  .tabs { overflow: visible; flex-wrap: nowrap; }
-  .tabs > a { padding: 6px 7px 5px; flex: 1 1 auto; min-width: 0; }
+  /* Never narrower than their words: Android scales text with the phone's font-size setting, and
+     a squeezed tab clips its label. When the labels can't fit, the row wraps instead. */
+  .tabs { overflow: visible; flex-wrap: wrap; gap: 8px 5px; }
+  .tabs > a { padding: 6px 5px 5px; flex: 1 0 auto; font-size: .8rem; }
+  .tabs > .tools-menu { flex: 1 0 auto; }
+  .tabs > .tools-menu .tools-btn { flex: 1; font-size: .8rem; padding: 6px 5px 5px; }
 }
 
 /* ---------- reprint radar ---------- */
