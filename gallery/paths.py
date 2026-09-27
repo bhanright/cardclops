@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-STATIC_DIR = PROJECT_ROOT / "static"
+STATIC_DIR = Path(os.environ.get("CARDCLOPS_STATIC_DIR") or PROJECT_ROOT / "static")   # the Android app unpacks it elsewhere
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 
 

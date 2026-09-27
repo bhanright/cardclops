@@ -3,6 +3,7 @@
 Stdlib only. Everything is read from the in-memory Collection; the database
 is touched for price series, the portfolio and a few reference tables.
 """
+import hmac
 import json
 import os
 import re
@@ -752,6 +753,9 @@ def _breakdown(entries):
 #   the browser ask first (a CORS preflight this server never grants), and must not
 #   carry another site's Origin.
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]"}
+# Set by an embedding app (gallery/android.py): every request must then carry this secret, as the
+# cookie cardclops_token or the header X-Cardclops-Token.
+ACCESS_TOKEN = os.environ.get("CARDCLOPS_ACCESS_TOKEN", "")
 # A hosted copy is reached through a Cloudflare Tunnel under its own name (and Cloudflare Access
 # decides who may reach it). CARDCLOPS_ALLOWED_HOSTS lists those names, e.g. "cardclops.com";
 # pages served under them are https.
@@ -779,7 +783,9 @@ class Handler(SimpleHTTPRequestHandler):
     def _refused(self, write):
         """Answers 403 and returns True when a request fails the checks above."""
         reason = None
-        if _host_name(self.headers.get("Host")) not in LOCAL_HOSTS | HOSTED_NAMES:
+        if ACCESS_TOKEN and not self._has_token():
+            reason = "This Cardclops only answers the app that started it."
+        elif _host_name(self.headers.get("Host")) not in LOCAL_HOSTS | HOSTED_NAMES:
             reason = "This server only answers requests addressed to localhost."
         elif write:
             origin = self.headers.get("Origin")
@@ -799,6 +805,15 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
         return True
+
+    def _has_token(self):
+        """On a phone, other apps can reach 127.0.0.1 too; the Cardclops app sets this cookie in its WebView."""
+        offered = self.headers.get("X-Cardclops-Token") or ""
+        for part in (self.headers.get("Cookie") or "").split(";"):
+            name, _, value = part.strip().partition("=")
+            if name == "cardclops_token":
+                offered = value
+        return hmac.compare_digest(offered.encode(), ACCESS_TOKEN.encode())
 
     def do_HEAD(self):
         if not self._refused(write=False):
@@ -1059,6 +1074,18 @@ class Handler(SimpleHTTPRequestHandler):
 
 class IPv6Server(ThreadingHTTPServer):
     address_family = socket.AF_INET6
+
+
+def start_in_background(connection, port=0):
+    """Start the gallery on a thread and return (server, port); port 0 picks a free one.
+    For apps that embed Cardclops (the Android app) rather than run it as a program."""
+    Handler.gallery = Gallery(connection)
+    Handler.gallery.watch_for_new_data()
+    Handler.gallery.jobs.refresh_if_stale()
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    server.daemon_threads = True
+    threading.Thread(target=server.serve_forever, name="cardclops-server", daemon=True).start()
+    return server, server.server_address[1]
 
 
 def serve(connection, port, open_browser=False):

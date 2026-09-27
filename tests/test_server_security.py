@@ -110,3 +110,35 @@ class SecurityTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TokenTests(unittest.TestCase):
+    """With an access token (the Android app), requests without it are refused."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.gallery = StubGallery()
+        server.Handler.gallery = cls.gallery
+        cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+        cls.port = cls.httpd.server_address[1]
+        threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.httpd.shutdown()
+
+    def status(self, headers):
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        connection.request("GET", "/api/summary", headers={"Host": f"127.0.0.1:{self.port}", **headers})
+        response = connection.getresponse()
+        response.read()
+        connection.close()
+        return response.status
+
+    def test_token_required_when_set(self):
+        with mock.patch.object(server, "ACCESS_TOKEN", "s3cret"):
+            self.assertEqual(self.status({}), 403)
+            self.assertEqual(self.status({"Cookie": "cardclops_token=wrong"}), 403)
+            self.assertEqual(self.status({"Cookie": "other=1; cardclops_token=s3cret"}), 200)
+            self.assertEqual(self.status({"X-Cardclops-Token": "s3cret"}), 200)
+        self.assertEqual(self.status({}), 200)                  # no token configured: as before

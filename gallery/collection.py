@@ -152,6 +152,30 @@ def build_entry(holding, card, tags):
     )
 
 
+# Scryfall fields nothing in Cardclops reads (checked across gallery/ and static/). Dropping them
+# from the in-memory copy (the database keeps the whole object) saves memory, which matters on
+# phones and small servers. A feature that needs one of them should remove it from this list.
+UNUSED_FIELDS = frozenset("""
+    all_parts arena_id artist_ids attraction_lights booster card_back_id cardmarket_id content_warning
+    highres_image illustration_id image_status mtgo_foil_id mtgo_id multiverse_ids object penny_rank
+    preview printed_name printed_text printed_type_line prints_search_uri related_uris rulings_uri
+    scryfall_set_uri security_stamp set_id set_search_uri set_uri story_spotlight tcgplayer_etched_id
+    tcgplayer_id uri variation_of""".split())
+# The image sizes the image server hands out; Scryfall lists about a dozen.
+IMAGE_SIZES_USED = ("small", "normal", "large", "png", "art_crop", "border_crop")
+
+
+def slim(card):
+    """The card without the fields Cardclops never reads."""
+    for key in UNUSED_FIELDS & card.keys():
+        del card[key]
+    for holder in [card, *(card.get("card_faces") or [])]:
+        uris = holder.get("image_uris")
+        if uris:
+            holder["image_uris"] = {size: uris[size] for size in IMAGE_SIZES_USED if size in uris}
+    return card
+
+
 @dataclass
 class TagIndex:
     """Scryfall Tagger tags with their hierarchy, so otag:removal also finds removal-destroy."""
@@ -174,7 +198,7 @@ class Collection:
             tags_by_oracle[row["oracle_id"]].add(row["slug"])
         tags_by_oracle = {k: frozenset(v) for k, v in tags_by_oracle.items()}
 
-        cards = {row["scryfall_id"]: json.loads(row["raw"])
+        cards = {row["scryfall_id"]: slim(json.loads(row["raw"]))
                  for row in connection.execute("SELECT scryfall_id, raw FROM cards")}
         self.entries = [
             build_entry(holding, cards[holding["scryfall_id"]], tags_by_oracle)

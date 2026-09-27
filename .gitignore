@@ -5,3 +5,9 @@ data.migrated-*/
 dist/
 build/
 installer/Output/
+android/.gradle/
+android/**/build/
+android/local.properties
+android/.idea/
+*.jks
+*.keystore
