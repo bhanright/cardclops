@@ -13,10 +13,11 @@ import { showBuild } from './js/build.js';
 import { showAlerts, initBell } from './js/alerts.js';
 import { showSets } from './js/sets.js';
 import { openHandAdded } from './js/addcards.js';
+import { showSettings, applySettings } from './js/settings.js';
 import { runSetupIfNeeded, checkBackgroundJob, updateCollection, refreshNow, quitApp } from './js/setup.js';
 
-const TABS = ['gallery', 'decks', 'sets', 'build', 'dashboard', 'radar', 'deck', 'extras', 'alerts'];
-const TOOL_TABS = { radar: 'Radar', deck: 'Deck check', extras: 'Extras', alerts: 'Alerts' };   // live under the Tools menu
+const TABS = ['gallery', 'decks', 'sets', 'build', 'dashboard', 'radar', 'deck', 'extras', 'alerts', 'settings'];
+const TOOL_TABS = { radar: 'Radar', deck: 'Deck check', extras: 'Extras', alerts: 'Alerts', settings: 'Settings' };   // live under the Tools menu
 const DEFAULTS = { q: '', sort: 'name', dir: 'asc', unique: 'prints', view: 'grid' };
 const VALID = {
   sort: ['name', 'usd', 'value', 'mv', 'added', 'set', 'rarity', 'qty', 'gain', 'change1', 'change7', 'change30', 'color', 'released'],
@@ -84,7 +85,10 @@ function syncTabs() {
   const toolsBtn = $('#toolsBtn');
   const inTools = tab in TOOL_TABS;
   toolsBtn.classList.toggle('on', inTools);
-  toolsBtn.firstChild.textContent = inTools ? `${TOOL_TABS[tab]} ` : 'Tools ';
+  // On a phone the tab row has no room for a longer name ("Settings", "Deck check"), which would
+  // wrap the button onto a row of its own; it stays "Tools", highlighted.
+  const roomy = !matchMedia('(max-width: 700px)').matches;
+  toolsBtn.firstChild.textContent = inTools && roomy ? `${TOOL_TABS[tab]} ` : 'Tools ';
   toolsBtn.setAttribute('aria-label', inTools ? `Tools menu, showing ${TOOL_TABS[tab]}` : 'Tools menu');
 }
 
@@ -139,8 +143,9 @@ function showTab() {
   if (tab === 'build') showBuild(buildId, partnerId);
   if (tab === 'alerts') showAlerts();
   if (tab === 'sets') showSets(setCode);
+  if (tab === 'settings') showSettings();
   $('#alertBell').toggleAttribute('aria-current', tab === 'alerts');
-  const titles = { gallery: 'Gallery', decks: 'Decks', sets: 'Sets', build: 'What can I build?', dashboard: 'Dashboard', radar: 'Reprint radar', alerts: 'Price alerts', deck: 'Deck check', extras: 'Trade binder' };
+  const titles = { gallery: 'Gallery', decks: 'Decks', sets: 'Sets', build: 'What can I build?', dashboard: 'Dashboard', radar: 'Reprint radar', alerts: 'Price alerts', deck: 'Deck check', extras: 'Trade binder', settings: 'Settings' };
   document.title = `${titles[tab]} · Cardclops`;
 }
 
@@ -174,6 +179,7 @@ async function loadHeaderSummary() {
 }
 
 async function init() {
+  applySettings();                // the inline script in index.html did most of this before paint
   // A fresh install has no card data: the setup wizard comes first, before any view asks for data.
   await runSetupIfNeeded();
   initSearchBar({

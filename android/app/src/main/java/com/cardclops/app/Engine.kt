@@ -17,13 +17,16 @@ import java.security.SecureRandom
 /**
  * Cardclops's Python engine, started once per process and shared by every activity instance.
  *
- * The engine (gallery/android.py) serves the web page and the JSON API on 127.0.0.1 at a free
- * port. Other apps on the phone can reach 127.0.0.1 too, so every request must carry [token], a
+ * The engine (gallery/android.py) serves the web page and the JSON API on 127.0.0.1, on the same
+ * port every launch when it is free: the WebView keeps the page's saved settings (theme, layout
+ * choices) per origin, and the origin includes the port. Other apps on the phone can reach 127.0.0.1 too, so every request must carry [token], a
  * secret made fresh for each process: the WebView sends it as a cookie, this class as a header.
  */
 object Engine {
     const val TOKEN_COOKIE = "cardclops_token"
     const val TOKEN_HEADER = "X-Cardclops-Token"
+    private const val PREFS = "engine"
+    private const val PORT_KEY = "port"
 
     /** 32 random bytes as hex; lives as long as the process, and so does the engine that checks it. */
     val token: String by lazy {
@@ -56,9 +59,11 @@ object Engine {
         val cache = File(app.noBackupFilesDir, "cache")          // Scryfall data and images; rebuildable
         // The automatic refresh downloads ~80 MB of card data; on a phone, only over Wi-Fi or
         // another unmetered network. Tools → Refresh card data now works on any network.
+        val saved = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         port = python.getModule("gallery.android")
-            .callAttr("start", home.absolutePath, cache.absolutePath, token, onUnmeteredNetwork(app))
+            .callAttr("start", home.absolutePath, cache.absolutePath, token, onUnmeteredNetwork(app), saved.getInt(PORT_KEY, 0))
             .toInt()
+        saved.edit().putInt(PORT_KEY, port).apply()
         return port
     }
 

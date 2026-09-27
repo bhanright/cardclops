@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.webkit.ConsoleMessage
+import android.webkit.JavascriptInterface
 import android.webkit.CookieManager
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
@@ -191,11 +192,31 @@ class MainActivity : ComponentActivity() {
                 return true
             }
         }
+        // The page's theme (Settings → Appearance) sets the colors behind the status and navigation
+        // bars, and whether their icons are dark. Only colors cross this bridge.
+        web.addJavascriptInterface(ThemeBridge(), "CardclopsAndroid")
         web.setDownloadListener { url, _, _, mimeType, _ ->
             val uri = url.toUri()
             if (isEngineUrl(uri) && mimeType.orEmpty().startsWith("text/")) shareFromEngine(uri)
             else if (!isEngineUrl(uri)) openExternally(uri)
         }
+    }
+
+    private inner class ThemeBridge {
+        @JavascriptInterface
+        fun setBars(top: String, bottom: String, light: Boolean) {
+            val topColor = runCatching { Color.parseColor(top) }.getOrNull() ?: return
+            val bottomColor = runCatching { Color.parseColor(bottom) }.getOrNull() ?: return
+            mainThread.post { if (!isDestroyed) applyBars(topColor, bottomColor, light) }
+        }
+    }
+
+    private fun applyBars(top: Int, bottom: Int, light: Boolean) {
+        root.setBackgroundColor(top)
+        enableEdgeToEdge(
+            statusBarStyle = if (light) SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT) else SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = if (light) SystemBarStyle.light(bottom, bottom) else SystemBarStyle.dark(bottom),
+        )
     }
 
     private fun isEngineUrl(uri: Uri): Boolean =

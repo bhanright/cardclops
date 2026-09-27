@@ -1,5 +1,5 @@
 // Card tiles and thumbnails shared by every view, plus the lazy image loader.
-import { h, money, changeChip, finishLabel, int } from './util.js';
+import { h, money, changeChip, finishLabel, int, store } from './util.js';
 import { handMark } from './addcards.js';
 import { resize } from './api.js';
 
@@ -100,6 +100,7 @@ export function thumb(card, { onOpen, caption } = {}) {
 let preview;
 export function attachHoverPreview(node, card) {
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  if (store.get('gallery.settings', {}).hoverPreview === false) return;      // Settings → Card previews
   node.addEventListener('pointerenter', event => {
     if (!preview) { preview = h('img.hover-preview', { alt: '' }); document.body.append(preview); }
     preview.src = card.image;

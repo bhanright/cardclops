@@ -136,7 +136,7 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
   // A link only: EDHREC's terms forbid fetching its pages automatically, so its lists can't be shown here.
   if (card.legalities?.commander !== 'not_legal') {
     links.push(h('a.btn.small.ghost', { href: edhrecCardUrl(card), target: '_blank', rel: 'noopener',
-      title: 'The commanders this card is played with most, on EDHREC' }, 'Top commanders · EDHREC ↗'));
+      title: 'This card on EDHREC: the decks and commanders that play it' }, 'EDHREC ↗'));
   }
 
   const left = h('div.d-left', h('div.d-image', face), h('div.price-badges', priceBadges), h('div.d-links', links), h('div.form-row.d-actions', h('button.btn.small.go', { type: 'button', onclick: () => openAddDialog({ oracleId: card.oracle_id, name: card.name, scryfallId: card.scryfall_id, quantity: 1 }) }, '＋ Add to collection')), watchButton(card, holdings));

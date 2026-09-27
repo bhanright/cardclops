@@ -1095,13 +1095,14 @@ class IPv6Server(ThreadingHTTPServer):
 
 def start_in_background(connection, port=0, refresh_if_stale=True):
     """Start the gallery on a thread and return (server, port); port 0 picks a free one.
-    For apps that embed Cardclops (the Android app) rather than run it as a program."""
+    For apps that embed Cardclops (the Android app) rather than run it as a program.
+    The port is bound first, so a port in use raises OSError before anything else starts."""
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    server.daemon_threads = True
     Handler.gallery = Gallery(connection)
     Handler.gallery.watch_for_new_data()
     if refresh_if_stale:
         Handler.gallery.jobs.refresh_if_stale()
-    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    server.daemon_threads = True
     threading.Thread(target=server.serve_forever, name="cardclops-server", daemon=True).start()
     return server, server.server_address[1]
 

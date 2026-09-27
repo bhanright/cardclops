@@ -11,6 +11,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Rubik:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap">
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Settings → Appearance before the first paint (js/settings.js keeps it up to date afterwards).
+    try {
+      var s = JSON.parse(localStorage.getItem('gallery.settings') || '{}'), root = document.documentElement;
+      var theme = s.theme === 'auto' ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : (s.theme || 'neon');
+      root.dataset.theme = theme;
+      if (s.textScale && s.textScale !== 100) root.style.fontSize = s.textScale + '%';
+      if (s.motion === 'reduce') root.dataset.motion = 'reduce';
+      if (s.foil === false) root.dataset.foil = 'off';
+    } catch (e) { /* storage blocked: the default look */ }
+  </script>
   <script type="module" src="app.js"></script>
 </head>
 <body data-tab="gallery">
@@ -20,9 +31,9 @@
       <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true">
         <path d="M32 4C50 4 60 16 58 32S46 60 30 60 4 50 6 32 16 4 32 4Z" fill="var(--pink)" stroke="#000" stroke-width="5"/>
         <path d="M14 20c6-4 10-3 13 1M50 20c-5-4-9-3-12 1" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/>
-        <ellipse cx="32" cy="35" rx="15" ry="12" fill="var(--cream)" stroke="#000" stroke-width="4"/>
+        <ellipse cx="32" cy="35" rx="15" ry="12" fill="var(--paper)" stroke="#000" stroke-width="4"/>
         <circle class="pupil" cx="34" cy="36" r="6.5" fill="#000"/>
-        <circle cx="36.5" cy="33.5" r="2" fill="var(--cream)"/>
+        <circle cx="36.5" cy="33.5" r="2" fill="var(--paper)"/>
       </svg>
       <span class="logo-text"><span class="l2"><span class="l2-card">Card</span>clops</span></span>
     </a>
@@ -43,6 +54,8 @@
           <button type="button" id="toolAdd"><b>Add cards by hand</b><span>Record cards that aren’t in your export</span></button>
           <button type="button" id="toolUpdate"><b>Update my collection</b><span>Import a fresh CSV export</span></button>
           <button type="button" id="toolRefresh"><b>Refresh card data now</b><span>Download today’s cards and prices</span></button>
+          <hr class="tools-sep">
+          <a href="#/settings" data-tab="settings"><b>Settings</b><span>Theme, text size and data</span></a>
           <button type="button" id="toolQuit" hidden><b>Quit Cardclops</b><span>Stop the app on this device</span></button>
         </div>
       </div>
@@ -70,6 +83,7 @@
     <section id="view-alerts" class="view" aria-label="Price alerts" hidden></section>
     <section id="view-deck" class="view" aria-label="Deck check" hidden></section>
     <section id="view-extras" class="view" aria-label="Extras" hidden></section>
+    <section id="view-settings" class="view" aria-label="Settings" hidden></section>
   </main>
 
   <div id="modal" class="modal" hidden></div>
