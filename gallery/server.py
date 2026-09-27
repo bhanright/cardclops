@@ -8,6 +8,7 @@ import json
 import os
 import re
 import socket
+import sys
 import threading
 import time
 import traceback
@@ -235,7 +236,7 @@ class Gallery:
             "ask_available": ask.available(),
             "decks": self.deckbook.totals(),
             "reprints": self.radar.headline(),
-            "app": {"version": __version__, "installed": setup_module.installed()},
+            "app": {"version": __version__, "installed": setup_module.installed(), "platform": sys.platform},
             "alerts": {"unseen": self.alerts.list(True, 1)["unseen"],
                        "watching": self.connection.execute("SELECT COUNT(*) FROM watchlist").fetchone()[0]},
         }
@@ -478,7 +479,9 @@ class Gallery:
             return alerts.lookup(params.get("q", ""), params.get("oracle_id"), collection, self.deckbook.resolver)
         if route == "alert-settings":
             with self.lock:
-                return alerts.settings() if method == "GET" else alerts.update_settings(body)
+                settings = alerts.settings() if method == "GET" else alerts.update_settings(body)
+            # Desktop notifications exist only on Windows; elsewhere the page hides the option.
+            return {**settings, "notifications_available": sys.platform == "win32"}
         with self.lock:
             if route == "watchlist":
                 if len(parts) == 2 and method == "GET":
@@ -1076,12 +1079,13 @@ class IPv6Server(ThreadingHTTPServer):
     address_family = socket.AF_INET6
 
 
-def start_in_background(connection, port=0):
+def start_in_background(connection, port=0, refresh_if_stale=True):
     """Start the gallery on a thread and return (server, port); port 0 picks a free one.
     For apps that embed Cardclops (the Android app) rather than run it as a program."""
     Handler.gallery = Gallery(connection)
     Handler.gallery.watch_for_new_data()
-    Handler.gallery.jobs.refresh_if_stale()
+    if refresh_if_stale:
+        Handler.gallery.jobs.refresh_if_stale()
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     server.daemon_threads = True
     threading.Thread(target=server.serve_forever, name="cardclops-server", daemon=True).start()

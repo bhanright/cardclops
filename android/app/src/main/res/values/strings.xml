@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Cardclops</string>
+    <string name="starting">Starting Cardclops…</string>
+    <string name="start_failed">Cardclops couldn’t start.\n\n%1$s</string>
+    <string name="retry">Try again</string>
+    <string name="share_list">Share the list</string>
+    <string name="no_app_for_link">No app can open this link.</string>
+    <string name="download_failed">Couldn’t get that file.</string>
+    <string name="logo_description">Cardclops logo</string>
+</resources>

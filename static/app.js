@@ -161,6 +161,9 @@ async function loadHeaderSummary() {
   try {
     const s = await api.summary();
     $('#toolQuit').hidden = !s.app?.installed;
+    // The Ask box needs the Claude command-line tool, which can't run on a phone.
+    const askMode = $('.search-form .seg.mode');
+    if (askMode) askMode.hidden = s.app?.platform === 'android';
     box.replaceChildren(
       h('span.hs', h('b', money(s.value_usd, { whole: true })), ' value'),
       h('span.hs', h('b', int(s.copies)), ' copies'),

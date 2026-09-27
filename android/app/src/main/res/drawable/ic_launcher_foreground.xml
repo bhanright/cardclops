@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The logo (drawable/logo.xml) centered in the adaptive icon's 108dp canvas, inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.9"
+        android:scaleY="0.9"
+        android:translateX="25.2"
+        android:translateY="25.2">
+        <path
+            android:pathData="M32,4C50,4 60,16 58,32S46,60 30,60 4,50 6,32 16,4 32,4Z"
+            android:fillColor="#FFFF3FA4"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="5" />
+        <path
+            android:pathData="M14,20c6,-4 10,-3 13,1M50,20c-5,-4 -9,-3 -12,1"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="4"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M17,35a15,12 0,1 0,30 0a15,12 0,1 0,-30 0Z"
+            android:fillColor="#FFFFF6E8"
+            android:strokeColor="#FF000000"
+            android:strokeWidth="4" />
+        <path
+            android:pathData="M27.5,36a6.5,6.5 0,1 0,13 0a6.5,6.5 0,1 0,-13 0Z"
+            android:fillColor="#FF000000" />
+        <path
+            android:pathData="M34.5,33.5a2,2 0,1 0,4 0a2,2 0,1 0,-4 0Z"
+            android:fillColor="#FFFFF6E8" />
+    </group>
+</vector>

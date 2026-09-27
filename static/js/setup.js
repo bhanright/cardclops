@@ -83,7 +83,7 @@ export function importFlow({ onDone, intro } = {}) {
     const drop = h('div.dropzone', { tabindex: '0', role: 'button', 'aria-label': 'Choose your collection CSV or drop it here',
       onclick: () => input.click(), onkeydown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); } } },
     h('div.dz-blob', { 'aria-hidden': 'true' }, '⇩'), h('div', h('b', 'Choose your collection CSV'), ' or drop it here'),
-    h('div.muted.small', 'It stays on this computer; the file is read here and matched against the card data.'));
+    h('div.muted.small', 'It stays on this device; the file is read here and matched against the card data.'));
     for (const type of ['dragenter', 'dragover']) drop.addEventListener(type, e => { e.preventDefault(); drop.classList.add('over'); });
     for (const type of ['dragleave', 'drop']) drop.addEventListener(type, e => { e.preventDefault(); drop.classList.remove('over'); });
     drop.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if (f) start(f); });
@@ -176,7 +176,7 @@ export function quitApp() {
     document.title = 'Cardclops (stopped)';
   } }, 'Quit');
   const closeDialog = dialog('Quit Cardclops?', h('div',
-    h('p', 'This stops the gallery on this computer. Nothing is lost; your collection and decks are saved.'),
+    h('p', 'This stops the gallery on this device. Nothing is lost; your collection and decks are saved.'),
     h('div.form-row', yes, h('button.btn.ghost', { type: 'button', onclick: () => closeDialog() }, 'Cancel'))));
   yes.focus();
 }
@@ -222,7 +222,7 @@ function wizard(status, resolve) {
     return [h('h2', 'Welcome!'),
       h('p', 'Cardclops shows your Magic cards as a gallery you can search like Scryfall, tracks what they’re worth, checks decks against what you own and a lot more.'),
       h('ul.setup-facts',
-        h('li', h('b', 'Free, and it stays on this computer. '), 'Nothing you import is uploaded anywhere. The only things it downloads are public card data and prices, and card images as you look at them.'),
+        h('li', h('b', 'Free, and it stays on this device. '), 'Nothing you import is uploaded anywhere. The only things it downloads are public card data and prices, and card images as you look at them.'),
         h('li', h('b', 'Your data lives in '), h('code', status.data_dir || '—'), h('span.muted', ' (your collection, decks, backups)')),
         h('li', h('b', 'Card data and images are cached in '), h('code', status.cache_dir || '—'), h('span.muted', ' (safe to delete; it downloads again)'))),
       navRow(h('button.btn.go', { type: 'button', onclick: () => go(1) }, 'Get started →'))];
@@ -300,8 +300,8 @@ function wizard(status, resolve) {
         box('move_alerts', 'Big price moves on cards I hold', 'When a card worth $10+ moves 20% in a week.'),
         box('reprint_alerts', 'Wide reprints of cards I hold', 'When a reprint that could lower a card’s price is announced.'),
         box('legality_alerts', 'Bans, unbans and rotations', 'When a format change touches a card you hold.'),
-        box('windows_notifications', 'Show Windows notifications', 'Otherwise alerts wait quietly in the gallery.')),
-      status.ask_available === false ? h('p.small.hint', h('b', 'About the Ask box: '), 'turning English questions into searches needs the Claude command-line tool, which isn’t installed. Everything else works without it.') : null,
+        status.platform === 'win32' ? box('windows_notifications', 'Show Windows notifications', 'Otherwise alerts wait quietly in the gallery.') : null),
+      status.ask_available === false && status.platform !== 'android' ? h('p.small.hint', h('b', 'About the Ask box: '), 'turning English questions into searches needs the Claude command-line tool, which isn’t installed. Everything else works without it.') : null,
       navRow(saving, next)];
   }
 

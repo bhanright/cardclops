@@ -205,7 +205,7 @@ function binderCard(c, open) {
   const rawPrice = c.prices?.usd ?? c.prices?.usd_foil ?? c.prices?.usd_etched;
   const price = rawPrice == null ? null : Number(rawPrice);
   const label = `${c.name} #${c.collector_number}${owned ? `, you own ${c.owned}` : ', missing'}${c.counts ? '' : ', not counted'}`;
-  return h('button', { type: 'button', class: 'bcard' + (owned ? ' own' : ' miss') + (c.counts ? '' : ' skip'), 'aria-label': label, title: label, onclick: open },
+  return h('button', { type: 'button', class: 'bcard' + (owned ? ' own' : ' miss') + (c.counts ? '' : ' uncounted'), 'aria-label': label, title: label, onclick: open },
     h('span.bcard-face', lazyImg(c.image, '', 'card-img')),
     owned ? h('span.qty.small', '×' + int(c.owned)) : null,
     c.owned_foil ? h('span.bfoil', { title: `${c.owned_foil} foil` }, '✦') : null,

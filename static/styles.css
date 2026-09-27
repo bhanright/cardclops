@@ -1474,7 +1474,7 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--lime); }
 .bcard.own .bcard-face { box-shadow: 3px 3px 0 var(--lime); }
 .bcard.miss .bcard-face img { filter: grayscale(1) brightness(.55) contrast(.9); }
 .bcard.miss:hover .bcard-face img, .bcard.miss:focus-visible .bcard-face img { filter: grayscale(.3) brightness(.85); }
-.bcard.skip .bcard-face { border-style: dashed; border-color: var(--faint); opacity: .7; }
+.bcard.uncounted .bcard-face { border-style: dashed; border-color: var(--faint); opacity: .7; }
 .bcard:hover .bcard-face { transform: translateY(-3px); }
 .bcard .qty.small { top: -6px; left: -6px; }
 .bfoil { position: absolute; top: 6px; right: 6px; z-index: 2; font-weight: 700; color: #000; background: linear-gradient(90deg, var(--pink), var(--yellow), var(--cyan)); border: 2px solid #000; border-radius: var(--pill); padding: 0 6px; font-size: .8rem; }

@@ -273,7 +273,7 @@ async function loadSettings() {
   const windowSel = h('select.select', { 'aria-label': 'Over how many days' }, [1, 7, 30].map(d => h('option', { value: d, selected: d === s.held_move_window }, d === 1 ? '1 day' : `${d} days`)));
   const minIn = h('input.num-input', { type: 'number', min: 0, step: 1, value: s.held_min_value_usd, 'aria-label': 'Minimum value held' });
   const check = (key, label) => { const c = h('input', { type: 'checkbox', checked: !!s[key] }); c.dataset.key = key; return h('label.inline-label.check', c, ' ', label); };
-  const checks = [check('reprint_alerts', 'Wide reprints of cards I hold'), check('legality_alerts', 'Bans, unbans and rotations'), check('windows_notifications', 'Windows notifications')];
+  const checks = [check('reprint_alerts', 'Wide reprints of cards I hold'), check('legality_alerts', 'Bans, unbans and rotations'), s.notifications_available ? check('windows_notifications', 'Windows notifications') : null].filter(Boolean);
   const state = h('span.muted.small');
   settingsBox.replaceChildren(h('form.settings-form', { onsubmit: async e => {
     e.preventDefault();
