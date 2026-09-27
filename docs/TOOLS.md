@@ -135,6 +135,8 @@ fits the commander beats a pile of generic cards).
 Within each part, cards are picked by similarity to the commander, then by
 Scryfall's `edhrec_rank` (lower = more played), avoiding a curve top-heavier
 than 12 cards at mana value 6+. Lands: nonbasics that make the most needed
-colors first, then basics split by the pips of the chosen spells. Saving is the
+colors first, then basics split by the pips of the chosen spells, taken from the
+printings you have the most spare copies of (basics over $1 only once the cheap
+ones run out); the page shows one row per basic. Saving is the
 existing `POST /api/decks/import` with `text` and `status: "inactive"` (so it
 reserves nothing until you activate it).

@@ -81,6 +81,10 @@ UNRANKED = 10 ** 7            # cards Scryfall has no EDHREC rank for sort after
 OPPONENT_RAMP_TAGS = frozenset({"donate-rampant-growth"})
 NOT_PLAYABLE_LAYOUTS = {"token", "double_faced_token", "emblem", "art_series", "planar", "scheme",
                         "vanguard", "augment", "host"}
+# Basics at or under this price count as interchangeable: among them the deck takes the printings
+# you have the most spare copies of, so it comes from a few piles rather than one copy of each
+# printing. Pricier basics (full art, foils) wait until the cheap ones run out.
+CHEAP_BASIC_USD = 1.00
 BASIC_NAMES = {"W": "Plains", "U": "Island", "B": "Swamp", "R": "Mountain", "G": "Forest", "C": "Wastes"}
 ROLE_ORDER = ("commander", "ramp", "draw", "removal", "wipes", "synergy", "filler", "lands")
 
@@ -721,11 +725,12 @@ class _Draft:
         pips = self._pips()
         for color in _ordered(basics) + (["C"] if basics.get("C") else []):
             wanted = basics[color]
-            # The cheapest spare printings first, across every basic of that color (snow included).
-            copies = sorted(((e.price_usd or 0, e.row_id, e) for card in self.builder.basic_cards[color]
-                             for e in card.spare_entries()), key=lambda item: item[:2])
+            # Cheap printings before pricey ones, and among the cheap ones the biggest piles first
+            # (CHEAP_BASIC_USD), across every basic of that color (snow included).
+            copies = sorted((e for card in self.builder.basic_cards[color] for e in card.spare_entries()),
+                            key=lambda e: ((e.price_usd or 0) > CHEAP_BASIC_USD, -e.spare, e.price_usd or 0, e.row_id))
             reason = f"lands · basic, {pips[color]:g} {color} pips" if color in COLORS else "lands · basic"
-            for _, _, entry in copies:
+            for entry in copies:
                 if wanted <= 0:
                     break
                 take = min(wanted, entry.spare)

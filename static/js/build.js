@@ -206,7 +206,7 @@ function renderDraft(draft, commanderId, partnerId) {
     h('section.panel.draft-list',
       h('h2', 'Proposed list'),
       h('div.role-grid', ROLES.map(role => {
-        const ls = lines.filter(l => l.role === role);
+        const ls = mergeBasics(lines.filter(l => l.role === role));
         if (!ls.length) return null;
         const n = ls.reduce((s, l) => s + l.quantity, 0);
         return h('section', { class: `role role-${role}` },
@@ -221,6 +221,25 @@ function renderDraft(draft, commanderId, partnerId) {
       }))),
     h('section.stats-area', h('h2.area-title', 'Statistics'), h('div.stats-grid', statsPanels(draft.stats, { onOpen: openByName }))));
   page.partnerBox = partnerBox;
+}
+
+/**
+ * One row per basic land: the draft lists each printing it takes copies from (so saving reserves
+ * those exact copies, and the copied list names them), which on screen is just noise.
+ */
+function mergeBasics(ls) {
+  const merged = [];
+  const byName = new Map();
+  for (const l of ls) {
+    const basic = l.role === 'lands' && (l.reason || '').startsWith('lands · basic');
+    const row = basic && byName.get(l.card.name);
+    if (row) { row.quantity += l.quantity; row.printings += 1; continue; }
+    const copy = { ...l, printings: 1 };
+    if (basic) byName.set(l.card.name, copy);
+    merged.push(copy);
+  }
+  for (const row of byName.values()) if (row.printings > 1) row.reason += ` · ${row.printings} printings`;
+  return merged;
 }
 
 /** Partner / Background picker, shown only when the commander's rules text allows a second commander. */

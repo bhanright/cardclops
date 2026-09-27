@@ -279,6 +279,18 @@ class DraftTests(unittest.TestCase):
         if basics["Forest"] <= 20:
             self.assertEqual(pricey, [])
 
+    def test_basics_come_from_the_biggest_cheap_piles(self):
+        c, commander, table = big_collection()
+        for price, quantity in (("0.10", 2), ("0.20", 3), ("0.25", 40)):
+            forest = basic("Forest")
+            forest["id"] = f"forest-{price}"
+            forest["prices"] = {"usd": price}
+            c.add(forest, quantity=quantity)
+        draft = Builder(c, StubSimilarity(table), TAGS).draft(commander["oracle_id"])
+        forests = [line for line in draft["lines"] if line["card"].name == "Forest"]
+        # Every Forest fits in the 40-copy pile, so the deck needs just that one printing.
+        self.assertEqual([line["card"].price_usd for line in forests], [0.25])
+
     def test_text_round_trips_through_the_parser(self):
         parsed, _ = parse_decklist(self.draft["text"])
         self.assertEqual(sum(line.quantity for line in parsed), 100)
