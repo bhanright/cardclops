@@ -11,8 +11,8 @@ plugins {
 // are packaged from there as they are, never copied into android/ by hand.
 val repositoryRoot: File = rootProject.projectDir.parentFile
 
-// The app's version is the engine's: gallery/__init__.py says __version__ = "0.1.6", which becomes
-// versionName "0.1.6" and versionCode 106 (major * 10000 + minor * 100 + patch).
+// The app's version is the engine's: gallery/__init__.py says __version__ = "0.1.7", which becomes
+// versionName "0.1.7" and versionCode 107 (major * 10000 + minor * 100 + patch).
 val cardclopsVersion: String = Regex("""__version__\s*=\s*"([^"]+)"""")
     .find(File(repositoryRoot, "gallery/__init__.py").readText())
     ?.groupValues?.get(1)
