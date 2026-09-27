@@ -133,6 +133,11 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
   for (const [key, url] of Object.entries(card.purchase_uris || {})) {
     links.push(h('a.btn.small.ghost', { href: url, target: '_blank', rel: 'noopener' }, titleCase(key) + ' ↗'));
   }
+  // A link only: EDHREC's terms forbid fetching its pages automatically, so its lists can't be shown here.
+  if (card.legalities?.commander !== 'not_legal') {
+    links.push(h('a.btn.small.ghost', { href: edhrecCardUrl(card), target: '_blank', rel: 'noopener',
+      title: 'The commanders this card is played with most, on EDHREC' }, 'Top commanders · EDHREC ↗'));
+  }
 
   const left = h('div.d-left', h('div.d-image', face), h('div.price-badges', priceBadges), h('div.d-links', links), h('div.form-row.d-actions', h('button.btn.small.go', { type: 'button', onclick: () => openAddDialog({ oracleId: card.oracle_id, name: card.name, scryfallId: card.scryfall_id, quantity: 1 }) }, '＋ Add to collection')), watchButton(card, holdings));
 
@@ -230,4 +235,16 @@ async function loadPrices(id, box) {
   }));
   timeSeriesPanel(clear(box), { series, defaultIndex: data.default || 0, height: 200,
     emptyNote: 'History starts today; it grows each refresh.' });
+}
+
+/**
+ * The card's own EDHREC page (edhrec.com/cards/<slug>), which lists the commanders it is played
+ * with. EDHREC's name lookup sends commanders to their deck page instead, so the slug is built
+ * here: split cards keep both halves ("fire-ice"), other two-part cards use the front face.
+ */
+function edhrecCardUrl(card) {
+  const name = ['split', 'aftermath'].includes(card.layout) ? card.name : card.name.split(' // ')[0];
+  const slug = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[^a-z0-9 -]/g, '').replace(/[ -]+/g, '-').replace(/^-|-$/g, '');
+  return `https://edhrec.com/cards/${slug}`;
 }
