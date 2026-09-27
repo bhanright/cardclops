@@ -200,11 +200,16 @@ def produced_colors(card):
     Scryfall lists every color a card could ever make, so Cavern of Souls, Aether Hub and
     Unknown Shores all read as five-color. Only mana abilities that work for any spell count:
     - not mana that can only be spent on some spells ("Spend this mana only to cast a Dragon spell"),
-    - on a land, not mana that depends on other permanents or cards ("any color that a Gate you
-      control could produce", "among legendary creature cards in your graveyard", "Activate only
-      if ..."), nor an ability whose cost is more than tapping, life and colored mana: filters that
-      cost generic mana ("{1}, {T}"), energy, counters, a sacrifice or tapping a creature.
-      Rocks and dorks keep such abilities: a Signet's "{1}, {T}: Add {W}{B}" is how a rock works.
+    - on a land, not mana that depends on your own other cards ("any color that a Gate you
+      control could produce", "among legendary creature cards in your graveyard"); Exotic
+      Orchard's "a land an opponent controls" and the Verges' "Activate only if you control a
+      Swamp or a Forest" do count, as players count them; Spire of Industry's "Activate only if you
+      control an artifact" and Gemstone Caverns' luck counter do not,
+    - on a land, not an ability whose cost is more than tapping, life and colored mana: filters
+      that trade generic mana one for one ("{1}, {T}: Add one mana of any color"), energy,
+      counters, a sacrifice or tapping a creature. Skycloud Expanse's "{1}, {T}: Add {W}{U}"
+      makes more than it costs, so it counts. Rocks and dorks keep all such abilities: a
+      Signet's "{1}, {T}: Add {W}{B}" is how a rock works.
     """
     # Keyed by what the answer depends on, not the id alone: synthetic cards in tests
     # reuse ids, and a cache keyed by id would hand one card another's colors.
@@ -227,7 +232,10 @@ def produced_colors(card):
 
 _PRODUCED_CACHE = {}          # (id, text, produced_mana) -> produced colors
 RESTRICTED_MANA = re.compile(r"spend this mana only", re.IGNORECASE)
-CONDITIONAL_MANA = re.compile(r"activate only|could produce|\bamong\b|exiled", re.IGNORECASE)
+CONDITIONAL_MANA = re.compile(
+    r"(?<!opponent controls )could produce|\bamong\b|exiled|luck counter"
+    r"|activate only if (?!you control (?:a|an) (?:Plains|Island|Swamp|Mountain|Forest)\b)", re.IGNORECASE)
+GENERIC_COST = re.compile(r"^\{(\d+)\}$")
 REMINDER_TEXT = re.compile(r"\([^)]*\)")
 PLAIN_LAND_COST = re.compile(r"^(\{T\}|Pay \d+ life|(\{[WUBRG](/[WUBRG])?\})+)$")
 
@@ -245,13 +253,24 @@ def _usable_mana_colors(card):
         cost, effect = paragraph[:cut], REMINDER_TEXT.sub("", paragraph[cut + len(": Add "):])
         if RESTRICTED_MANA.search(effect):
             continue
-        if land and (CONDITIONAL_MANA.search(effect)
-                     or not all(PLAIN_LAND_COST.match(part.strip()) for part in cost.split(","))):
+        if land and (CONDITIONAL_MANA.search(effect) or not _plain_land_cost(cost, effect)):
             continue
         colors |= set(MANA_LETTER.findall(effect))
         if "color" in effect:             # any color, the chosen color, your commander's color identity
             colors |= set(COLORS)
     return colors if found_ability else None
+
+
+def _plain_land_cost(cost, effect):
+    """Tapping, life and colored mana; generic mana only when the ability makes more than it costs."""
+    generic = 0
+    for part in (part.strip() for part in cost.split(",")):
+        match = GENERIC_COST.match(part)
+        if match:
+            generic += int(match.group(1))
+        elif not PLAIN_LAND_COST.match(part):
+            return False
+    return generic == 0 or len(MANA_LETTER.findall(effect)) > generic
 
 
 def fetched_colors(card, basic_colors):
