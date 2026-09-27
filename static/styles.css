@@ -541,9 +541,11 @@ button.lh:hover, .lh.on { text-decoration: underline; text-decoration-thickness:
 .legal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 5px; }
 .legal { display: flex; justify-content: space-between; gap: 6px; padding: 4px 9px; border: 2px solid #000; border-radius: 10px; font-size: .8rem; background: var(--panel); color: var(--muted); }
 .legal .ls { font-weight: 700; white-space: nowrap; }
-.legal.legal { background: var(--lime); color: #000; }
-.legal.banned { background: var(--pink); color: #000; }
-.legal.restricted { background: var(--orange); color: #000; }
+.legal.is-legal { background: var(--lime); color: #000; }
+.legal.is-not_legal { background: var(--pink); color: #000; }
+/* Banned is pink too, hatched so it still reads apart from "not legal" at a glance. */
+.legal.is-banned { background: repeating-linear-gradient(135deg, var(--pink) 0 9px, #ec2f93 9px 18px); color: #000; }
+.legal.is-restricted { background: var(--orange); color: #000; }
 .thumb-row { display: flex; gap: 14px; overflow-x: auto; padding: 10px 6px 14px 10px; scrollbar-width: thin; }
 .thumb {
   position: relative; flex: none; width: 128px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; text-align: left;

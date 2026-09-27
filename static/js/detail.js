@@ -178,7 +178,7 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
 
   const legal = card.legalities || {};
   const legalGrid = h('div.legal-grid', sortFormats(Object.keys(legal)).map(f =>
-    h('div', { class: `legal ${legal[f]}` }, h('span.lf', formatLabel(f)), h('span.ls', LEGAL_LABEL[legal[f]] || titleCase(legal[f])))));
+    h('div', { class: `legal is-${legal[f]}` }, h('span.lf', formatLabel(f)), h('span.ls', LEGAL_LABEL[legal[f]] || titleCase(legal[f])))));
 
   const right = h('div.d-right',
     h('h2.d-name', h('span', card.name), ' ', manaCost(card.mana_cost)),
