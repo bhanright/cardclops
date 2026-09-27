@@ -144,7 +144,13 @@ and MTGO's convention of a sideboard after a blank line.
 finishes, commander, companion, sideboard and out-of-deck categories come across. Archidekt's staff
 have said publicly that its read API may be used; Moxfield's terms forbid automated access, so Moxfield
 decks are pasted ("Copy for Moxfield" keeps printings and finishes; its first card is taken as the
-commander of a 100-card list when it can be one).
+commander of a 100-card list when it can be one, and the second card too when the two are partners:
+Partner, Friends forever, a Background for "Choose a Background", or a Doctor's companion).
+
+A name shared by a playable card and an oddity (Pym Particles and the Jumpstart front card named
+after it; art cards, tokens) goes to the playable card, and a set and number in the list win over the
+name when that printing has the name. Lines an older import matched to an oddity are matched again
+when the app starts.
 
 `POST /api/decks/<id>/sync` → re-reads a deck imported from Archidekt (pins survive) → DeckSummary + `warnings`.
 
@@ -157,6 +163,19 @@ commander section.
 `PUT /api/decks/<id>/list` body `{"text": "…"}` → replaces the list (pins survive for cards still present) → DeckSummary.
 
 `DELETE /api/decks/<id>` → `{"deleted": 3}`
+
+`POST /api/decks/<id>/lines` body `{"oracle_id": "…"}` (any printing), `{"scryfall_id": "…"}` (that
+printing) or `{"name": "Sol Ring"}`, plus optional `"section"` (default `main`) and `"quantity"`
+(default 1) → DeckSummary + `line_id`. A card already in that section, with no printing asked for,
+gets its quantity raised instead of a second line.
+
+`PATCH /api/decks/<id>/lines/<line_id>` body any of `{"quantity": 2, "section": "sideboard"}`
+(quantity 0 removes the line; pins shrink to fit) → DeckSummary + `line_id`.
+`DELETE /api/decks/<id>/lines/<line_id>` removes the line. These edits are versions with reason
+`edit`; on a deck imported from Archidekt the answer carries a `warning` that the next sync replaces them.
+
+DeckLine carries `pairs_with_commander`: true for a main-deck card that could join the deck's single
+commander as its partner or Background (the deck page offers it under the commander).
 
 `POST /api/decks/<id>/pin` body `{"line_id": 17, "pool": "<scryfall_id>|foil", "quantity": 1}` → DeckLine
 (quantity 0 removes the pin).

@@ -136,7 +136,7 @@ function renderGoldfish(out, g) {
 }
 
 // ---------- history ----------
-const REASON = { import: 'Imported', replace: 'List replaced', sync: 'Synced from Archidekt', manafix: 'Mana-base fixer', commander: 'Commander changed', restore: 'Restored' };
+const REASON = { import: 'Imported', replace: 'List replaced', sync: 'Synced from Archidekt', manafix: 'Mana-base fixer', commander: 'Commander changed', restore: 'Restored', edit: 'Edited' };
 
 export function historySection(deck, { onRestored }) {
   const box = h('div', spinner('Loading history…'));

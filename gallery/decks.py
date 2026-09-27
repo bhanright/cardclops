@@ -15,11 +15,12 @@ import re
 import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from datetime import datetime
 
 from . import scryfall, versions
 from .collection import build_entry
-from .deckstats import can_be_commander
+from .deckstats import can_be_commander, commanders_pair, has_partner_ability
 
 SECTIONS = ("commander", "companion", "main", "sideboard", "maybeboard")
 USES_COPIES = ("commander", "companion", "main", "sideboard")      # maybeboard reserves nothing
@@ -211,6 +212,16 @@ def _commander_at_the_end(lines, groups):
 
 # ---- resolving -------------------------------------------------------------------------------
 
+# Card types a deck can play. Oddities have none of them: Jumpstart front cards and art cards
+# ("Card"), tokens and emblems (their type line starts with the word).
+GAME_TYPES = {"Artifact", "Battle", "Creature", "Enchantment", "Instant", "Kindred", "Land",
+              "Planeswalker", "Sorcery", "Tribal", "Conspiracy"}
+
+
+def is_game_card(type_line):
+    words = (type_line or "").split(" // ")[0].split("—")[0].split()
+    return bool(words) and words[0] not in ("Token", "Emblem") and bool(GAME_TYPES & set(words))
+
 @dataclass
 class Resolver:
     """Turns parsed lines into cards, using every card Scryfall knows (not just the ones you own)."""
@@ -220,7 +231,10 @@ class Resolver:
     representative: dict = field(default_factory=dict)  # oracle_id -> (scryfall_id, name, cheapest usd)
 
     def __post_init__(self):
-        for row in self.connection.execute("SELECT oracle_id, name, scryfall_id, cheapest_usd FROM oracle_cards"):
+        rows = self.connection.execute("SELECT oracle_id, name, type_line, scryfall_id, cheapest_usd FROM oracle_cards").fetchall()
+        # A name can belong to a game card and to an oddity sharing it (Pym Particles, and the
+        # Jumpstart front card named after its theme); the game card wins the name.
+        for row in sorted(rows, key=lambda row: not is_game_card(row["type_line"])):
             self.representative[row["oracle_id"]] = (row["scryfall_id"], row["name"], row["cheapest_usd"])
             self.by_name.setdefault(fold(row["name"]), row["oracle_id"])
             if " // " in row["name"]:
@@ -244,7 +258,9 @@ class Resolver:
             return printing["oracle_id"], printing["scryfall_id"], printing["name"], None
         name_key = fold(re.sub(r"^A-", "", line.name))          # Arena's rebalanced "A-" cards
         oracle_id = self.by_name.get(name_key) or self.by_name.get(fold(line.name))
-        if printing and (oracle_id is None or printing["oracle_id"] == oracle_id):
+        printed_names = {fold(printing["name"]), *(fold(face) for face in printing["name"].split(" // "))} if printing else set()
+        if printing and (oracle_id is None or printing["oracle_id"] == oracle_id
+                         or name_key in printed_names or fold(line.name) in printed_names):
             return printing["oracle_id"], printing["scryfall_id"], printing["name"], None
         if oracle_id is None:
             return None, None, line.name, f"No card named “{line.name}”"
@@ -293,7 +309,30 @@ class DeckBook:
         self.connection = connection
         self.collection = collection
         self.resolver = resolver or Resolver(connection, collection)
+        self._repair_oddity_lines()
         self.reload()
+
+    def _repair_oddity_lines(self):
+        """Lines an older import matched to a card no deck can play (a Jumpstart front card sharing
+        a sorcery's name) are matched again, now that the game card wins the name."""
+        connection = self.connection
+        rows = connection.execute(
+            "SELECT l.line_id, l.name, l.requested_set, l.requested_number, l.oracle_id, o.type_line "
+            "FROM deck_lines l JOIN oracle_cards o ON o.oracle_id = l.oracle_id").fetchall()
+        fixed = False
+        for row in rows:
+            if is_game_card(row["type_line"]):
+                continue
+            line = SimpleNamespace(name=row["name"], scryfall_id=None, set_code=row["requested_set"],
+                                   number=row["requested_number"])
+            oracle_id, scryfall_id, name, _ = self.resolver.resolve(line)
+            found = connection.execute("SELECT type_line FROM oracle_cards WHERE oracle_id = ?", (oracle_id,)).fetchone()
+            if oracle_id and oracle_id != row["oracle_id"] and found and is_game_card(found["type_line"]):
+                connection.execute("UPDATE deck_lines SET oracle_id = ?, scryfall_id = ?, name = ? WHERE line_id = ?",
+                                   (oracle_id, scryfall_id, name, row["line_id"]))
+                fixed = True
+        if fixed:
+            connection.commit()
 
     # -- loading and allocating --
 
@@ -642,6 +681,7 @@ class DeckBook:
                           if row["requested_set"] or row["requested_finish"] else None),
             "card": summary, "category": category, "tags": sorted(entry.tags) if entry else [],
             "can_be_commander": bool(entry) and can_be_commander(entry.card, self.decks[row["deck_id"]]["format"]),
+            "pairs_with_commander": self._pairs_with_commander(state, entry),
             "allocations": [{**self.pool_info(pool), "quantity": quantity, "pinned": pinned}
                             for pool, quantity, pinned in state.allocations],
             "owned": state.owned, "missing": state.missing, "missing_reason": state.missing_reason,
@@ -649,6 +689,16 @@ class DeckBook:
             "alternatives": [{**self.pool_info(pool), "free": free_now.get(pool, 0)}
                              for pool in held_pools if pool not in allocated],
         }
+
+    def _pairs_with_commander(self, state, entry):
+        """Whether a main-deck card could join the deck's one commander as its partner (or Background)."""
+        if state.row["section"] != "main" or not entry:
+            return False
+        leaders = [st for st in self.lines[state.row["deck_id"]] if st.row["section"] == "commander"]
+        leader = self.line_entry(leaders[0]) if len(leaders) == 1 else None
+        fmt = self.decks[state.row["deck_id"]]["format"]
+        return (bool(leader) and has_partner_ability(leader.card) and can_be_commander(entry.card, fmt)
+                and commanders_pair(leader.card, entry.card))
 
     def _free_counts(self):
         if not hasattr(self, "_free_cache") or self._free_cache[0] is not self.taken_by:
@@ -804,20 +854,24 @@ class DeckBook:
         return "casual"
 
     def _first_card_as_commander(self, deck_id):
-        """Moxfield's "Copy for Moxfield" export names no commander; it is the list's first card.
-        For a Commander deck with no commander yet, promote the first card when it can lead a deck."""
+        """Moxfield's "Copy for Moxfield" export names no commander; it is the list's first card, or
+        its first two when they are partners. For a Commander deck with no commander yet, promote the
+        first card when it can lead a deck, and the second when it pairs with the first."""
         connection = self.connection
         fmt = connection.execute("SELECT format FROM decks WHERE deck_id = ?", (deck_id,)).fetchone()[0]
         states = sorted(self.lines[deck_id], key=lambda s: s.row["position"])
         if fmt not in ("commander", "brawl", "oathbreaker") or any(s.row["section"] == "commander" for s in states):
             return
-        first = next((s for s in states if s.row["section"] == "main"), None)
-        card = self.card_data(first.row["scryfall_id"]) if first and first.row["scryfall_id"] else None
-        if not card or first.row["quantity"] != 1:
+        main = [s for s in states if s.row["section"] == "main"]
+        cards = [self.card_data(s.row["scryfall_id"]) if s.row["scryfall_id"] and s.row["quantity"] == 1 else None
+                 for s in main[:2]]
+        first = cards[0] if cards else None
+        if not first or not can_be_commander(first, fmt) or "Background" in (first.get("type_line") or ""):
             return
-        from .deckstats import can_be_commander
-        if can_be_commander(card, fmt) and "Background" not in (card.get("type_line") or ""):
-            connection.execute("UPDATE deck_lines SET section = 'commander' WHERE line_id = ?", (first.row["line_id"],))
+        connection.execute("UPDATE deck_lines SET section = 'commander' WHERE line_id = ?", (main[0].row["line_id"],))
+        second = cards[1] if len(cards) > 1 else None
+        if second and has_partner_ability(first) and can_be_commander(second, fmt) and commanders_pair(first, second):
+            connection.execute("UPDATE deck_lines SET section = 'commander' WHERE line_id = ?", (main[1].row["line_id"],))
 
     def _type_line(self, state):
         card = self.card_data(state.row["scryfall_id"]) if state.row["scryfall_id"] else None
@@ -960,6 +1014,82 @@ class DeckBook:
         self.reload()
         if "commanders" in changes:
             versions.record(self, deck_id, "commander")
+
+    # -- editing one line (docs/DECKS.md, "Endpoints") --
+
+    def add_line(self, deck_id, body):
+        """Add a card by oracle_id (any printing), scryfall_id (that printing) or name. Adding a
+        card already in that section raises its quantity. Returns the line_id."""
+        connection = self.connection
+        section = body.get("section") or "main"
+        if section not in SECTIONS:
+            raise ValueError(f"section must be one of {', '.join(SECTIONS)}")
+        quantity = int(body.get("quantity", 1))
+        if quantity < 1:
+            raise ValueError("quantity must be at least 1")
+        scryfall_id = body.get("scryfall_id") or None
+        name = (body.get("name") or "").strip()
+        if body.get("oracle_id") and not scryfall_id:
+            if body["oracle_id"] not in self.resolver.representative:
+                raise ValueError("unknown card")
+            name = self.resolver.representative[body["oracle_id"]][1]
+        if not name and not scryfall_id:
+            raise ValueError("Choose a card")
+        oracle_id, shown_id, name, warning = self.resolver.resolve(
+            SimpleNamespace(name=name, scryfall_id=scryfall_id, set_code=None, number=None))
+        if oracle_id is None:
+            raise ValueError(warning or f"No card named {name}")
+        requested = None
+        if scryfall_id:
+            requested = connection.execute("SELECT set_code, collector_number FROM printings WHERE scryfall_id = ?",
+                                           (scryfall_id,)).fetchone()
+        same = next((st for st in self.lines[deck_id] if st.row["section"] == section and st.row["oracle_id"] == oracle_id
+                     and (st.row["scryfall_id"] == scryfall_id if requested else not st.row["requested_set"])), None)
+        if same:
+            line_id = same.row["line_id"]
+            connection.execute("UPDATE deck_lines SET quantity = quantity + ? WHERE line_id = ?", (quantity, line_id))
+        else:
+            position = 1 + max((st.row["position"] for st in self.lines[deck_id]), default=0)
+            line_id = connection.execute(
+                "INSERT INTO deck_lines (deck_id, position, section, quantity, name, oracle_id, scryfall_id, "
+                "requested_set, requested_number, requested_finish) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)",
+                (deck_id, position, section, quantity, name, oracle_id, shown_id,
+                 requested["set_code"] if requested else None,
+                 requested["collector_number"] if requested else None)).lastrowid
+            if shown_id not in self.collection.by_scryfall_id:
+                self._fetch_missing_cards({shown_id})
+        self._edited(deck_id)
+        return line_id
+
+    def edit_line(self, line_id, body):
+        """Change a line's quantity (0 removes it) or move it to another section."""
+        if line_id not in self.line_by_id:
+            raise KeyError(f"no line {line_id}")
+        connection = self.connection
+        deck_id = self.line_by_id[line_id].row["deck_id"]
+        if "section" in body and body["section"] not in SECTIONS:
+            raise ValueError(f"section must be one of {', '.join(SECTIONS)}")
+        if "quantity" in body:
+            quantity = int(body["quantity"])
+            if quantity < 0:
+                raise ValueError("quantity can't be negative")
+            if quantity == 0:
+                connection.execute("DELETE FROM deck_lines WHERE line_id = ?", (line_id,))
+                self._edited(deck_id)
+                return
+            connection.execute("UPDATE deck_lines SET quantity = ? WHERE line_id = ?", (quantity, line_id))
+            # A pin can't hold more copies than the line now asks for.
+            connection.execute("UPDATE deck_pins SET quantity = ? WHERE line_id = ? AND quantity > ?",
+                               (quantity, line_id, quantity))
+        if "section" in body:
+            connection.execute("UPDATE deck_lines SET section = ? WHERE line_id = ?", (body["section"], line_id))
+        self._edited(deck_id)
+
+    def _edited(self, deck_id):
+        self.connection.execute("UPDATE decks SET updated_at = ? WHERE deck_id = ?", (self._now(), deck_id))
+        self.connection.commit()
+        self.reload()
+        versions.record(self, deck_id, "edit")
 
     def delete(self, deck_id):
         self.connection.execute("DELETE FROM decks WHERE deck_id = ?", (deck_id,))

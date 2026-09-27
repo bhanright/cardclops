@@ -666,6 +666,38 @@ def can_be_commander(card, deck_format=None):
     return deck_format in BRAWL_FORMATS and "Planeswalker" in main_types
 
 
+def _keywords(card):
+    return {word.lower() for word in card.get("keywords") or ()}
+
+
+def _pairs_one_way(card, other):
+    words, text = _keywords(card), oracle_text(card).lower()
+    other_words = _keywords(other)
+    if any(word.startswith("partner") for word in words) and any(w.startswith("partner") for w in other_words):
+        return True
+    if "friends forever" in words and "friends forever" in other_words:
+        return True
+    if "choose a background" in words or "choose a background" in text:
+        return "Background" in front_type_line(other)
+    if "doctor's companion" in words or "doctor's companion" in text:
+        return "Doctor" in front_type_line(other)
+    return False
+
+
+def commanders_pair(first, second):
+    """Whether two cards may lead a deck together: Partner (and Partner with), Friends forever,
+    Choose a Background with a Background, or Doctor's companion with a Doctor."""
+    return _pairs_one_way(first, second) or _pairs_one_way(second, first)
+
+
+def has_partner_ability(card):
+    """Whether a commander could take a second one beside it (see commanders_pair)."""
+    words, text = _keywords(card), oracle_text(card).lower()
+    return (any(word.startswith("partner") for word in words) or "friends forever" in words
+            or "choose a background" in words or "choose a background" in text
+            or "doctor's companion" in words or "doctor's companion" in text)
+
+
 def _commander_problems(commanders, deck_format, facts):
     """Errors for commanders that plainly cannot lead; warnings where the rules are too varied to be sure."""
     problems, warnings = [], []
@@ -692,24 +724,7 @@ def _commander_problems(commanders, deck_format, facts):
             problems.append({"name": name, "reason": "not legendary, so it cannot be a commander"})
     if len(commanders) == 2:
         first, second = (line.card for line in commanders)
-
-        def keywords(card):
-            return {word.lower() for word in card.get("keywords") or ()}
-
-        def pairs(card, other):
-            words, text = keywords(card), oracle_text(card).lower()
-            other_words = keywords(other)
-            if any(word.startswith("partner") for word in words) and any(w.startswith("partner") for w in other_words):
-                return True
-            if "friends forever" in words and "friends forever" in other_words:
-                return True
-            if "choose a background" in words or "choose a background" in text:
-                return "Background" in front_type_line(other)
-            if "doctor's companion" in words or "doctor's companion" in text:
-                return "Doctor" in front_type_line(other)
-            return False
-
-        if not (pairs(first, second) or pairs(second, first)):
+        if not commanders_pair(first, second):
             warnings.append({"name": " and ".join(names),
                              "reason": "no partner, background or companion pairing found between the two commanders"})
     return problems, warnings

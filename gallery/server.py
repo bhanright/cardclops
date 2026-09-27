@@ -648,6 +648,20 @@ class Gallery:
                 if book.decks[deck_id]["source"] == "archidekt":
                     summary["warning"] = "This deck syncs from Archidekt; the next sync will replace these swaps."
                 return summary
+            if action == "lines":
+                if method == "POST" and not rest:
+                    line_id = book.add_line(deck_id, body)
+                elif method in ("PATCH", "DELETE") and len(rest) == 1 and rest[0].isdigit():
+                    line_id = int(rest[0])
+                    if book.line_by_id.get(line_id) is None or book.line_by_id[line_id].row["deck_id"] != deck_id:
+                        raise KeyError(f"no line {line_id} in deck {deck_id}")
+                    book.edit_line(line_id, {"quantity": 0} if method == "DELETE" else body)
+                else:
+                    raise LookupError("unknown deck line request")
+                summary = {**book.summary(deck_id), "line_id": line_id}
+                if book.decks[deck_id]["source"] == "archidekt":
+                    summary["warning"] = "This deck syncs from Archidekt; the next sync will replace this change."
+                return summary
             if method == "POST" and action == "pin":
                 state = book.pin(int(body["line_id"]), body.get("pool", ""), int(body.get("quantity", 0)))
                 return book.line_json(state, self.summarize)

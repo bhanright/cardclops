@@ -1,6 +1,6 @@
 // One deck: header (rename, format, status, priority, notes, replace/copy/delete), the list with
 // allocations and pins, statistics, value history, suggestions from the collection and a sample hand.
-import { h, clear, int, money, spinner, errorBox, manaCost, finishLabel, copyText, toast } from './util.js';
+import { h, clear, int, money, spinner, errorBox, manaCost, finishLabel, copyText, toast, debounce } from './util.js';
 import { openAddDialog } from './addcards.js';
 import { api } from './api.js';
 import { attachHoverPreview, hideHoverPreview, cardFace, thumb } from './cards.js';
@@ -296,11 +296,76 @@ const finishMarker = f => (f === 'foil' ? ' *F*' : f === 'etched' ? ' *E*' : '')
 // ---------- list ----------
 function listPanel() {
   const body = h('div.dk-list-body');
+  const form = addLineForm();
+  form.hidden = !addOpen;
+  const toggle = h('button.btn.small.go', { type: 'button', 'aria-expanded': String(addOpen), onclick: () => {
+    addOpen = !addOpen;
+    form.hidden = !addOpen;
+    toggle.setAttribute('aria-expanded', String(addOpen));
+    if (addOpen) form.querySelector('input')?.focus();
+  } }, '＋ Add card');
   const seg = h('div.seg', { role: 'group', 'aria-label': 'List layout' },
     [['list', 'List'], ['visual', 'Visual']].map(([v, l]) => h('button.seg-btn', { type: 'button', class: view === v ? 'on' : null, 'aria-pressed': String(view === v),
       onclick: () => { view = v; for (const b of seg.children) { b.classList.toggle('on', b.textContent === l ? true : false); b.setAttribute('aria-pressed', String(b.classList.contains('on'))); } drawList(body); } }, l)));
   drawList(body);
-  return h('section#dk-list.panel.dk-list', h('div.panel-head', h('h2', 'The list'), seg), body);
+  return h('section#dk-list.panel.dk-list', h('div.panel-head', h('h2', 'The list'), h('div.form-row', toggle, seg)), form, body);
+}
+
+let addOpen = false;          // the Add card form stays open across the re-render after each add
+
+/** Search any card by name, pick a printing (or any), a section and a quantity, and add it. */
+function addLineForm() {
+  const input = h('input.text-input', { type: 'search', placeholder: 'Card name, e.g. Sol Ring', 'aria-label': 'Card to add', autocomplete: 'off' });
+  const names = h('div.lookup-names');
+  const printing = h('select.select', { 'aria-label': 'Printing' }, h('option', { value: '' }, 'Any printing'));
+  const section = h('select.select', { 'aria-label': 'Section' },
+    SECTIONS.map(sec => h('option', { value: sec, selected: sec === 'main' }, SECTION_LABEL[sec])));
+  const quantity = h('input.num-input', { type: 'number', min: 1, step: 1, value: 1, 'aria-label': 'Quantity' });
+  let chosen = null;
+  const add = h('button.btn.go', { type: 'button', disabled: true, onclick: async () => {
+    if (!chosen) return;
+    add.disabled = true;
+    try {
+      const r = await api.decks.addLine(deckId, { oracle_id: chosen.oracle_id, scryfall_id: printing.value || undefined,
+        section: section.value, quantity: Math.max(1, +quantity.value || 1) });
+      invalidateDecks();
+      toast(r.warning || `Added ${chosen.name}`);
+      await load({ quiet: true });
+      document.querySelector('.add-line-form input')?.focus();
+    } catch (error) { toast('Could not add: ' + error.message); add.disabled = false; }
+  } }, '＋ Add to deck');
+  const choose = async (card, button) => {
+    chosen = card;
+    for (const b of names.children) b.setAttribute('aria-pressed', String(b === button));
+    add.disabled = false;
+    clear(printing).append(h('option', { value: '' }, 'Any printing'));
+    if (!card.printings) {
+      try { card.printings = (await api.lookup({ oracle_id: card.oracle_id })).cards?.[0]?.printings || []; } catch { card.printings = []; }
+    }
+    if (chosen !== card) return;
+    printing.append(...card.printings.map(pr => h('option', { value: pr.scryfall_id },
+      `${(pr.set_code || '').toUpperCase()} #${pr.collector_number} · ${pr.set_name || ''}`)));
+  };
+  const search = debounce(async () => {
+    const q = input.value.trim();
+    chosen = null; add.disabled = true; clear(names);
+    if (q.length < 2) return;
+    let cards;
+    try { cards = (await api.lookup({ q })).cards || []; } catch (error) { names.append(h('span.muted.small', error.message)); return; }
+    if (q !== input.value.trim()) return;
+    if (!cards.length) { names.append(h('span.muted.small', 'No card by that name.')); return; }
+    const buttons = cards.map(card => {
+      const b = h('button.mini-chip', { type: 'button', 'aria-pressed': 'false', onclick: () => choose(card, b) }, card.name);
+      return b;
+    });
+    names.append(...buttons);
+    choose(cards[0], buttons[0]);
+  }, 300);
+  input.addEventListener('input', search);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter' && !add.disabled) { e.preventDefault(); add.click(); } });
+  return h('div.add-line-form', input, names,
+    h('div.form-row', h('label.inline-label', 'Printing ', printing), h('label.inline-label', 'Section ', section),
+      h('label.inline-label', 'Quantity ', quantity), add));
 }
 
 function drawList(body) {
@@ -314,6 +379,7 @@ function drawList(body) {
       .sort((a, b) => (a.card?.cmc ?? 0) - (b.card?.cmc ?? 0) || a.name.localeCompare(b.name))]).filter(([, ls]) => ls.length);
     const sec = h('section', { class: `dk-section sec-${section}` },
       h('h3.sec-title', SECTION_LABEL[section], h('span.muted', ` · ${int(count)}`), section === 'maybeboard' ? h('span.muted.small', ' — ideas; uses no copies') : null));
+    if (section === 'commander') sec.append(partnerRow(lines));
     if (view === 'visual') {
       sec.append(h('div.stack-cats', groups.map(([cat, ls]) => h('div.stack-cat',
         h('h4', section === 'commander' ? '' : CATEGORY_PLURAL[cat], h('span.muted', ` ${ls.reduce((s, l) => s + l.quantity, 0)}`)),
@@ -326,6 +392,16 @@ function drawList(body) {
     }
     body.append(sec);
   }
+}
+
+/** With one commander that can take a partner (or a Background), offer the main-deck cards that fit. */
+function partnerRow(leaders) {
+  const candidates = leaders.length === 1 ? data.lines.filter(l => l.pairs_with_commander) : [];
+  if (!candidates.length) return '';
+  const leader = leaders[0];
+  return h('div.partner-row', h('span.small', `${leader.name} can share the command zone. Make a second commander: `),
+    candidates.map(l => h('button.mini-chip', { type: 'button', title: `Move ${l.name} from the main deck to the command zone`,
+      onclick: () => patch({ commanders: [leader.oracle_id, l.oracle_id] }, `${l.name} is now a commander`) }, '★ ' + l.name)));
 }
 
 function statusOf(line) {
@@ -353,7 +429,7 @@ function lineRow(line) {
   const st = statusOf(line);
   const allocs = line.allocations || [];
   const value = allocs.reduce((s, a) => s + (a.price_usd || 0) * a.quantity, 0);
-  const hasPanel = line.oracle_id && line.section !== 'maybeboard' && ((line.alternatives || []).length || allocs.length);
+  const hasPanel = true;                  // every line can be edited; copies show when it has any
   const open = openLines.has(line.line_id);
   const panelId = `copies-${line.line_id}`;
   const row = h('div', { class: `dline st-${st.cls.split(' ')[0]}${st.cls.includes('conflict') ? ' has-conflict' : ''}` },
@@ -367,7 +443,7 @@ function lineRow(line) {
           onclick: () => openAddDialog({ oracleId: line.oracle_id, name: line.name, scryfallId: line.requested ? line.card?.scryfall_id : null, quantity: line.missing }) },
         `＋ Add ${line.missing} to my collection`) : null),
     h('span.dl-value', value ? money(value) : line.card?.price_usd != null ? h('span.muted', money(line.card.price_usd)) : '—'),
-    hasPanel ? h('button.dl-more', { type: 'button', 'aria-expanded': String(open), 'aria-controls': panelId, dataset: { focus: `more-${line.line_id}` }, title: 'Choose which copies this line uses',
+    hasPanel ? h('button.dl-more', { type: 'button', 'aria-expanded': String(open), 'aria-controls': panelId, dataset: { focus: `more-${line.line_id}` }, title: 'Quantity, section, removing it, and which copies it uses',
       onclick: () => {
         if (openLines.has(line.line_id)) openLines.delete(line.line_id); else openLines.add(line.line_id);
         const target = row.parentElement?.classList.contains('dline-wrap') ? row.parentElement : row;
@@ -375,7 +451,7 @@ function lineRow(line) {
         target.replaceWith(fresh);
         fresh.querySelector('.dl-more')?.focus();
       } },
-    open ? 'Copies ▴' : 'Copies ▾') : h('span'));
+    open ? 'Edit ▴' : 'Edit ▾') : h('span'));
   if (line.card) attachHoverPreview(row.querySelector('.dl-card'), line.card);
   if (!open || !hasPanel) return row;
   return h('div.dline-wrap', row, copiesPanel(line, panelId));
@@ -396,7 +472,33 @@ function copiesPanel(line, id) {
   };
   const isCommanderFormat = /commander|brawl|oathbreaker|predh|duel/.test(data.deck.format || '');
   const canLead = isCommanderFormat && line.section === 'main' && line.can_be_commander;
+  const hasCopies = line.oracle_id && line.section !== 'maybeboard';
+  const edit = async (fields, message, button) => {
+    button.disabled = true;
+    try {
+      const r = fields ? await api.decks.editLine(deckId, line.line_id, fields) : await api.decks.removeLine(deckId, line.line_id);
+      invalidateDecks(); toast(r.warning || message);
+      if (fields) refocus = `more-${line.line_id}`;
+      await load({ quiet: true });
+    } catch (error) { toast('Could not save: ' + error.message); button.disabled = false; }
+  };
+  const quantity = h('input.num-input', { type: 'number', min: 1, step: 1, value: line.quantity, 'aria-label': 'Quantity' });
+  const section = h('select.select', { 'aria-label': 'Section' },
+    SECTIONS.map(sec => h('option', { value: sec, selected: sec === line.section }, SECTION_LABEL[sec])));
+  const lineCol = h('div.cp-col.cp-line',
+    h('h4', 'This line'),
+    h('div.form-row', h('label.inline-label', 'Quantity ', quantity), h('label.inline-label', 'Section ', section),
+      h('button.btn.small', { type: 'button', onclick: e => {
+        const fields = {};
+        if (+quantity.value !== line.quantity) fields.quantity = Math.max(1, +quantity.value || 1);
+        if (section.value !== line.section) fields.section = section.value;
+        if (!Object.keys(fields).length) return toast('Nothing changed');
+        edit(fields, 'Line updated', e.target);
+      } }, 'Save')),
+    h('button.btn.small.danger', { type: 'button', onclick: e => edit(null, `Removed ${line.name}`, e.target) }, '✗ Remove from deck'));
+  if (!hasCopies) return h('div.copies-panel', { id }, lineCol);
   return h('div.copies-panel', { id },
+    lineCol,
     h('div.cp-col',
       h('h4', 'Using now'),
       allocs.length ? h('ul.cp-list', allocs.map(a => h('li', copyChip(a),

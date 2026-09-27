@@ -1592,3 +1592,9 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--cream
   .mr-actions { grid-column: 1 / -1; }
   .print-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
 }
+
+/* Deck page: adding a card, a line's edit column, the partner offer under the commander. */
+.add-line-form { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 14px; padding: 12px; border: var(--line); border-radius: var(--blob-sm); background: var(--panel-2); }
+.add-line-form .lookup-names { display: flex; flex-wrap: wrap; gap: 6px; }
+.cp-line .form-row { margin-bottom: 8px; }
+.partner-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 10px; }

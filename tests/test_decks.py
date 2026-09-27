@@ -226,5 +226,74 @@ class AllocationTests(unittest.TestCase):
         self.assertEqual(self.line(imported[0]).missing_reason, "not_owned")
 
 
+class EditingTests(AllocationTests):
+    """Names shared with oddities, partner commanders from an import, and editing single lines."""
+
+    def add_card(self, name, type_line, set_code, number, **fields):
+        oracle = str(uuid.uuid4())
+        card = _card(name, oracle, set_code, number, "0.25", type_line)
+        card.update(fields)
+        self.connection.execute("INSERT INTO cards VALUES (?, ?, ?, ?)", (card["id"], oracle, name, json.dumps(card)))
+        self.connection.execute("INSERT INTO printings VALUES (?, ?, ?, ?, ?)", (set_code, number, card["id"], oracle, name))
+        self.connection.execute("INSERT INTO oracle_cards VALUES (?, ?, ?, ?, '', '', 0.25, ?)",
+                                (oracle, name, fold(name), type_line, card["id"]))
+        return oracle
+
+    def fresh_book(self):
+        self.collection.reload()
+        self.book = DeckBook(self.connection, self.collection)
+
+    def commander_deck(self, text):
+        imported, _ = self.book.import_decks([{"name": "C", "text": text, "format": "commander", "status": "inactive"}])
+        return imported[0]
+
+    def names_in(self, deck_id, section):
+        return sorted(s.row["name"] for s in self.book.lines[deck_id] if s.row["section"] == section)
+
+    def test_a_game_card_wins_a_name_shared_with_a_front_card(self):
+        self.add_card("Pym Particles", "Card", "fmsc", "28")          # the Jumpstart front card, seen first
+        sorcery = self.add_card("Pym Particles", "Sorcery", "msh", "70")
+        self.fresh_book()
+        for text in ("1 Pym Particles", "1 Pym Particles (MSH) 70"):
+            self.assertEqual(self.line(self.deck(text, text)).row["oracle_id"], sorcery, text)
+
+    def test_lines_matched_to_a_front_card_are_repaired(self):
+        front = self.add_card("Pym Particles", "Card", "fmsc", "28")
+        sorcery = self.add_card("Pym Particles", "Sorcery", "msh", "70")
+        deck_id = self.deck("Old", "1 Sol Ring")
+        self.connection.execute("INSERT INTO deck_lines (deck_id, position, section, quantity, name, oracle_id, scryfall_id) "
+                                "VALUES (?, 2, 'main', 1, 'Pym Particles', ?, NULL)", (deck_id, front))
+        self.connection.commit()
+        self.fresh_book()
+        self.assertIn(sorcery, [s.row["oracle_id"] for s in self.book.lines[deck_id]])
+
+    def test_partners_listed_first_both_become_commanders(self):
+        self.add_card("Tymna the Weaver", "Legendary Creature — Human Cleric", "c16", "48", keywords=["Partner"])
+        self.add_card("Thrasios, Triton Hero", "Legendary Creature — Merfolk Wizard", "c16", "46", keywords=["Partner"])
+        self.add_card("Krenko, Mob Boss", "Legendary Creature — Goblin Warrior", "m13", "141")
+        self.fresh_book()
+        both = self.commander_deck("1 Tymna the Weaver\n1 Thrasios, Triton Hero\n1 Sol Ring")
+        self.assertEqual(self.names_in(both, "commander"), ["Thrasios, Triton Hero", "Tymna the Weaver"])
+        # A legendary creature without Partner right after stays in the deck.
+        one = self.commander_deck("1 Tymna the Weaver\n1 Krenko, Mob Boss\n1 Sol Ring")
+        self.assertEqual(self.names_in(one, "commander"), ["Tymna the Weaver"])
+
+    def test_adding_editing_and_removing_a_line(self):
+        deck_id = self.deck("Edit", "1 Sol Ring")
+        self.book.add_line(deck_id, {"oracle_id": self.oracle})                  # same card, same section: merged
+        self.assertEqual([s.row["quantity"] for s in self.book.lines[deck_id]], [2])
+        line_id = self.book.add_line(deck_id, {"scryfall_id": self.cheap["id"], "section": "sideboard"})
+        state = self.book.line_by_id[line_id]
+        self.assertEqual((state.row["section"], state.row["requested_set"]), ("sideboard", "c21"))
+        self.book.pin(line_id, f"{self.cheap['id']}|normal", 1)
+        self.book.edit_line(line_id, {"quantity": 3, "section": "maybeboard"})
+        self.assertEqual((self.book.line_by_id[line_id].row["quantity"], self.book.line_by_id[line_id].row["section"]),
+                         (3, "maybeboard"))
+        self.book.edit_line(line_id, {"quantity": 0})
+        self.assertNotIn(line_id, self.book.line_by_id)
+        with self.assertRaises(ValueError):
+            self.book.add_line(deck_id, {"name": "No Such Card"})
+
+
 if __name__ == "__main__":
     unittest.main()
