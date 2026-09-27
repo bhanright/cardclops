@@ -30,6 +30,7 @@ let deckId = null;          // #/decks/<id> shows one deck
 let buildId = null;         // #/build/<oracle_id>?partner=<oracle_id> shows a draft
 let partnerId = null;
 let setCode = null;          // #/sets/<code> shows one set
+let galleryStale = false;    // a deck or collection change since the gallery last searched
 
 function readHash() {
   const raw = decodeURIComponent(location.hash.replace(/^#\/?/, '').split('?')[0]);
@@ -72,7 +73,7 @@ function setState(partial, { push = false, record = false } = {}) {
   writeHash(push);
   setInput(state.q);
   if (record) remember(state.q);
-  updateGallery(state);
+  showGallery();
 }
 
 function syncTabs() {
@@ -155,8 +156,14 @@ function route() {
   showTab();
   if (tab === 'gallery') {
     setInput(state.q);
-    updateGallery(state);
+    showGallery();
   }
+}
+
+/** Search again if the query changed, or if a deck or the collection changed since the last search. */
+function showGallery() {
+  updateGallery(state, { force: galleryStale });
+  galleryStale = false;
 }
 
 const searchFromElsewhere = (q, extra = {}) => setState({ ...DEFAULTS, view: state.view, q, ...extra }, { push: true, record: true });
@@ -180,6 +187,10 @@ async function loadHeaderSummary() {
 
 async function init() {
   applySettings();                // the inline script in index.html did most of this before paint
+  // Sticky things below the header (deck section links, the job banner) sit just under it; its
+  // height changes with the width, wrapping tabs and the text size, so it is measured.
+  const header = document.querySelector('.topbar');
+  new ResizeObserver(() => document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`)).observe(header);
   // A fresh install has no card data: the setup wizard comes first, before any view asks for data.
   await runSetupIfNeeded();
   initSearchBar({
@@ -191,11 +202,15 @@ async function init() {
   initDashboard({ search: searchFromElsewhere });
   addEventListener('hashchange', route);
   // Cards added or edited by hand: refresh whatever view is open once the server has reloaded.
+  // The gallery's results (spare counts, "in decks") also go stale when a deck changes; it
+  // searches again the next time it is shown.
   addEventListener('cardclops:collection-changed', () => {
     loadHeaderSummary();
-    if (tab === 'gallery') updateGallery(state, { force: true });
+    galleryStale = true;
+    if (tab === 'gallery') showGallery();
     else if (!document.querySelector('.dialog')) route();
   });
+  addEventListener('cardclops:decks-changed', () => { galleryStale = true; });
   addEventListener('popstate', route);
   initToolsMenu();
   route();

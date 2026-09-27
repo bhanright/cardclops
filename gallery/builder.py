@@ -83,7 +83,10 @@ NOT_PLAYABLE_LAYOUTS = {"token", "double_faced_token", "emblem", "art_series", "
                         "vanguard", "augment", "host"}
 # Basics at or under this price count as interchangeable: among them the deck takes the printings
 # you have the most spare copies of, so it comes from a few piles rather than one copy of each
-# printing. Pricier basics (full art, foils) wait until the cheap ones run out.
+# printing. A pile is a printing and finish, however many holding rows (conditions, languages,
+# hand-added copies) it is split across. Basics with no price come next, biggest pile first too
+# (mostly other languages and printings Scryfall has no market for). Pricier basics (full art,
+# foils) come last and cheapest first, since there the cost matters more than the gathering.
 CHEAP_BASIC_USD = 1.00
 BASIC_NAMES = {"W": "Plains", "U": "Island", "B": "Swamp", "R": "Mountain", "G": "Forest", "C": "Wastes"}
 ROLE_ORDER = ("commander", "ramp", "draw", "removal", "wipes", "synergy", "filler", "lands")
@@ -179,6 +182,17 @@ class _Card:
 
     def spare_entries(self):
         return [e for e in self.entries if e.spare > 0]
+
+
+def _basic_pile_order(pile):
+    """Sort key for a pile of one basic printing and finish (see CHEAP_BASIC_USD)."""
+    price, spare = pile[0].price_usd, sum(entry.spare for entry in pile)
+    first_row = min(entry.row_id for entry in pile)
+    if price is None:
+        return (1, -spare, 0, first_row)
+    if price <= CHEAP_BASIC_USD:
+        return (0, -spare, price, first_row)
+    return (2, price, -spare, first_row)
 
 
 class _IdentityPool:
@@ -725,16 +739,17 @@ class _Draft:
         pips = self._pips()
         for color in _ordered(basics) + (["C"] if basics.get("C") else []):
             wanted = basics[color]
-            # Cheap printings before pricey ones, and among the cheap ones the biggest piles first
-            # (CHEAP_BASIC_USD), across every basic of that color (snow included).
-            copies = sorted((e for card in self.builder.basic_cards[color] for e in card.spare_entries()),
-                            key=lambda e: ((e.price_usd or 0) > CHEAP_BASIC_USD, -e.spare, e.price_usd or 0, e.row_id))
+            # Across every basic of that color (snow included), in the order CHEAP_BASIC_USD describes.
+            piles = defaultdict(list)
+            for card in self.builder.basic_cards[color]:
+                for entry in card.spare_entries():
+                    piles[(entry.scryfall_id, entry.finish)].append(entry)
             reason = f"lands · basic, {pips[color]:g} {color} pips" if color in COLORS else "lands · basic"
-            for entry in copies:
+            for pile in sorted(piles.values(), key=_basic_pile_order):
                 if wanted <= 0:
                     break
-                take = min(wanted, entry.spare)
-                lines.append({"role": "lands", "category": "Land", "quantity": take, "card": entry,
+                take = min(wanted, sum(entry.spare for entry in pile))
+                lines.append({"role": "lands", "category": "Land", "quantity": take, "card": pile[0],
                               "reason": reason})
                 wanted -= take
         return lines

@@ -278,6 +278,21 @@ class EditingTests(AllocationTests):
         one = self.commander_deck("1 Tymna the Weaver\n1 Krenko, Mob Boss\n1 Sol Ring")
         self.assertEqual(self.names_in(one, "commander"), ["Tymna the Weaver"])
 
+    def test_a_replacement_that_fails_halfway_leaves_the_deck_as_it_was(self):
+        from unittest import mock
+        deck_id = self.deck("Safe", "1 Sol Ring")
+        uncached = str(uuid.uuid4())                    # a printing Scryfall must be asked about
+        self.connection.execute("INSERT INTO printings VALUES ('sld', '999', ?, ?, 'Sol Ring')", (uncached, self.oracle))
+        self.connection.commit()
+        with mock.patch("gallery.scryfall.fetch_cards_by_id", side_effect=OSError("offline")):
+            with self.assertRaises(OSError):
+                self.book.replace_list(deck_id, "2 Sol Ring (SLD) 999")
+        self.assertFalse(self.connection.in_transaction)
+        self.book.update(deck_id, {"notes": "an unrelated save"})
+        rows = self.connection.execute("SELECT quantity, requested_set FROM deck_lines WHERE deck_id = ?", (deck_id,)).fetchall()
+        self.assertEqual([tuple(r) for r in rows], [(1, None)])
+        self.assertEqual([s.row["quantity"] for s in self.book.lines[deck_id]], [1])
+
     def test_adding_editing_and_removing_a_line(self):
         deck_id = self.deck("Edit", "1 Sol Ring")
         self.book.add_line(deck_id, {"oracle_id": self.oracle})                  # same card, same section: merged

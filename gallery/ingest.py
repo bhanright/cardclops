@@ -64,10 +64,15 @@ HOLDING_COLUMNS = ("scryfall_id", "name", "set_code", "collector_number", "finis
 def store_holdings(connection, rows, source):
     """Replace the imported part of the collection with `rows` (dicts keyed by HOLDING_COLUMNS).
 
-    Cards added by hand in Cardclops (source 'manual') stay. Where the import now holds the same
-    printing and finish, its copies take over: the manual quantity drops by the imported quantity,
-    so a card added by hand and later entered in ManaBox isn't counted twice. Returns those
+    Cards added by hand in Cardclops (source 'manual') stay. Where the import now holds more of
+    the same printing and finish than the previous import did, those new copies take over: the
+    manual quantity drops by the increase, so a card added by hand and later entered in ManaBox
+    isn't counted twice, and importing an unchanged file changes nothing. Returns those
     adjustments as [{"name", "finish", "removed"}]."""
+    previous = {}
+    for row in connection.execute("SELECT scryfall_id, finish, quantity FROM holdings WHERE source != 'manual'"):
+        key = (row["scryfall_id"], row["finish"] or "normal")
+        previous[key] = previous.get(key, 0) + (row["quantity"] or 0)
     connection.execute("DELETE FROM holdings WHERE source != 'manual'")
     connection.executemany(
         f"INSERT INTO holdings ({', '.join(HOLDING_COLUMNS)}) VALUES ({', '.join('?' * len(HOLDING_COLUMNS))})",
@@ -76,14 +81,15 @@ def store_holdings(connection, rows, source):
     for row in rows:
         key = (row.get("scryfall_id"), row.get("finish") or "normal")
         imported[key] = imported.get(key, 0) + int(row.get("quantity") or 0)
+    added = {key: quantity - previous.get(key, 0) for key, quantity in imported.items() if quantity > previous.get(key, 0)}
     reconciled = []
     for manual in connection.execute(
             "SELECT row_id, scryfall_id, finish, quantity, name FROM holdings WHERE source = 'manual'").fetchall():
-        covered = imported.get((manual["scryfall_id"], manual["finish"]), 0)
+        covered = added.get((manual["scryfall_id"], manual["finish"]), 0)
         if not covered:
             continue
         removed = min(covered, manual["quantity"])
-        imported[(manual["scryfall_id"], manual["finish"])] = covered - removed
+        added[(manual["scryfall_id"], manual["finish"])] = covered - removed
         if removed == manual["quantity"]:
             connection.execute("DELETE FROM holdings WHERE row_id = ?", (manual["row_id"],))
         else:

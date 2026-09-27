@@ -457,14 +457,18 @@ class Gallery:
     def collection_change(self, method, parts, body):
         """Add, edit or remove hand-added cards, then reload so every view (and deck) sees the change."""
         with self.lock:
-            if method == "POST" and parts[2:] == ["add"]:
-                result = {"row": manual.add(self.connection, body)}
-            elif method == "PATCH" and len(parts) == 4 and parts[2] == "manual":
-                result = {"row": manual.update(self.connection, int(parts[3]), body)}
-            elif method == "DELETE" and len(parts) == 4 and parts[2] == "manual":
-                result = manual.delete(self.connection, int(parts[3]))
-            else:
-                raise LookupError("unknown collection request")
+            try:
+                if method == "POST" and parts[2:] == ["add"]:
+                    result = {"row": manual.add(self.connection, body)}
+                elif method == "PATCH" and len(parts) == 4 and parts[2] == "manual":
+                    result = {"row": manual.update(self.connection, int(parts[3]), body)}
+                elif method == "DELETE" and len(parts) == 4 and parts[2] == "manual":
+                    result = manual.delete(self.connection, int(parts[3]))
+                else:
+                    raise LookupError("unknown collection request")
+            except Exception:
+                self.connection.rollback()        # nothing half-written waits for the next save
+                raise
         self.load()
         result["copies"] = sum(e.quantity for e in self.collection.entries)
         return result

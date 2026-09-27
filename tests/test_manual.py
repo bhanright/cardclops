@@ -64,6 +64,20 @@ class ManualTests(unittest.TestCase):
         ingest.store_holdings(self.connection, [imported("spider", quantity=3)], "x.csv")
         self.assertEqual(self.rows(), [("spider", "normal", 3, "import"), ("spider", "foil", 1, "manual")])
 
+    def test_importing_the_same_file_again_changes_nothing(self):
+        manual.add(self.connection, {"scryfall_id": "spider", "quantity": 5})
+        for _ in range(3):                                   # the audit's case: 5 by hand, 2 imported, thrice
+            ingest.store_holdings(self.connection, [imported("spider", quantity=2)], "x.csv")
+        self.assertEqual(self.rows(), [("spider", "normal", 2, "import"), ("spider", "normal", 3, "manual")])
+        # Copies added by hand after an import aren't taken over by the same import again...
+        manual.add(self.connection, {"scryfall_id": "spider", "finish": "foil"})
+        ingest.store_holdings(self.connection, [imported("spider", quantity=2)], "x.csv")
+        self.assertIn(("spider", "foil", 1, "manual"), self.rows())
+        # ...but an import that grows does take over the difference.
+        ingest.store_holdings(self.connection, [imported("spider", quantity=4), imported("spider", "foil")], "x.csv")
+        self.assertEqual(self.rows(), [("spider", "foil", 1, "import"), ("spider", "normal", 4, "import"),
+                                       ("spider", "normal", 1, "manual")])
+
     def test_imported_rows_cannot_be_edited_here(self):
         ingest.store_holdings(self.connection, [imported("ring")], "x.csv")
         row_id = self.connection.execute("SELECT row_id FROM holdings").fetchone()[0]

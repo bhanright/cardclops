@@ -894,7 +894,7 @@ button.lh:hover, .lh.on { text-decoration: underline; text-decoration-thickness:
 .replace-box { display: flex; flex-direction: column; gap: 8px; }
 .notes-box summary { cursor: pointer; font-family: var(--font-display); color: var(--cyan); }
 .notes { width: 100%; min-height: 80px; margin-top: 8px; resize: vertical; padding: 10px 12px; background: var(--well); color: var(--text); border: var(--line); border-radius: 14px; }
-.page-nav { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 72px; z-index: 6; align-self: flex-start; max-width: 100%; padding: 7px 10px; background: var(--bg-deep); border: var(--line); border-radius: var(--pill); box-shadow: var(--shadow-sm); }
+.page-nav { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: calc(var(--header-h, 64px) + 8px); z-index: 6; align-self: flex-start; max-width: 100%; padding: 7px 10px; background: var(--bg-deep); border: var(--line); border-radius: var(--pill); box-shadow: var(--shadow-sm); }
 .page-chip { font: 400 .92rem var(--font-display); text-decoration: none; color: #000; background: var(--yellow); padding: 4px 12px; border: var(--line); border-radius: var(--pill); box-shadow: var(--shadow-sm); }
 .page-chip:nth-child(2) { background: var(--cyan); }
 .page-chip:nth-child(3) { background: var(--lime); }
@@ -1070,7 +1070,7 @@ button.lh:hover, .lh.on { text-decoration: underline; text-decoration-thickness:
   .dl-value { grid-area: value; }
   .dl-more { grid-area: more; }
   .dl-copies:empty { display: none; }
-  .page-nav { top: 104px; overflow-x: auto; flex-wrap: nowrap; }
+  .page-nav { overflow-x: auto; flex-wrap: nowrap; }
   .page-chip { flex: none; }
   .stack-cat, .vcard { width: 128px; }
   .vcard + .vcard { margin-top: -150px; }
@@ -1103,7 +1103,7 @@ button.lh:hover, .lh.on { text-decoration: underline; text-decoration-thickness:
   .d-left { position: static; max-width: 420px; width: 100%; margin: 0 auto; }
 }
 @media (max-width: 700px) {
-  body { font-size: 14px; }
+  body { font-size: .875rem; }
   .topbar { gap: 8px 12px; padding-top: 8px; padding-bottom: 8px; }
   .logo-mark { width: 36px; height: 36px; }
   .logo-text .l1 { font-size: .9rem; }
@@ -1608,7 +1608,7 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .tools-list button span { font-size: .78rem; color: var(--muted); }
 .tools-list button:hover, .tools-list button:focus-visible { background: var(--panel-3); }
 #toolQuit { background: var(--tint-pink); }
-.job-banner { position: sticky; top: 64px; z-index: 25; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px var(--gutter) 0; padding: 6px 14px; font-size: .88rem; background: var(--panel-2); border: var(--line); border-radius: var(--pill); box-shadow: var(--shadow-sm); }
+.job-banner { position: sticky; top: calc(var(--header-h, 58px) + 6px); z-index: 25; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px var(--gutter) 0; padding: 6px 14px; font-size: .88rem; background: var(--panel-2); border: var(--line); border-radius: var(--pill); box-shadow: var(--shadow-sm); }
 .job-banner .spinner { width: 20px; height: 20px; border-width: 3px; }
 .job-banner.good { background: var(--lime); color: #000; }
 .job-banner.good .link-btn, .job-banner.bad .link-btn { color: #000; font-weight: 700; }
@@ -1617,7 +1617,7 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .stopped { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
 .stopped-card { max-width: 520px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
 .stopped-card h1 { color: var(--yellow); text-shadow: 3px 3px 0 #000; }
-@media (max-width: 700px) { .job-banner { top: 104px; border-radius: 14px; } }
+@media (max-width: 700px) { .job-banner { border-radius: 14px; } }
 .setup-logo svg { width: 48px; height: 48px; display: block; }
 .setup-brand .logo-text { margin-right: auto; }
 

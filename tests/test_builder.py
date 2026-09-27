@@ -291,6 +291,31 @@ class DraftTests(unittest.TestCase):
         # Every Forest fits in the 40-copy pile, so the deck needs just that one printing.
         self.assertEqual([line["card"].price_usd for line in forests], [0.25])
 
+    def test_a_printing_split_across_holding_rows_is_one_pile(self):
+        c, commander, table = big_collection()
+        split = basic("Forest")
+        split["id"], split["prices"] = "forest-split", {"usd": "0.20"}
+        c.add(split, quantity=30)                           # e.g. near mint and played copies
+        c.add(split, quantity=30)
+        single = basic("Forest")
+        single["id"], single["prices"] = "forest-single", {"usd": "0.20"}
+        c.add(single, quantity=45)
+        draft = Builder(c, StubSimilarity(table), TAGS).draft(commander["oracle_id"])
+        forests = [line for line in draft["lines"] if line["card"].name == "Forest"]
+        self.assertEqual([line["card"].scryfall_id for line in forests], ["forest-split"])
+
+    def test_basic_pile_order(self):
+        from types import SimpleNamespace
+        from gallery.builder import _basic_pile_order
+
+        def pile(price, spare, row_id):
+            return [SimpleNamespace(price_usd=price, spare=spare, row_id=row_id)]
+        piles = {"cheap small": pile(0.20, 5, 1), "cheap big": pile(1.00, 40, 2), "unpriced": pile(None, 50, 3),
+                 "premium big": pile(30.00, 50, 4), "premium cheaper": pile(1.01, 40, 5)}
+        order = sorted(piles, key=lambda name: _basic_pile_order(piles[name]))
+        # Cheap (up to $1) biggest first; then unpriced; then premium cheapest first.
+        self.assertEqual(order, ["cheap big", "cheap small", "unpriced", "premium cheaper", "premium big"])
+
     def test_text_round_trips_through_the_parser(self):
         parsed, _ = parse_decklist(self.draft["text"])
         self.assertEqual(sum(line.quantity for line in parsed), 100)

@@ -9,6 +9,7 @@ Three parts:
   claim copies in priority order; a copy is never counted in two active decks.
 """
 import csv
+import functools
 import io
 import json
 import re
@@ -302,6 +303,21 @@ class LineState:
     @property
     def owned(self):
         return sum(quantity for _, quantity, _ in self.allocations)
+
+
+def all_or_nothing(method):
+    """A deck write either completes or leaves the database as it was. Without the rollback, a write
+    that fails halfway (a Scryfall fetch after the old lines are deleted) stays pending on the shared
+    connection, and the next unrelated save would commit it."""
+    @functools.wraps(method)
+    def write(self, *args, **kwargs):
+        try:
+            return method(self, *args, **kwargs)
+        except Exception:
+            self.connection.rollback()
+            self.reload()
+            raise
+    return write
 
 
 class DeckBook:
@@ -623,6 +639,7 @@ class DeckBook:
                                        spare=free[pool], price_usd=lead.price_usd))
         return lands
 
+    @all_or_nothing
     def apply_swaps(self, deck_id, swaps):
         """Each swap: one copy off a line (deleting it at zero), and a main-deck line pinned to a spare pool."""
         connection = self.connection
@@ -877,6 +894,7 @@ class DeckBook:
         card = self.card_data(state.row["scryfall_id"]) if state.row["scryfall_id"] else None
         return (card or {}).get("type_line", "")
 
+    @all_or_nothing
     def import_decks(self, decks):
         connection = self.connection
         warnings, imported, fetch = [], [], set()
@@ -911,6 +929,7 @@ class DeckBook:
             versions.record(self, deck_id, "import")
         return imported, warnings
 
+    @all_or_nothing
     def replace_list(self, deck_id, text, parsed=None, reason="replace"):
         connection = self.connection
         old_pins = {}
@@ -933,6 +952,7 @@ class DeckBook:
         versions.record(self, deck_id, reason)
         return warnings
 
+    @all_or_nothing
     def restore(self, deck_id, version_id):
         """Put back an earlier version's list; pins survive for cards still present."""
         connection = self.connection
@@ -990,6 +1010,7 @@ class DeckBook:
                                "changes": sorted(changes, key=lambda c: c["name"])}
         return {"current": current, "options": options}
 
+    @all_or_nothing
     def update(self, deck_id, changes):
         connection = self.connection
         fields = {k: changes[k] for k in ("name", "format", "status", "priority", "notes", "copy_policy")
@@ -1017,6 +1038,7 @@ class DeckBook:
 
     # -- editing one line (docs/DECKS.md, "Endpoints") --
 
+    @all_or_nothing
     def add_line(self, deck_id, body):
         """Add a card by oracle_id (any printing), scryfall_id (that printing) or name. Adding a
         card already in that section raises its quantity. Returns the line_id."""
@@ -1061,6 +1083,7 @@ class DeckBook:
         self._edited(deck_id)
         return line_id
 
+    @all_or_nothing
     def edit_line(self, line_id, body):
         """Change a line's quantity (0 removes it) or move it to another section."""
         if line_id not in self.line_by_id:
@@ -1091,11 +1114,13 @@ class DeckBook:
         self.reload()
         versions.record(self, deck_id, "edit")
 
+    @all_or_nothing
     def delete(self, deck_id):
         self.connection.execute("DELETE FROM decks WHERE deck_id = ?", (deck_id,))
         self.connection.commit()
         self.reload()
 
+    @all_or_nothing
     def pin(self, line_id, pool, quantity):
         if line_id not in self.line_by_id:
             raise KeyError(line_id)

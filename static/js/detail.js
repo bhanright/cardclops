@@ -134,6 +134,7 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
     links.push(h('a.btn.small.ghost', { href: url, target: '_blank', rel: 'noopener' }, titleCase(key) + ' ↗'));
   }
   // A link only: EDHREC's terms forbid fetching its pages automatically, so its lists can't be shown here.
+  // Shown unless the card is not legal in Commander at all; banned cards keep their EDHREC pages.
   if (card.legalities?.commander !== 'not_legal') {
     links.push(h('a.btn.small.ghost', { href: edhrecCardUrl(card), target: '_blank', rel: 'noopener',
       title: 'This card on EDHREC: the decks and commanders that play it' }, 'EDHREC ↗'));

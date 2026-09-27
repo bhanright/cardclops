@@ -17,7 +17,9 @@ const prefs = { colors: '', q: '', ...store.get(PREFS_KEY, {}) };
 
 let built = false;
 let home, page, grid, chips, search, status;
-let cache = new Map();          // "colors|q" → response
+let cache = new Map();          // "colors|q" → response; cleared when decks or the collection change
+let loadToken = 0;             // only the newest loadList() may draw
+for (const event of ['cardclops:decks-changed', 'cardclops:collection-changed']) addEventListener(event, () => cache.clear());
 let lastList = null;            // commanders from the most recent list, for partner choices
 let controller = null;
 let draftToken = 0;
@@ -74,8 +76,10 @@ function drawChips() {
 
 async function loadList() {
   const key = `${prefs.colors}|${prefs.q}`;
+  const mine = ++loadToken;
+  controller?.abort();              // before the cache check, or a slower earlier filter lands on top
+  controller = null;
   if (cache.has(key)) { renderList(cache.get(key)); return; }
-  controller?.abort();
   controller = new AbortController();
   const count = h('span', 'your');
   clear(status).append(h('div.panel', h('div.spinner-wrap', { role: 'status' }, h('span.spinner', { 'aria-hidden': 'true' }),
@@ -88,12 +92,12 @@ async function loadList() {
   try {
     response = await api.build.commanders({ limit: 60, colors: prefs.colors || null, q: prefs.q || null }, controller.signal);
   } catch (error) {
-    if (error.name === 'AbortError') return;
+    if (error.name === 'AbortError' || mine !== loadToken) return;
     clear(status).append(errorBox(error.message));
     return;
   }
   cache.set(key, response);
-  renderList(response);
+  if (mine === loadToken) renderList(response);
 }
 
 function renderList(response) {
@@ -232,13 +236,14 @@ function mergeBasics(ls) {
   const byName = new Map();
   for (const l of ls) {
     const basic = l.role === 'lands' && (l.reason || '').startsWith('lands · basic');
+    const printing = `${l.card.scryfall_id}|${l.card.finish || 'normal'}`;
     const row = basic && byName.get(l.card.name);
-    if (row) { row.quantity += l.quantity; row.printings += 1; continue; }
-    const copy = { ...l, printings: 1 };
+    if (row) { row.quantity += l.quantity; row.printings.add(printing); continue; }
+    const copy = { ...l, printings: new Set([printing]) };
     if (basic) byName.set(l.card.name, copy);
     merged.push(copy);
   }
-  for (const row of byName.values()) if (row.printings > 1) row.reason += ` · ${row.printings} printings`;
+  for (const row of byName.values()) if (row.printings.size > 1) row.reason += ` · ${row.printings.size} printings`;
   return merged;
 }
 

@@ -437,4 +437,8 @@ function csvToList(text) {
 }
 
 /** Called by the deck page after a delete / rename so the grid refreshes next visit. */
-export function invalidateDecks() { lastData = null; }
+/** After any deck change: this list reloads, and other views that show spare copies hear about it. */
+export function invalidateDecks() {
+  lastData = null;
+  window.dispatchEvent(new CustomEvent('cardclops:decks-changed'));
+}
