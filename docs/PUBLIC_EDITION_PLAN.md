@@ -119,7 +119,14 @@ copy taken in one step, and OPFS swaps a file in whole, so a stored file is neve
    says whether the browser has agreed to keep the site's storage (`navigator.storage.persisted()`).
    With the owner's collection: a 30 MB backup in 0.15 s; a restore in 10 s, and the app's own 56 MB
    database restored into the browser with its longer price history.*
-6. **Build and launch:** `scripts/build_static.py` assembles static/ + the engine + the worker into
+6. **Build and launch:** *In progress 2026-09-28. Done: Pyodide (scripts/fetch_pyodide.py, pinned
+   hashes) and the fonts are served with the site; `_headers` carries a Content Security Policy
+   allowing only the site's own scripts and connections to itself, the data host, Scryfall and
+   Anthropic (tested under scripts/serve_static.py: setup, import, rulings, rules, images and set
+   symbols all work). On the server, `cardclops-publish.service` runs scripts/publish_data.py after
+   each successful refresh (`OnSuccess=`), and `cardclops-data.service` serves the folder on
+   127.0.0.1:8766 (scripts/serve_data.py) for the tunnel, allowing https://cardclops.com.*
+   `scripts/build_static.py` assembles static/ + the engine + the worker into
    `dist-static/`, with Pyodide's files copied in rather than loaded from jsDelivr, and a Content
    Security Policy allowing only the site itself, Scryfall and Anthropic; Cloudflare Pages deploys it. The server's daily job builds the pack and price
    files and publishes them (a data subdomain cached by Cloudflare, or R2). Move the private server to a private subdomain (Tunnel
