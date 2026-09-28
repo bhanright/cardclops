@@ -2,7 +2,10 @@
 // from /img/... exactly as it does with the server; this service worker answers both:
 //   /img/<scryfall id>/<front|back>/<size>  -> Scryfall's image server (a fixed pattern from the id)
 //   /api/...                                -> the engine, running in a page's Web Worker (engine/boot.js)
-// Everything else (the page, scripts, styles) is fetched as usual.
+// The page and its own scripts and styles are always revalidated with the site (a cheap 304 when
+// unchanged), whatever a browser's cache holds: cardclops.com once served the private edition, whose
+// cached scripts must never run here, and a release must never mix old and new files.
+// Everything else is fetched as usual.
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
@@ -17,7 +20,17 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/img/')) event.respondWith(image(url));
   else if (url.pathname.startsWith('/api/')) event.respondWith(api(event, url));
+  else if (event.request.mode === 'navigate' || OWN_CODE.test(url.pathname)) event.respondWith(fresh(event.request, url));
 });
+
+const OWN_CODE = /^\/(app\.js|styles\.css|js\/[\w-]+\.js|engine\/[\w.-]+|fonts\/fonts\.css)$/;
+
+function fresh(request, url) {
+  // A navigation's Request can't be copied with new options, so it's fetched by its URL.
+  return request.mode === 'navigate'
+    ? fetch(url.href, { cache: 'no-cache', credentials: 'same-origin' })
+    : fetch(request, { cache: 'no-cache' });
+}
 
 function image(url) {
   const [, , id, face, size] = url.pathname.split('/');
