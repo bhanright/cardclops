@@ -225,7 +225,7 @@ function wizard(status, resolve) {
       h('ul.setup-facts',
         h('li', h('b', 'Free, and it stays on this device. '), 'Nothing you import is uploaded anywhere. The only things it downloads are public card data and prices, and card images as you look at them.'),
         ...(browser ? [
-          h('li', h('b', 'Your data lives in this browser, on this device. '), 'There is no account and no server copy, so clearing this site’s data in the browser deletes it. Back it up now and then from Tools.')] : [
+          h('li', h('b', 'Your data lives in this browser, on this device. '), 'There is no account and no server copy, so clearing this site’s data in the browser deletes it. Back it up now and then from Settings.')] : [
           h('li', h('b', 'Your data lives in '), h('code', status.data_dir || '—'), h('span.muted', ' (your collection, decks, backups)')),
           h('li', h('b', 'Card data and images are cached in '), h('code', status.cache_dir || '—'), h('span.muted', ' (safe to delete; it downloads again)'))])),
       navRow(h('button.btn.go', { type: 'button', onclick: () => go(1) }, 'Get started →'))];

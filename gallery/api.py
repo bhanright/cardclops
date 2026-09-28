@@ -5,6 +5,7 @@ the browser edition (gallery/browser.py) calls handle() directly, with no server
 nothing here may touch sockets, headers or the HTTP handler: the security checks, static files and
 card images stay with the server.
 """
+import base64
 import re
 import threading
 import traceback
@@ -12,7 +13,7 @@ import urllib.parse
 from dataclasses import dataclass, field
 from http import HTTPStatus
 
-from . import ask, manual, query
+from . import ask, backups, manual, query
 from . import setup as setup_module
 from .net import NetError
 from .runtime import IN_BROWSER
@@ -69,6 +70,10 @@ class Api:
         route = parts[1] if len(parts) > 1 else ""
         if route == "summary":
             return Response(gallery.summary())
+        if route == "backup" and len(parts) == 2:
+            with gallery.lock:
+                data, filename = backups.snapshot(gallery.connection)
+            return Response(data, kind="file", content_type="application/vnd.sqlite3", filename=filename)
         if route == "search":
             return Response(gallery.search(params))
         if route == "card" and len(parts) == 4 and parts[3] == "rulings":
@@ -204,6 +209,8 @@ class Api:
             return self._decks(path, "POST", body)
         if path.startswith("/api/binders"):
             return self._binders("POST", path, body)
+        if path in ("/api/backup/check", "/api/backup/restore"):
+            return self._restore(path, body)
         if path == "/api/rules/download":
             try:
                 return Response(gallery.rulebook.download())
@@ -241,6 +248,29 @@ class Api:
         if len(parts) > 1 and parts[1] in ALERT_ROUTES:
             return self._alerts(method, parts, {}, body)
         return _error("unknown endpoint", HTTPStatus.NOT_FOUND)
+
+    def _restore(self, path, body):
+        """A backup file, sent as base64: `check` says what it holds; `restore` replaces your
+        database with it, then fetches any card details it needs (gallery/backups.py)."""
+        gallery = self.gallery
+        try:
+            data = base64.b64decode(body.get("data") or "", validate=True)
+        except ValueError:
+            return _error("The file didn't arrive whole; try again.", HTTPStatus.BAD_REQUEST)
+        try:
+            if path == "/api/backup/check":
+                return Response(backups.describe(data))
+            with gallery.lock:
+                found = backups.restore(gallery.connection, data)
+            gallery.load()
+        except ValueError as error:
+            return _error(str(error), HTTPStatus.BAD_REQUEST)
+        # Cards the restored collection holds that this device hasn't details for yet.
+        try:
+            found["refreshing"] = bool(gallery.jobs.refresh()) if backups.missing_cards(gallery.connection) else False
+        except RuntimeError:                           # a job is already running; it will catch up next time
+            found["refreshing"] = False
+        return Response(found)
 
     def _setup(self, path, body):
         jobs = getattr(self.gallery, "jobs", None)

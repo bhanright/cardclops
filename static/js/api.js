@@ -68,6 +68,11 @@ export const api = {
     complete: () => request('/api/setup/complete', { method: 'POST', body: {} }),
   },
   refresh: () => request('/api/refresh', { method: 'POST', body: {} }),
+  backup: {
+    url: '/api/backup',
+    check: data => request('/api/backup/check', { method: 'POST', body: { data } }),
+    restore: data => request('/api/backup/restore', { method: 'POST', body: { data } }),
+  },
   quit: () => request('/api/quit', { method: 'POST', body: {} }),
   collection: {
     add: row => request('/api/collection/add', { method: 'POST', body: row }),

@@ -80,7 +80,10 @@ def handle(method, path, params_json="", body_json=""):
     content_type, filename, body (text, or bytes for a file) and whether it may have written."""
     params = json.loads(params_json) if params_json else {}
     body = json.loads(body_json) if body_json else {}
+    changes = _api.gallery.connection.total_changes
     response = _api.handle(method, path, params, body)
+    # Saved when it wrote, whatever the method (a backup download records when it was made).
+    wrote = method != "GET" or _api.gallery.connection.total_changes != changes
     content_type, text = response.content_type, response.body
     if response.kind == "json":
         content_type, text = "application/json; charset=utf-8", json.dumps(response.body, separators=(",", ":"))
@@ -89,4 +92,4 @@ def handle(method, path, params_json="", body_json=""):
     elif response.kind == "text":
         content_type = "text/plain; charset=utf-8"
     return {"status": int(response.status), "kind": response.kind, "content_type": content_type,
-            "filename": response.filename, "body": text, "wrote": method != "GET"}
+            "filename": response.filename, "body": text, "wrote": wrote}

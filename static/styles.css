@@ -1854,6 +1854,8 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .pref-facts dd { margin: 0; overflow-wrap: anywhere; }
 .pref-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .arch-note { margin-top: 14px; }
+.backup-reminder { background: var(--yellow, #ffe23d); color: #000; }
+.backup-reminder .link-btn { color: #000; font-weight: 700; }
 @media (max-width: 600px) { .pref-row { grid-template-columns: 1fr; } }
 .theme-chooser { display: flex; flex-direction: column; gap: 10px; }
 .follow-device { font-size: .9rem; }

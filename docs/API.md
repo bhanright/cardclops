@@ -200,3 +200,18 @@ containing all of them (150 rules at most). `GET /api/rules/glossary` → every 
 `GET /api/card/<scryfall_id>/rulings?oracle_id=` → `{"rulings": [{"date", "source": "wotc"|"scryfall",
 "text"}]}`, newest first, from Scryfall; cached per card for a month (and served stale when offline), with
 `error` when Scryfall can't be reached and nothing is cached.
+
+## Backup and restore
+
+`GET /api/backup` → your whole database (collection, decks, binders, alerts, settings, recorded price
+history; not card data) as a file, `cardclops-backup-<date>.sqlite`. It restores in any edition.
+
+`POST /api/backup/check` body `{"data": "<the file, base64>"}` → `{copies, rows, decks, binders,
+watchlist, made_at}`, or 400 if it isn't a sound Cardclops database.
+
+`POST /api/backup/restore` with the same body replaces your database with the file's, adds any
+tables newer than the backup, reloads, and starts a refresh when the restored collection holds cards
+this device has no details for (`refreshing`). Card data isn't touched.
+
+`/api/summary`'s `backup` is `{last, due}`: when a backup was last downloaded, and whether the page
+should remind (browser edition only, with a collection or decks and none for 30 days).

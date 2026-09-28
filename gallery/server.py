@@ -19,7 +19,7 @@ from collections import Counter, defaultdict
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from . import ask, query
+from . import ask, backups, query
 from .collection import COLOR_ORDER, Collection
 from .db import get_meta
 from .deckcheck import DeckChecker
@@ -250,6 +250,7 @@ class Gallery:
                     "edition": os.environ.get("CARDCLOPS_EDITION", "app")},
             "alerts": {"unseen": self.alerts.list(True, 1)["unseen"],
                        "watching": self.connection.execute("SELECT COUNT(*) FROM watchlist").fetchone()[0]},
+            "backup": backups.status(self.connection),
         }
 
     def card(self, scryfall_id, whole_card=False):

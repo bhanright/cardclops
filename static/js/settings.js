@@ -6,6 +6,7 @@ import { api } from './api.js';
 import { refreshNow, updateCollection } from './setup.js';
 import { openHandAdded } from './addcards.js';
 import { browserEdition, askKey, setAskKey } from './edition.js';
+import { backupPanel } from './backup.js';
 
 export const SETTINGS_KEY = 'gallery.settings';     // index.html reads the same key
 const DEFAULTS = { theme: 'neon', textScale: 100, motion: 'system', foil: true, hoverPreview: true };
@@ -111,6 +112,7 @@ export async function showSettings() {
   const s = settings();
   const canHover = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const dataBox = h('div', spinner('Reading the app’s data…'));
+  const backupHost = h('div');
   clear(host).append(h('div.settings-page',
     h('section.panel',
       h('div.panel-head', h('h2', 'Appearance'), h('span.muted.small', 'Saved on this device')),
@@ -120,6 +122,7 @@ export async function showSettings() {
       row('Foil shimmer', 'The rainbow sheen on foil cards', toggle('foil', 'Show it', s.foil !== false)),
       canHover ? row('Card previews', 'A large image when the pointer rests on a card name', toggle('hoverPreview', 'Show them', s.hoverPreview !== false)) : null),
     h('section.panel', h('div.panel-head', h('h2', 'Data and updates')), dataBox),
+    backupHost,
     browserEdition ? askPanel() : null,
     browserEdition ? editionPanel() : null));
   document.title = 'Settings · Cardclops';
@@ -127,6 +130,7 @@ export async function showSettings() {
   let status, summary;
   try { [status, summary] = await Promise.all([api.setup.status(), api.summary()]); }
   catch (error) { clear(dataBox).append(errorBox(error.message)); return; }
+  backupHost.replaceWith(backupPanel(summary));
   const daily = status.platform === 'win32'
     ? (() => {
       const box = h('input', { type: 'checkbox', checked: !!status.daily_refresh_scheduled, onchange: async () => {

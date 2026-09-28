@@ -111,9 +111,14 @@ copy taken in one step, and OPFS swaps a file in whole, so a stored file is neve
    becomes a note to paste the list (the engine refuses those calls with the same advice). Settings
    → About this edition lists the differences.* Because a key lives in the page, the site must run
    only its own scripts at launch: Pyodide gets self-hosted (phase 6).
-5. **Keeping data safe:** browser storage can be cleared, so: Settings → "Back up everything" (the
-   user database as a file) and "Restore", plus the existing decks file and CSV export; a gentle
-   reminder when there's no recent backup.
+5. **Keeping data safe.** *Done 2026-09-28 (gallery/backups.py, static/js/backup.js). Settings →
+   Backup downloads your whole database as one .sqlite file and restores one after showing what it
+   holds; the same file works in every edition, so it also moves a collection between the app and
+   the site. A restore adds tables newer than the backup and fetches details for cards the device
+   lacks. In the browser, a banner reminds when there's data and no backup for 30 days, and Settings
+   says whether the browser has agreed to keep the site's storage (`navigator.storage.persisted()`).
+   With the owner's collection: a 30 MB backup in 0.15 s; a restore in 10 s, and the app's own 56 MB
+   database restored into the browser with its longer price history.*
 6. **Build and launch:** `scripts/build_static.py` assembles static/ + the engine + the worker into
    `dist-static/`, with Pyodide's files copied in rather than loaded from jsDelivr, and a Content
    Security Policy allowing only the site itself, Scryfall and Anthropic; Cloudflare Pages deploys it. The server's daily job builds the pack and price

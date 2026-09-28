@@ -18,6 +18,7 @@ import { showBinders } from './js/binders.js';
 import { showRules } from './js/rules.js';
 import { runSetupIfNeeded, checkBackgroundJob, updateCollection, refreshNow, quitApp } from './js/setup.js';
 import { askShown } from './js/edition.js';
+import { remindIfDue } from './js/backup.js';
 
 const TABS = ['gallery', 'decks', 'sets', 'build', 'dashboard', 'radar', 'deck', 'extras', 'alerts', 'settings', 'binders', 'rules'];
 const TOOL_TABS = { radar: 'Radar', deck: 'Deck check', extras: 'Extras', alerts: 'Alerts', settings: 'Settings', binders: 'Binders', rules: 'Rules' };   // live under the Tools menu
@@ -184,6 +185,7 @@ async function loadHeaderSummary() {
     // The Ask box needs the Claude command-line tool (not on a phone), or in the browser a key.
     const askMode = $('.search-form .seg.mode');
     if (askMode) askMode.hidden = !askShown(s.app?.platform);
+    remindIfDue(s);
     box.replaceChildren(
       h('span.hs', h('b', money(s.value_usd, { whole: true })), ' value'),
       h('span.hs', h('b', int(s.copies)), ' copies'),
