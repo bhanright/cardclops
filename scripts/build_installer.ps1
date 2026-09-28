@@ -1,7 +1,7 @@
 # Builds installer\Output\Cardclops-Setup-<version>.exe
 #   1. PyInstaller bundles the app with its own Python into dist\Cardclops
 #   2. Inno Setup packs that folder into a single installer
-# Needs: python -m pip install pyinstaller certifi   and Inno Setup 6 (winget install JRSoftware.InnoSetup)
+# Needs: python -m pip install pyinstaller certifi pywebview   and Inno Setup 6 (winget install JRSoftware.InnoSetup)
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root

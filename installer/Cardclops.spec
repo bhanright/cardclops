@@ -9,7 +9,9 @@ analysis = Analysis(
     pathex=[str(ROOT)],
     datas=[(str(ROOT / "static"), "static"), (str(ROOT / "scripts"), "scripts")],
     hiddenimports=["gallery.importers", "gallery.goldfish", "gallery.builder", "gallery.manafix",
-                   "gallery.archidekt", "gallery.history", "gallery.versions", "certifi"],
+                   "gallery.archidekt", "gallery.history", "gallery.versions", "certifi",
+                   # the app window (gallery/app.py): pywebview on WebView2 through pythonnet
+                   "webview", "webview.platforms.edgechromium", "webview.platforms.winforms", "clr"],
     excludes=["tkinter", "PIL", "numpy.f2py", "pytest"],
     noarchive=False,
 )

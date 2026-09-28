@@ -800,6 +800,7 @@ def _is_local_origin(origin):
 
 class Handler(SimpleHTTPRequestHandler):
     gallery: Gallery = None
+    app_window = None       # the Windows app's window (gallery/app.py): show() and close()
 
     def _refused(self, write):
         """Answers 403 and returns True when a request fails the checks above."""
@@ -967,7 +968,7 @@ class Handler(SimpleHTTPRequestHandler):
             path = urllib.parse.urlsplit(self.path).path
             if path.startswith("/api/decks"):
                 return self._deck_write("POST", path, body)
-            if path.startswith("/api/setup/") or path in ("/api/refresh", "/api/quit"):
+            if path.startswith("/api/setup/") or path in ("/api/refresh", "/api/quit", "/api/app/show"):
                 return self._setup_request(path, body)
             if path.startswith("/api/collection/"):
                 return self._collection_request("POST", path, body)
@@ -1007,8 +1008,16 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._json(jobs.refresh())
             if path == "/api/quit":
                 self._json({"quitting": True})
-                threading.Thread(target=self.server.shutdown, daemon=True).start()
+                if Handler.app_window:                 # the Windows app: closing its window ends it
+                    threading.Thread(target=Handler.app_window.close, daemon=True).start()
+                else:
+                    threading.Thread(target=self.server.shutdown, daemon=True).start()
                 return None
+            if path == "/api/app/show":
+                # Starting Cardclops.exe while it runs brings its window forward (gallery/app.py).
+                if Handler.app_window:
+                    Handler.app_window.show()
+                return self._json({"shown": bool(Handler.app_window)})
         except RuntimeError as error:
             return self._json({"error": str(error)}, HTTPStatus.CONFLICT)
         return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)

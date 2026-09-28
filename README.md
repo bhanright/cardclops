@@ -18,7 +18,12 @@ Archidekt, Deckbox, TCGplayer, Dragon Shield, Delver Lens or Helvault, or starts
 updates and price-alert notifications stay off unless the user turns them on. Uninstalling keeps
 the user's data in Documents\Cardclops.
 
-Build it with `scripts\build_installer.ps1` (needs `pip install pyinstaller certifi` and Inno Setup 6).
+Cardclops opens in its own window (Windows' built-in WebView2, with no browser controls); closing
+the window quits it, and starting it again while it runs brings the window forward. Where WebView2
+is missing, or with `Cardclops.exe --browser`, it opens in the default browser instead.
+
+Build it with `scripts\build_installer.ps1` (needs `pip install pyinstaller certifi pywebview` and
+Inno Setup 6).
 
 ## Setup (from source)
 

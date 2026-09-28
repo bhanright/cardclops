@@ -1,1 +1,2 @@
 certifi
+pywebview; sys_platform == "win32"      # the Windows app's own window (gallery/app.py); optional
