@@ -1,4 +1,5 @@
 // Gallery view: toolbar, answer strip, and a virtualised grid / list over paged search results.
+import { fileDialog } from './binders.js';
 import { h, $, clear, int, money, signedMoney, changeChip, manaCost, finishLabel, formatLabel, sortFormats, spinner, errorBox, signedClass } from './util.js';
 import { handMark } from './addcards.js';
 import { api } from './api.js';
@@ -56,7 +57,9 @@ function buildToolbar() {
   els.dir = h('button.btn.small.dir', { type: 'button', onclick: () => ctx.setState({ dir: ctx.getState().dir === 'asc' ? 'desc' : 'asc' }) });
   els.unique = segmented('Group results', [['prints', 'Prints'], ['cards', 'Cards']], v => ctx.setState({ unique: v }));
   els.view = segmented('Layout', [['grid', 'Grid'], ['list', 'List']], v => ctx.setState({ view: v }));
-  els.toolbar.append(els.count, h('div.toolbar-controls', h('label.sort-label', h('span.sr-only', 'Sort'), els.sort), els.dir, els.unique, els.view));
+  els.file = h('button.btn.small.ghost', { type: 'button', hidden: true, title: 'Put every copy these results have in a binder (or take them out)',
+    onclick: () => fileDialog({ title: 'Binders: these results', q: ctx.getState().q.trim() }) }, '📒 Put these in a binder…');
+  els.toolbar.append(els.count, els.file, h('div.toolbar-controls', h('label.sort-label', h('span.sr-only', 'Sort'), els.sort), els.dir, els.unique, els.view));
 }
 
 function segmented(label, options, onPick) {
@@ -123,6 +126,7 @@ async function search(state) {
 function renderCount(store, state) {
   const noun = store.unit === 'cards' ? (store.total === 1 ? 'card' : 'cards') : (store.total === 1 ? 'print' : 'prints');
   clear(els.count).append(h('b', int(store.total)), ' ', noun, state.q.trim() ? '' : h('span.muted', ' — whole collection'));
+  els.file.hidden = !state.q.trim() || !store.total;       // a search's results, not the whole collection
 }
 
 class ResultStore {

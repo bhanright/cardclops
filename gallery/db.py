@@ -151,6 +151,24 @@ CREATE TABLE IF NOT EXISTS meta (
     key   TEXT PRIMARY KEY,
     value TEXT
 );
+
+-- Binders, boxes and lists you file copies into (gallery/binders.py). Contents are counts per
+-- printing and finish, not holdings rows, so they survive re-importing the collection.
+CREATE TABLE IF NOT EXISTS binders (
+    binder_id   INTEGER PRIMARY KEY,
+    name        TEXT NOT NULL,
+    kind        TEXT NOT NULL DEFAULT 'binder',     -- binder | box | list
+    notes       TEXT NOT NULL DEFAULT '',
+    position    INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS binder_cards (
+    binder_id   INTEGER NOT NULL REFERENCES binders(binder_id) ON DELETE CASCADE,
+    scryfall_id TEXT NOT NULL,
+    finish      TEXT NOT NULL,                      -- normal | foil | etched
+    quantity    INTEGER NOT NULL,
+    PRIMARY KEY (binder_id, scryfall_id, finish)
+) WITHOUT ROWID;
 """
 
 # Scryfall's card data. "{schema}" is "cache" in the app (a second file) and
@@ -265,7 +283,7 @@ CREATE INDEX IF NOT EXISTS {schema}.new_printings_by_oracle ON new_printings(ora
 """
 
 USER_TABLES = ("holdings", "price_series", "legality_seen", "legality_changes", "decks", "deck_lines",
-               "deck_pins", "deck_versions", "watchlist", "alerts", "meta")
+               "deck_pins", "deck_versions", "watchlist", "alerts", "meta", "binders", "binder_cards")
 CACHE_TABLES = ("cards", "oracle_cards", "sets", "oracle_tags", "oracle_taggings", "printings", "new_printings",
                 "set_cards")
 

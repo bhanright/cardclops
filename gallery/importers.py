@@ -243,6 +243,8 @@ COLUMNS = {
                        "buyprice", "paid", "costbasis"),
     "currency": ("purchasepricecurrency", "currency"),
     "manabox_id": ("manaboxid",),
+    "binder": ("bindername", "binder"),
+    "binder_type": ("bindertype",),
     "misprint": ("misprint",),
     "altered": ("altered", "alter", "alteredart"),
     "signed": ("signed",),
@@ -657,6 +659,8 @@ def parse_collection(filename, text, connection, progress=None):
                 "language": _language(get("language")),
                 "added_at": _date(get("added_at")),
             })
+            if get("binder"):                          # ManaBox's Binder Name / Type (gallery/binders.py)
+                rows[-1].update(binder=get("binder"), binder_type=get("binder_type"))
     if progress:
         progress(total, total)
     return {"format": fmt, "rows": rows, "unmatched": unmatched, "approximate": approximate,

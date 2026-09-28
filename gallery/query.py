@@ -1134,6 +1134,27 @@ def _deck_term(token):
     return node if positive else _Not(node)
 
 
+def _binder_term(token):
+    """binder:<text> -- some copies are in a binder whose name contains the text; binder:any -- in
+    any binder; binder:none -- some copies are in no binder (unsorted). Reads entry.binders live."""
+    _need_op(token, {":", "=", "!="})
+    positive = token.op != "!="
+    word = token.value.lower() if token.value_kind == "word" else None
+    if word == "any":
+        fn = lambda entry: bool(entry.binders)
+        desc, neg = "some copies are in a binder", "no copies are in a binder"
+    elif word in ("none", "unsorted"):
+        fn = lambda entry: entry.quantity > sum(copies for _name, copies in entry.binders)
+        desc, neg = "some copies are in no binder", "every copy is in a binder"
+    else:
+        needle = _fold(token.value)
+        fn = lambda entry: any(needle in _fold(name) for name, _copies in entry.binders)
+        desc = f"some copies are in a binder named {_quote(token.value)}"
+        neg = f"no copies are in a binder named {_quote(token.value)}"
+    node = _Pred(fn, desc, neg)
+    return node if positive else _Not(node)
+
+
 def _gain(entry):
     if entry.price_usd is None or entry.purchase_price is None:
         return None
@@ -1462,6 +1483,7 @@ _register(("qty", "quantity"), lambda t, c: _numeric_term(t, "the quantity held"
 _register(("cond", "condition"), lambda t, c: _condition_term(t))
 _register(("lang", "language"), lambda t, c: _language_term(t))
 _register(("deck",), lambda t, c: _deck_term(t))
+_register(("binder", "box"), lambda t, c: _binder_term(t))
 _register(("used",), lambda t, c: _numeric_term(t, "the number of copies in active decks", lambda e: e.used))
 _register(("spare",), lambda t, c: _numeric_term(t, "the number of spare copies (not in active decks)", lambda e: e.spare))
 _register(("added",), lambda t, c: _date_term(t, "the date added", "added_at"))

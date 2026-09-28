@@ -80,6 +80,15 @@ export const api = {
     commanders: (params, signal) => request('/api/build/commanders?' + qs(params), { signal }),
     draft: (commander, partner) => request('/api/build/draft?' + qs({ commander, partner })),
   },
+  binders: {
+    list: () => request('/api/binders'),
+    create: fields => request('/api/binders', { method: 'POST', body: fields }),
+    update: (id, fields) => request(`/api/binders/${id}`, { method: 'PATCH', body: fields }),
+    remove: id => request(`/api/binders/${id}`, { method: 'DELETE' }),
+    put: (id, body) => request(`/api/binders/${id}/put`, { method: 'POST', body }),
+    take: (id, body) => request(`/api/binders/${id}/take`, { method: 'POST', body }),
+    exportUrl: id => `/api/binders/${id}/export`,
+  },
   decks: {
     list: q => request('/api/decks' + (q ? '?' + qs({ q }) : '')),
     import: decks => request('/api/decks/import', { method: 'POST', body: { decks } }),

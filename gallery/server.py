@@ -26,6 +26,7 @@ from .deckcheck import DeckChecker
 from . import __version__
 from . import manual
 from . import setup as setup_module
+from .binders import BinderBook
 from .decks import DeckBook
 from .setup import Jobs
 from .sets import SetBook, image_url
@@ -67,6 +68,7 @@ class Gallery:
             similarity = SimilarityIndex(collection)
             deck_checker = DeckChecker(connection, collection)
             deckbook = DeckBook(connection, collection)          # sets entry.used and entry.decks
+            binderbook = BinderBook(connection, collection)      # sets entry.binders
             radar = Radar(connection, collection)
             alerts = Alerts(connection)
             setbook = SetBook(connection, collection)
@@ -74,6 +76,7 @@ class Gallery:
         self.collection, self.prices, self.similarity, self.deck_checker, self.deckbook, self.set_info = (
             collection, prices, similarity, deck_checker, deckbook, set_info)
         self.radar = radar
+        self.binderbook = binderbook
         self.alerts = alerts
         self.setbook = setbook
         self.data_version = version
@@ -307,7 +310,38 @@ class Gallery:
             "other_printings": [self.summarize(e) for e in others],
             "similar": similar,
             "decks": self.deckbook.memberships(lead.oracle_id),
+            "binders": self.binderbook.of_card(lead.oracle_id),
         }
+
+    # ---- binders (gallery/binders.py) ----------------------------------------
+
+    def binder_change(self, method, parts, body):
+        """/api/binders[/<id>[/put|take]]: every binder write, under the lock."""
+        book = self.binderbook
+        with self.lock:
+            binder_id = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else None
+            action = parts[3] if len(parts) > 3 else None
+            if method == "POST" and binder_id is None:
+                return book.summary(book.create(body.get("name"), body.get("kind") or "binder", body.get("notes") or ""))
+            if binder_id is None:
+                raise LookupError("unknown binder request")
+            if method == "PATCH" and action is None:
+                book.update(binder_id, body)
+                return book.summary(binder_id)
+            if method == "DELETE" and action is None:
+                book.delete(binder_id)
+                return {"deleted": binder_id, **book.listing()["unsorted"]}
+            if method == "POST" and action in ("put", "take"):
+                items = body.get("items")
+                if items is None:                         # every card a search finds
+                    compiled = query.compile_query(body.get("q") or "", self.collection.tag_index)
+                    items = book.items_for([e for e in self.collection.entries if compiled.matches(e)])
+                if action == "put":
+                    moved = book.put(binder_id, items, from_binder=body.get("from_binder"))
+                else:
+                    moved = book.take_out(binder_id, items)
+                return {"moved": moved, **book.summary(binder_id)}
+        raise LookupError("unknown binder request")
 
     def _fetch_set_card(self, scryfall_id):
         """A printing seen only in the collector view: the cache keeps just enough to draw it,
@@ -865,6 +899,15 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.path.startswith("/img/"):
             super().log_message(format, *args)
 
+    def _file(self, body, content_type, filename):
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _download(self, payload, filename):
         """JSON as a file to save (Content-Disposition: attachment)."""
         body = json.dumps(payload, indent=1, ensure_ascii=False).encode()
@@ -961,6 +1004,18 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._json({"decks": archidekt.list_decks(username)})
                 except urllib.error.HTTPError as error:
                     return self._json({"error": f"Archidekt answered {error.code}"}, HTTPStatus.BAD_GATEWAY)
+            if route == "binders":
+                with gallery.lock:
+                    if len(parts) == 2:
+                        return self._json(gallery.binderbook.listing())
+                    if len(parts) == 4 and parts[2].isdigit() and parts[3] == "export":
+                        binder_id = int(parts[2])
+                        if binder_id not in gallery.binderbook.binders:
+                            return self._json({"error": "no such binder"}, HTTPStatus.NOT_FOUND)
+                        text = gallery.binderbook.export_csv(binder_id)
+                        name = re.sub(r"[^A-Za-z0-9 _-]", "", gallery.binderbook.binders[binder_id]["name"]).strip() or "binder"
+                        return self._file(text.encode(), "text/csv; charset=utf-8", f"{name}.csv")
+                return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)
             if route == "decks":
                 if len(parts) == 2:
                     try:
@@ -1003,6 +1058,8 @@ class Handler(SimpleHTTPRequestHandler):
             path = urllib.parse.urlsplit(self.path).path
             if path.startswith("/api/decks"):
                 return self._deck_write("POST", path, body)
+            if path.startswith("/api/binders"):
+                return self._binder_write("POST", path, body)
             if path.startswith("/api/setup/") or path in ("/api/refresh", "/api/quit", "/api/app/show"):
                 return self._setup_request(path, body)
             if path.startswith("/api/collection/"):
@@ -1081,6 +1138,14 @@ class Handler(SimpleHTTPRequestHandler):
         except (ValueError, LookupError) as error:
             return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
 
+    def _binder_write(self, method, path, body):
+        try:
+            return self._json(self.gallery.binder_change(method, path.strip("/").split("/"), body))
+        except KeyError as error:
+            return self._json({"error": str(error).strip("'")}, HTTPStatus.NOT_FOUND)
+        except (ValueError, LookupError, query.QueryError) as error:
+            return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
+
     def _deck_write(self, method, path, body):
         parts = path.strip("/").split("/")          # api, decks, <id> or "import", [action]
         deck_id = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else None
@@ -1101,6 +1166,8 @@ class Handler(SimpleHTTPRequestHandler):
             path = urllib.parse.urlsplit(self.path).path
             if path.startswith("/api/decks/"):
                 return self._deck_write(method, path, body)
+            if path.startswith("/api/binders"):
+                return self._binder_write(method, path, body)
             if path.startswith("/api/collection/"):
                 return self._collection_request(method, path, body)
             write_parts = path.strip("/").split("/")

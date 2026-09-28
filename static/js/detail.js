@@ -2,6 +2,7 @@
 import { h, $, clear, money, signedMoney, signedClass, manaCost, rulesText, finishLabel, formatLabel, sortFormats, spinner, errorBox, int, titleCase, toast } from './util.js';
 import { openAddDialog, handMark } from './addcards.js';
 import { dialog as openDialog } from './setup.js';
+import { fileDialog, binderQuery } from './binders.js';
 import { watchButton } from './alerts.js';
 import { api, resize } from './api.js';
 import { cardFace, thumb, rarityGem } from './cards.js';
@@ -118,7 +119,7 @@ function lightbox(item) {
 
 const LEGAL_LABEL = { legal: '✓ Legal', not_legal: '– Not legal', banned: '✗ Banned', restricted: '◐ Restricted' };
 
-function render({ card, tags = [], holdings = [], other_printings = [], similar = [], decks = [] }) {
+function render({ card, tags = [], holdings = [], other_printings = [], similar = [], decks = [], binders = [] }) {
   const faces = card.faces && card.faces.length ? card.faces : [card];
   const finishes = new Set(holdings.filter(x => x.scryfall_id === card.scryfall_id).map(x => x.finish));
   const headFinish = finishes.size === 1 ? [...finishes][0] : 'normal';
@@ -192,6 +193,7 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
     section('Price history', chartBox),
     section(`Your copies${holdingTotals.qty ? ' · ' + int(holdingTotals.qty) : ''}`, holdingsTable),
     decks.length ? section(`In your decks · ${decks.length}`, deckUses(decks)) : null,
+    holdings.length ? section('Binders', binderUses(card, holdings, binders)) : null,
     section('Function tags', tagChips),
     section('Legality', legalGrid));
 
@@ -286,4 +288,33 @@ async function addToDeckDialog(card) {
     h('div.form-row', h('label.inline-label', 'Section ', section), h('label.inline-label', 'Quantity ', quantity)),
     h('div.form-row', add));
   deck.focus();
+}
+
+/** Where this card's copies are filed, and "Put in / take out of a binder" for them. */
+function binderUses(card, holdings, binders) {
+  const FINISH = { normal: '', foil: ' ✦ foil', etched: ' ✦ etched' };
+  // One choice per printing and finish you hold, with how many copies aren't in a binder yet.
+  const pools = new Map();
+  for (const row of holdings) {
+    const key = `${row.scryfall_id}|${row.finish}`;
+    const pool = pools.get(key) || { scryfall_id: row.scryfall_id, finish: row.finish, owned: 0,
+      label: `${(row.set_code || '').toUpperCase()} #${row.collector_number}${FINISH[row.finish] || ''}` };
+    pool.owned += row.quantity;
+    pools.set(key, pool);
+  }
+  for (const pool of pools.values()) {
+    const filed = binders.filter(b => b.scryfall_id === pool.scryfall_id && b.finish === pool.finish).reduce((n, b) => n + b.quantity, 0);
+    pool.free = Math.max(0, pool.owned - filed);
+    pool.label += ` — ${pool.free} unsorted of ${pool.owned}`;
+  }
+  const refresh = () => { const reopen = document.querySelector('.modal-card'); if (reopen) openCard(card.scryfall_id); };
+  const list = binders.length
+    ? h('ul.binder-uses', binders.map(b => {
+      const printing = holdings.find(r => r.scryfall_id === b.scryfall_id);
+      return h('li', h('a', { href: '#/gallery?q=' + encodeURIComponent(binderQuery(b.name)), onclick: () => closeCard() }, h('b', b.name)),
+        ` · ${b.quantity} × ${(printing?.set_code || '').toUpperCase()} #${printing?.collector_number || ''}${FINISH[b.finish] || ''}`);
+    }))
+    : h('p.muted', 'Not in any binder yet.');
+  return h('div', list, h('button.btn.small', { type: 'button', onclick: () => fileDialog({
+    title: `${card.name}: binders`, choices: [...pools.values()], onDone: refresh }) }, '📒 Put in / take out of a binder…'));
 }

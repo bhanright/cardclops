@@ -54,6 +54,8 @@ class Entry:
     # Filled in by the deck allocator (gallery/decks.py) after loading:
     used: int = 0                     # copies of this row allocated to active decks
     decks: tuple = ()                 # (deck name, status) for every deck whose list includes this card
+    # Filled in by gallery/binders.py: (binder name, copies of this row in it) for each binder.
+    binders: tuple = ()
 
     @property
     def spare(self):

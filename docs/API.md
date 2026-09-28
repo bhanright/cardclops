@@ -150,3 +150,30 @@ Only `manual` rows can be changed here; imported rows change by re-importing.
 
 Printings for the picker come from `GET /api/cards/lookup?q=<name>` or `?oracle_id=` (see TOOLS2.md).
 CardSummary and card-detail holdings rows gain `"source": "import" | "manual"`.
+
+## Binders
+
+Binders, boxes and lists you file copies into (gallery/binders.py). A binder holds counts per printing
+and finish, not collection rows, so filing survives re-importing the collection. Copies in no binder are
+"unsorted". When an import leaves fewer copies than the binders hold, the binders keep their counts and
+report the difference as `short`.
+
+`GET /api/binders` → `{"binders": [Binder], "unsorted": {"copies", "value_usd"}}`, where Binder is
+`{"binder_id", "name", "kind": "binder"|"box"|"list", "notes", "position", "created_at", "copies",
+"printings", "value_usd", "short"}`.
+
+`POST /api/binders` body `{"name", "kind"?, "notes"?}` → Binder. `PATCH /api/binders/<id>` body any of
+`{"name", "kind", "notes"}` → Binder. `DELETE /api/binders/<id>` → its copies become unsorted.
+
+`POST /api/binders/<id>/put` body `{"items": [{"scryfall_id", "finish", "quantity"}], "from_binder"?}`
+or `{"q": "t:dragon"}` (every copy a gallery search finds) → Binder + `moved`. A null quantity means every
+free copy: unsorted ones, or those in `from_binder` when moving. `POST /api/binders/<id>/take` takes copies
+out (they become unsorted), with the same body.
+
+`GET /api/binders/<id>/export` → the binder as a CSV file (Binder Name, Name, Set code, Collector
+number, Foil, Quantity, Scryfall ID).
+
+Card detail (`GET /api/cards/<id>`) carries `binders`: `[{"binder_id", "name", "kind", "scryfall_id",
+"finish", "quantity"}]` for the card's copies. The gallery search reads `binder:"name"` (copies in a
+binder whose name contains that), `binder:any` and `binder:none` (copies in no binder). A collection export
+with ManaBox's Binder Name column fills those binders on import, each with exactly what the file puts in it.
