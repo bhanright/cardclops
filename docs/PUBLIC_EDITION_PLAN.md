@@ -119,7 +119,13 @@ copy taken in one step, and OPFS swaps a file in whole, so a stored file is neve
    says whether the browser has agreed to keep the site's storage (`navigator.storage.persisted()`).
    With the owner's collection: a 30 MB backup in 0.15 s; a restore in 10 s, and the app's own 56 MB
    database restored into the browser with its longer price history.*
-6. **Build and launch:** *In progress 2026-09-28. Done: Pyodide (scripts/fetch_pyodide.py, pinned
+6. **Build and launch:** *Launched 2026-09-28: cardclops.com is the public site (a Cloudflare Workers
+   static-assets project built from GitHub on every push to main; wrangler.jsonc), the private
+   edition moved to its own subdomain behind Access, and the data host serves the card pack and
+   price files. Tested live from a fresh browser on the PC and the phone (first-run download 3–9 s).
+   The service worker revalidates the page's own scripts on every load, because browsers that had
+   visited the old private site kept its scripts cached. Every page has a footer with Wizards of the
+   Coast's Fan Content notice, and #/about lists data sources, licenses and privacy. Before that: Pyodide (scripts/fetch_pyodide.py, pinned
    hashes) and the fonts are served with the site; `_headers` carries a Content Security Policy
    allowing only the site's own scripts and connections to itself, the data host, Scryfall and
    Anthropic (tested under scripts/serve_static.py: setup, import, rulings, rules, images and set
