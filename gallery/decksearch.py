@@ -10,6 +10,7 @@ A query is terms separated by spaces; a deck must match all of them, and a leadi
   c:g  c:simic      color identity includes these colors (c:c or c:colorless: no colors)
   c=ug  c<=ug       exactly these colors; within these colors (also >=, <, >)
   f:commander       format
+  folder:cube       the deck's folder name contains (folder:none: in no folder)
   is:active  is:inactive  is:legal  is:illegal  is:complete  is:incomplete  is:conflict
   cards>=100  missing>0  value>200  cost<50  owned>90  priority=1
 """
@@ -20,7 +21,8 @@ from .query import COLOR_WORDS
 
 TOKEN = re.compile(r'(-?)(?:(\w+)(<=|>=|!=|:|=|<|>))?("[^"]*"|\S+)')
 COLOR_KEYS = {"c", "color", "colors", "id", "identity", "ci"}
-TEXT_KEYS = {"name": "name", "cmd": "commander", "commander": "commander", "card": "card", "has": "card"}
+TEXT_KEYS = {"name": "name", "cmd": "commander", "commander": "commander", "card": "card", "has": "card",
+             "folder": "folder"}
 NUMBER_KEYS = {"cards": "card_count", "missing": "missing", "value": "value_usd", "cost": "cost_to_complete_usd",
                "owned": "owned", "priority": "priority"}
 FORMAT_ALIASES = {"edh": "commander", "cmdr": "commander", "pdh": "paupercommander", "pauperedh": "paupercommander"}
@@ -78,6 +80,10 @@ def _test(key, op, value):
             return lambda d, cards: needle in fold(d["name"])
         if field == "commander":
             return lambda d, cards: any(needle in fold(c["name"]) for c in d["commanders"])
+        if field == "folder":
+            if needle == "none":
+                return lambda d, cards: not d.get("folder")
+            return lambda d, cards: needle in fold(d.get("folder") or "")
         return lambda d, cards: any(needle in name for name in cards)
     if key in ("f", "format"):
         wanted = FORMAT_ALIASES.get(fold(value).replace(" ", ""), fold(value).replace(" ", ""))

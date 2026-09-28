@@ -146,6 +146,11 @@ function header(deck) {
       title: v === 'active' ? 'Built: its copies are reserved' : 'An idea or retired list: reserves nothing',
       onclick: () => { if (deck.status !== v) patch({ status: v }, v === 'active' ? 'Deck is active: copies reserved' : 'Deck is inactive: copies released'); } }, l)));
   const priority = h('input.num-input', { type: 'number', step: 1, value: deck.priority ?? 0, 'aria-label': 'Priority', dataset: { focus: 'priority' } });
+  // Folders on the Decks page (make them there); a deck is in one or none.
+  const folder = h('select.select', { 'aria-label': 'Folder', dataset: { focus: 'folder' },
+    onchange: e => patch({ folder_id: e.target.value ? +e.target.value : null }, e.target.value ? 'Moved to the folder' : 'Taken out of its folder') },
+    h('option', { value: '' }, 'No folder'),
+    (data.folders || []).map(f => h('option', { value: f.folder_id, selected: f.folder_id === deck.folder_id }, f.name)));
   priority.addEventListener('change', () => patch({ priority: parseInt(priority.value, 10) || 0 }, 'Priority saved'));
 
   const notes = h('textarea.notes', { 'aria-label': 'Notes', placeholder: 'Notes: upgrades to make, sleeves, where the box lives…' });
@@ -199,6 +204,7 @@ function header(deck) {
         h('label.inline-label', 'Format ', format),
         status,
         h('label.inline-label', { title: 'When active decks compete for the same copies, lower priority numbers get them first' }, 'Priority ', priority),
+        (data.folders || []).length ? h('label.inline-label', 'Folder ', folder) : null,
         colorPips(deck.color_identity),
         h('span', { class: 'legal-pill ' + (deck.legal ? 'ok' : 'bad') }, deck.legal ? '✓ Legal' : '✗ Not legal'),
         policy.control),

@@ -571,7 +571,7 @@ class Gallery:
         """Every deck's summary, or those matching `query` (gallery/decksearch.py); totals are for all."""
         book = self.deckbook
         summaries = [book.summary(d["deck_id"]) for d in book.ordered_decks()]
-        result = {"decks": summaries, "totals": book.totals()}
+        result = {"decks": summaries, "totals": book.totals(), "folders": book.folder_list()}
         if query.strip():
             from .decks import fold
             from .decksearch import search
@@ -692,8 +692,17 @@ class Gallery:
         with self.lock:
             if method == "POST" and deck_id is None and action is None:          # Decks → New deck
                 created = book.create(body.get("name"), body.get("format"), body.get("commanders") or [],
-                                      body.get("status") or "active")
+                                      body.get("status") or "active", body.get("folder_id"))
                 return book.summary(created)
+            if deck_id is None and action == "folders":                           # the Decks page's folders
+                if method == "POST":
+                    return {"folder_id": book.create_folder(body.get("name")), "folders": book.folder_list()}
+                folder_id = int(body.get("folder_id") or 0)
+                if method == "PATCH":
+                    book.rename_folder(folder_id, body.get("name"))
+                elif method == "DELETE":
+                    book.delete_folder(folder_id)
+                return {"folders": book.folder_list()}
             if method == "POST" and deck_id is None and action == "import":
                 imported, warnings = book.import_decks(body.get("decks") or [])
                 return {"imported": [book.summary(d) for d in imported], "warnings": warnings}

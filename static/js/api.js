@@ -106,6 +106,11 @@ export const api = {
   decks: {
     list: q => request('/api/decks' + (q ? '?' + qs({ q }) : '')),
     create: fields => request('/api/decks', { method: 'POST', body: fields }),
+    folders: {
+      create: name => request('/api/decks/folders', { method: 'POST', body: { name } }),
+      rename: (folderId, name) => request('/api/decks/folders', { method: 'PATCH', body: { folder_id: folderId, name } }),
+      remove: folderId => request('/api/decks/folders', { method: 'DELETE', body: { folder_id: folderId } }),
+    },
     import: decks => request('/api/decks/import', { method: 'POST', body: { decks } }),
     get: id => request(`/api/decks/${id}`),
     update: (id, fields) => request(`/api/decks/${id}`, { method: 'PATCH', body: fields }),

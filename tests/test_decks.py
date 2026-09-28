@@ -357,3 +357,53 @@ class DecksFileTests(AllocationTests):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BuilderAndFolderTests(AllocationTests):
+    """New deck (an empty deck with its commander) and folders on the Decks page."""
+
+    def test_new_deck_starts_empty_with_its_commander(self):
+        deck_id = self.book.create("Rings", "commander", [self.oracle])
+        lines = [(s.row["section"], s.row["name"]) for s in self.book.lines[deck_id]]
+        self.assertEqual(lines, [("commander", "Sol Ring")])
+        summary = self.book.summary(deck_id)
+        self.assertEqual((summary["name"], summary["format"], summary["source"]), ("Rings", "commander", "builder"))
+        self.book.add_text(deck_id, "1 Sol Ring", "main")
+        self.assertEqual(self.book.summary(deck_id)["sections"]["main"], 1)
+        with self.assertRaises(ValueError):
+            self.book.create("Bad", "commander", ["not-a-card"])
+
+    def test_folders_file_decks_and_deleting_one_keeps_them(self):
+        cube = self.book.create_folder("Cube")
+        deck_id = self.book.create("In the cube", "casual", folder_id=cube)
+        other = self.deck("Loose", "1 Sol Ring")
+        self.assertEqual(self.book.summary(deck_id)["folder"], "Cube")
+        self.book.update(other, {"folder_id": cube})
+        self.assertEqual({f["name"]: f["decks"] for f in self.book.folder_list()}, {"Cube": 2})
+        with self.assertRaises(ValueError):
+            self.book.update(other, {"folder_id": 999})
+        self.book.rename_folder(cube, "Cubes")
+        self.assertEqual(self.book.summary(other)["folder"], "Cubes")
+        self.book.delete_folder(cube)
+        self.assertIn(deck_id, self.book.decks)
+        self.assertIsNone(self.book.summary(deck_id)["folder_id"])
+
+    def test_the_decks_file_carries_folders(self):
+        cube = self.book.create_folder("Cube")
+        self.book.create("In the cube", "casual", folder_id=cube)
+        exported = self.book.export_all()
+        self.assertEqual(exported["decks"][0]["folder"], "Cube")
+        self.book.delete_folder(cube)
+        exported["decks"][0]["lines"] = [{"section": "main", "quantity": 1, "name": "Sol Ring"}]
+        self.book.import_file(exported, "replace")
+        deck = next(d for d in self.book.decks.values() if d["name"] == "In the cube")
+        self.assertEqual(self.book.summary(deck["deck_id"])["folder"], "Cube")
+
+    def test_deck_search_by_folder(self):
+        from gallery.decksearch import search
+        cube = self.book.create_folder("Cube")
+        self.book.create("In the cube", "casual", folder_id=cube)
+        self.book.create("Loose", "casual")
+        summaries = [self.book.summary(d) for d in self.book.decks]
+        self.assertEqual([d["name"] for d in search(summaries, {}, "folder:cube")], ["In the cube"])
+        self.assertEqual([d["name"] for d in search(summaries, {}, "folder:none")], ["Loose"])

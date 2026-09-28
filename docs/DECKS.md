@@ -136,6 +136,17 @@ Text shapes accepted: MTGO/Arena/Moxfield/Archidekt exports — `4 Name`, `4x Na
 section headers (`Commander`, `Deck`, `Sideboard`, `SIDEBOARD:`, `Maybeboard`, `Companion`, `//Sideboard`),
 and MTGO's convention of a sideboard after a blank line.
 
+`POST /api/decks` body `{"name": "…", "format": "commander", "commanders": [oracle_id], "status": "active",
+"folder_id": 3}` (all optional) → DeckSummary: a new, empty deck with its commander(s) (Decks → New deck;
+the deck page adds the cards). Its history starts with a `create` version.
+
+**Folders.** A deck is in one folder or none (DeckSummary `folder_id`, `folder`); `GET /api/decks` and
+`GET /api/decks/<id>` carry `folders` [{folder_id, name, decks}]. `POST /api/decks/folders` `{"name"}`
+makes one (→ `folder_id` + `folders`), `PATCH /api/decks/folders` `{"folder_id", "name"}` renames it,
+`DELETE /api/decks/folders` `{"folder_id"}` deletes it (its decks stay, in no folder), and
+`PATCH /api/decks/<id>` `{"folder_id": 3 | null}` files a deck. The decks file carries each deck's
+folder by name, made on import if missing. Deck search: `folder:cube`, `folder:none`.
+
 `GET /api/archidekt/decks?username=<name>` → `{"decks": [{"id", "name", "size", "format", "updated_at",
 "featured", "url"}]}` — that user's public and unlisted decks (private ones can't be read).
 
@@ -157,7 +168,7 @@ when the app starts.
 `GET /api/decks?q=…` → the same, keeping the decks that match a search (totals stay for all decks), plus
 `query`; 400 with `error` for a term it can't read. Terms are separated by spaces, all must match, and a
 leading `-` negates one: plain words (deck or commander name), `name:`, `cmd:`, `card:"sol ring"` (a card
-in the deck, not the maybeboard), `c:`/`id:` color identity (`c:g` includes, `c=ug` exactly, `c<=ug`
+in the deck, not the maybeboard), `folder:` (`folder:none` for decks in no folder), `c:`/`id:` color identity (`c:g` includes, `c=ug` exactly, `c<=ug`
 within, also `>=`, `<`, `>`; letters, guild/shard names, `c:c` colorless), `f:`/`format:` (`edh` works),
 `is:active|inactive|legal|illegal|complete|incomplete|conflict`, and numbers `cards`, `missing`, `value`,
 `cost`, `owned`, `priority` with `= != < > <= >=`. Unknown keys are read as plain words

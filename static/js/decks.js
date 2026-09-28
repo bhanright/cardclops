@@ -14,9 +14,9 @@ export const deckFormatLabel = f => (f === 'casual' ? 'Casual' : f ? formatLabel
 export const COMMANDER_FORMATS = ['commander', 'paupercommander', 'oathbreaker', 'brawl', 'standardbrawl', 'predh', 'duel'];
 
 const PREFS_KEY = 'gallery.decks';
-const prefs = { filter: 'all', sort: 'name', q: '', ...store.get(PREFS_KEY, {}) };
+const prefs = { filter: 'all', sort: 'name', dir: 'asc', format: '', folder: 'all', q: '', ...store.get(PREFS_KEY, {}) };
 let built = false;
-let home, page, grid, totalsBox, toolbar, importPanel, searchNote;
+let home, page, grid, totalsBox, toolbar, folderBar, importPanel, searchNote;
 let lastData = null;
 
 /** Show the deck grid (deckId null) or one deck's page. */
@@ -48,6 +48,7 @@ function buildHome() {
   // Every deck in one file, to move them to another copy of Cardclops (the phone, cardclops.com).
   const exportLink = h('a.btn.ghost', { href: api.decks.exportUrl, download: '', title: 'Save every deck in one file, to import into another copy of Cardclops' }, '⇩ Export all decks');
   toolbar = h('div.panel-tools');
+  folderBar = h('div.folder-bar', { role: 'group', 'aria-label': 'Folders' });
   totalsBox = h('div.deck-totals');
   importPanel = buildImportPanel();
   importPanel.hidden = true;
@@ -56,6 +57,7 @@ function buildHome() {
     h('section.panel.decks-head',
       h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, exportLink, importBtn, newBtn)),
       totalsBox,
+      folderBar,
       deckSearch()),
     importPanel,
     grid);
@@ -98,13 +100,16 @@ function newDeckDialog() {
       return b;
     }));
   }, 300));
+  const folders = lastData?.folders || [];
+  const folder = h('select.select', { 'aria-label': 'Folder' }, h('option', { value: '' }, 'No folder'),
+    folders.map(f => h('option', { value: f.folder_id, selected: f.folder_id === prefs.folder }, f.name)));
   const status = h('div');
   const create = h('button.btn.go', { type: 'button', onclick: async () => {
     create.disabled = true;
     const useCommander = commander && COMMANDER_FORMATS.includes(format.value);
     try {
       const deck = await api.decks.create({ name: name.value.trim() || (useCommander ? commander.name : ''), format: format.value,
-        commanders: useCommander ? [commander.oracle_id] : [] });
+        commanders: useCommander ? [commander.oracle_id] : [], folder_id: folder.value ? +folder.value : null });
       invalidateDecks();
       close();
       location.hash = `#/decks/${deck.deck_id}`;
@@ -113,6 +118,7 @@ function newDeckDialog() {
   const close = dialog('New deck', h('div.new-deck',
     h('label.new-deck-field', h('b', 'Name'), name),
     h('label.new-deck-field', h('b', 'Format'), format),
+    folders.length ? h('label.new-deck-field', h('b', 'Folder'), folder) : null,
     commanderRow,
     h('p.small.muted', 'Next, add cards on the deck page: search for them one at a time, or paste a list.'),
     status,
@@ -154,15 +160,100 @@ function deckSearch() {
   return h('div.deck-search', h('div.deck-search-row', input, helpBtn), searchNote, help);
 }
 
+// Sorts: [key, label, the direction it starts in, compare(a, b) for ascending].
+const DECK_SORTS = [
+  ['name', 'Name', 'asc', (a, b) => a.name.localeCompare(b.name)],
+  ['value', 'Value', 'desc', (a, b) => (a.value_usd || 0) - (b.value_usd || 0)],
+  ['cost', 'Cost to complete', 'desc', (a, b) => (a.cost_to_complete_usd || 0) - (b.cost_to_complete_usd || 0)],
+  ['missing', 'Missing cards', 'desc', (a, b) => (a.missing || 0) - (b.missing || 0)],
+  ['cards', 'Card count', 'desc', (a, b) => (a.card_count || 0) - (b.card_count || 0)],
+  ['created', 'Date created', 'desc', (a, b) => (a.created_at || '').localeCompare(b.created_at || '')],
+  ['updated', 'Last updated', 'desc', (a, b) => (a.updated_at || '').localeCompare(b.updated_at || '')],
+  ['format', 'Format', 'asc', (a, b) => deckFormatLabel(a.format).localeCompare(deckFormatLabel(b.format))],
+  ['colors', 'Colors', 'asc', (a, b) => colorRank(a) - colorRank(b)],
+  ['priority', 'Priority', 'asc', (a, b) => (a.priority || 0) - (b.priority || 0)],
+];
+const colorRank = d => (d.color_identity || []).reduce((n, c) => n * 6 + 1 + 'WUBRG'.indexOf(c), d.color_identity?.length || 0);
+
+function savePrefs() { store.set(PREFS_KEY, prefs); }
+
 function buildToolbar() {
   clear(toolbar);
   const seg = h('div.seg', { role: 'group', 'aria-label': 'Show decks' },
     [['active', 'Active'], ['inactive', 'Inactive'], ['all', 'All']].map(([value, label]) => h('button.seg-btn', {
       type: 'button', class: prefs.filter === value ? 'on' : null, 'aria-pressed': String(prefs.filter === value),
       onclick: () => { prefs.filter = value; store.set(PREFS_KEY, prefs); buildToolbar(); renderGrid(); } }, label)));
-  const sort = h('select.select', { 'aria-label': 'Sort decks', onchange: e => { prefs.sort = e.target.value; store.set(PREFS_KEY, prefs); renderGrid(); } },
-    [['name', 'Name'], ['value', 'Value'], ['updated', 'Recently updated']].map(([v, l]) => h('option', { value: v, selected: prefs.sort === v }, l)));
-  toolbar.append(seg, sort);
+  const formats = [...new Set((lastData?.decks || []).map(d => d.format).filter(Boolean))].sort((a, b) => deckFormatLabel(a).localeCompare(deckFormatLabel(b)));
+  if (prefs.format && !formats.includes(prefs.format)) formats.push(prefs.format);
+  const format = h('select.select', { 'aria-label': 'Format', onchange: e => { prefs.format = e.target.value; savePrefs(); renderGrid(); } },
+    h('option', { value: '' }, 'All formats'), formats.map(f => h('option', { value: f, selected: prefs.format === f }, deckFormatLabel(f))));
+  const sort = h('select.select', { 'aria-label': 'Sort decks', onchange: e => {
+    prefs.sort = e.target.value;
+    prefs.dir = DECK_SORTS.find(s => s[0] === prefs.sort)?.[2] || 'asc';        // each sort starts the useful way round
+    savePrefs(); buildToolbar(); renderGrid();
+  } }, DECK_SORTS.map(([v, l]) => h('option', { value: v, selected: prefs.sort === v }, l)));
+  const dir = h('button.btn.small.dir', { type: 'button', 'aria-label': `Sort direction: ${prefs.dir === 'asc' ? 'ascending' : 'descending'}`,
+    onclick: () => { prefs.dir = prefs.dir === 'asc' ? 'desc' : 'asc'; savePrefs(); buildToolbar(); renderGrid(); } },
+    prefs.dir === 'asc' ? '↑ Asc' : '↓ Desc');
+  toolbar.append(seg, format, h('label.sort-label', h('span.sort-caption', 'Sort'), sort), dir);
+}
+
+/** Ask for a name in the app's own dialog (the browser's prompt() isn't shown in every edition's
+ *  web view). Resolves to the trimmed name, or null when cancelled. */
+function askName(title, action, initial = '') {
+  return new Promise(resolve => {
+    let answered = false;
+    const input = h('input.text-input', { type: 'text', value: initial, maxlength: 80, 'aria-label': 'Folder name' });
+    const done = value => { answered = true; close(); resolve(value); };
+    const ok = h('button.btn.go', { type: 'button', onclick: () => input.value.trim() && done(input.value.trim()) }, action);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ok.click(); } });
+    const close = dialog(title, h('div.new-deck', input, h('div.form-row', ok,
+      h('button.btn.ghost', { type: 'button', onclick: () => done(null) }, 'Cancel'))), { onClose: () => { if (!answered) resolve(null); } });
+    input.focus(); input.select();
+  });
+}
+
+function askSure(title, message, action) {
+  return new Promise(resolve => {
+    let answered = false;
+    const done = value => { answered = true; close(); resolve(value); };
+    const close = dialog(title, h('div.new-deck', h('p', message), h('div.form-row',
+      h('button.btn.go', { type: 'button', onclick: () => done(true) }, action),
+      h('button.btn.ghost', { type: 'button', onclick: () => done(false) }, 'Cancel'))), { onClose: () => { if (!answered) resolve(false); } });
+  });
+}
+
+/** The folder chips: all decks, each folder, decks in none; the chosen folder can be renamed or deleted. */
+function renderFolders() {
+  const folders = lastData?.folders || [];
+  if (prefs.folder !== 'all' && prefs.folder !== 'none' && !folders.some(f => f.folder_id === prefs.folder)) prefs.folder = 'all';
+  const all = lastData?.decks || [];
+  const chip = (value, label, count) => h('button.mini-chip.folder-chip', { type: 'button', 'aria-pressed': String(prefs.folder === value),
+    onclick: () => { prefs.folder = value; savePrefs(); renderFolders(); renderGrid(); } }, label, h('span.muted', ` ${int(count)}`));
+  const add = h('button.mini-chip.folder-add', { type: 'button', onclick: async () => {
+    const name = await askName('New folder', 'Make folder');
+    if (!name) return;
+    try { const r = await api.decks.folders.create(name); prefs.folder = r.folder_id; savePrefs(); toast('Folder made'); load(); }
+    catch (error) { toast('Could not make it: ' + error.message); }
+  } }, '＋ New folder');
+  clear(folderBar).append(...[
+    chip('all', 'All decks', all.length),
+    ...folders.map(f => chip(f.folder_id, `📁 ${f.name}`, all.filter(d => d.folder_id === f.folder_id).length)),
+    folders.length ? chip('none', 'No folder', all.filter(d => !d.folder_id).length) : null,
+    add].filter(Boolean));
+  const current = folders.find(f => f.folder_id === prefs.folder);
+  if (current) {
+    folderBar.append(
+      h('button.link-btn.small', { type: 'button', onclick: async () => {
+        const name = await askName('Rename folder', 'Rename', current.name);
+        if (!name || name === current.name) return;
+        try { await api.decks.folders.rename(current.folder_id, name); load(); } catch (error) { toast('Could not rename it: ' + error.message); }
+      } }, 'Rename'),
+      h('button.link-btn.small', { type: 'button', onclick: async () => {
+        if (!await askSure('Delete folder', `Delete the folder “${current.name}”? Its decks stay, in no folder.`, 'Delete folder')) return;
+        try { await api.decks.folders.remove(current.folder_id); prefs.folder = 'all'; savePrefs(); load(); } catch (error) { toast('Could not delete it: ' + error.message); }
+      } }, 'Delete folder'));
+  }
 }
 
 async function load() {
@@ -180,6 +271,8 @@ async function load() {
     return;
   }
   renderTotals(lastData.totals || {});
+  buildToolbar();
+  renderFolders();
   renderGrid();
 }
 
@@ -195,13 +288,12 @@ function renderTotals(t) {
 
 function renderGrid() {
   if (!lastData) return;
-  const decks = (lastData.decks || []).filter(d => prefs.filter === 'all' || d.status === prefs.filter);
-  const sorters = {
-    name: (a, b) => a.name.localeCompare(b.name),
-    value: (a, b) => (b.value_usd || 0) - (a.value_usd || 0),
-    updated: (a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''),
-  };
-  decks.sort(sorters[prefs.sort] || sorters.name);
+  const decks = (lastData.decks || []).filter(d => (prefs.filter === 'all' || d.status === prefs.filter)
+    && (!prefs.format || d.format === prefs.format)
+    && (prefs.folder === 'all' || (prefs.folder === 'none' ? !d.folder_id : d.folder_id === prefs.folder)));
+  const [, , , compare] = DECK_SORTS.find(s => s[0] === prefs.sort) || DECK_SORTS[0];
+  const sign = prefs.dir === 'desc' ? -1 : 1;
+  decks.sort((a, b) => sign * compare(a, b) || a.name.localeCompare(b.name));
   clear(grid);
   const deckCount = (lastData.totals?.active ?? 0) + (lastData.totals?.inactive ?? 0);   // all decks, whatever the search
   if (!deckCount) {
@@ -211,7 +303,7 @@ function renderGrid() {
     return;
   }
   if (searchNote) clear(searchNote).append(lastData.query ? `${int(decks.length)} ${decks.length === 1 ? 'deck matches' : 'decks match'}` : '');
-  if (!decks.length) { grid.append(h('div.chart-empty', lastData.query ? 'No decks match that search.' : `No ${prefs.filter} decks.`)); return; }
+  if (!decks.length) { grid.append(h('div.chart-empty', lastData.query ? 'No decks match that search.' : 'No decks match these filters.')); return; }
   grid.append(...decks.map(deckTile));
 }
 

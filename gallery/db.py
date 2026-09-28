@@ -87,7 +87,15 @@ CREATE TABLE IF NOT EXISTS decks (
     source_url  TEXT,
     raw_text    TEXT,                               -- the list as imported
     created_at  TEXT NOT NULL,
-    updated_at  TEXT NOT NULL
+    updated_at  TEXT NOT NULL,
+    folder_id   INTEGER                             -- deck_folders; none when NULL
+);
+-- Folders on the Decks page; a deck is in one folder or none. Deleting a folder keeps its decks.
+CREATE TABLE IF NOT EXISTS deck_folders (
+    folder_id   INTEGER PRIMARY KEY,
+    name        TEXT NOT NULL,
+    position    INTEGER NOT NULL DEFAULT 0,
+    created_at  TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS deck_lines (
     line_id          INTEGER PRIMARY KEY,
@@ -306,7 +314,7 @@ CREATE INDEX IF NOT EXISTS {schema}.new_printings_by_oracle ON new_printings(ora
 CACHE_SCHEMA = CARD_CACHE_SCHEMA + CATALOG_SCHEMA
 
 USER_TABLES = ("holdings", "price_series", "legality_seen", "legality_changes", "decks", "deck_lines",
-               "deck_pins", "deck_versions", "watchlist", "alerts", "meta", "binders", "binder_cards")
+               "deck_pins", "deck_versions", "watchlist", "alerts", "meta", "binders", "binder_cards", "deck_folders")
 CARD_CACHE_TABLES = ("cards", "rulings")
 CATALOG_TABLES = ("oracle_cards", "catalog_info", "sets", "oracle_tags", "oracle_taggings", "printings", "new_printings", "set_cards")
 CACHE_TABLES = CARD_CACHE_TABLES + CATALOG_TABLES
@@ -343,6 +351,7 @@ def connect(path=DATABASE_PATH, cache_path=CACHE_DATABASE_PATH, pack_path=None):
         connection.execute("ATTACH DATABASE ? AS cache", (str(cache_path),))
         connection.execute(f"PRAGMA cache.journal_mode={journal}")
         connection.executescript(CARD_CACHE_SCHEMA.replace("{schema}", "cache"))
+        _add_missing_columns(connection, cache_schema="cache")      # your tables' later columns
         # A cache made before the pack existed has its own catalog tables, which would hide the
         # pack's (unqualified names look in the cache first). They're cache: drop them.
         for table in CATALOG_TABLES:
@@ -422,6 +431,7 @@ def migrate_legacy():
 # the owner's own work and cannot be rebuilt from a download.
 LATE_COLUMNS = [("user", "decks", "copy_policy", "TEXT NOT NULL DEFAULT 'default'"),
                 ("user", "holdings", "source", "TEXT NOT NULL DEFAULT 'import'"),
+                ("user", "decks", "folder_id", "INTEGER"),
                 ("cache", "sets", "printed_size", "INTEGER"),
                 ("cache", "sets", "digital", "INTEGER"),
                 ("cache", "sets", "parent_set_code", "TEXT"),

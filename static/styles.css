@@ -1861,6 +1861,9 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .new-deck-field { display: flex; flex-direction: column; gap: 6px; }
 .new-deck-commander { display: flex; flex-direction: column; gap: 6px; }
 .new-deck-commander[hidden] { display: none; }
+.folder-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 4px; }
+.folder-chip[aria-pressed="true"] { background: var(--lime); color: #000; }
+.folder-add { border-style: dashed; }
 .site-footer { margin: 28px var(--gutter) 22px; padding-top: 14px; border-top: 2px solid color-mix(in srgb, var(--muted) 35%, transparent); color: var(--muted); font-size: .78rem; line-height: 1.5; text-align: center; }
 .site-footer p { margin: 0 auto 4px; max-width: 70ch; }
 .site-footer a { color: inherit; }

@@ -355,6 +355,8 @@ class DeckBook:
     def reload(self):
         connection = self.connection
         self.decks = {row["deck_id"]: dict(row) for row in connection.execute("SELECT * FROM decks")}
+        self.folders = {row["folder_id"]: dict(row) for row in connection.execute(
+            "SELECT * FROM deck_folders ORDER BY position, name COLLATE NOCASE")}
         self.lines = defaultdict(list)                  # deck_id -> [LineState]
         self.line_by_id = {}
         for row in connection.execute("SELECT * FROM deck_lines ORDER BY deck_id, position"):
@@ -594,6 +596,8 @@ class DeckBook:
             "legal": (stats or {}).get("legality", {}).get("legal"),
             "source": deck["source"], "source_url": deck["source_url"],
             "created_at": deck["created_at"], "updated_at": deck["updated_at"], "cover": cover,
+            "folder_id": deck.get("folder_id"),
+            "folder": (self.folders.get(deck.get("folder_id")) or {}).get("name"),
         }
 
     def stats(self, deck_id):
@@ -729,7 +733,7 @@ class DeckBook:
         lines = sorted(self.lines[deck_id], key=lambda s: (order[s.row["section"]], s.row["position"]))
         return {"deck": {**self.summary(deck_id, stats), "notes": self.decks[deck_id]["notes"]},
                 "lines": [self.line_json(state, summarize) for state in lines],
-                "stats": stats}
+                "stats": stats, "folders": self.folder_list()}
 
     def memberships(self, oracle_id):
         """Every deck whose list includes this card, with the copies each uses."""
@@ -929,8 +933,64 @@ class DeckBook:
             versions.record(self, deck_id, "import")
         return imported, warnings
 
+    # -- folders (Decks page): a deck is in one folder or none --
+
+    def folder_list(self):
+        counts = defaultdict(int)
+        for deck in self.decks.values():
+            if deck.get("folder_id"):
+                counts[deck["folder_id"]] += 1
+        return [{"folder_id": f["folder_id"], "name": f["name"], "decks": counts[f["folder_id"]]}
+                for f in self.folders.values()]
+
+    def create_folder(self, name):
+        name = (name or "").strip()
+        if not name:
+            raise ValueError("Give the folder a name")
+        position = 1 + max((f["position"] for f in self.folders.values()), default=0)
+        folder_id = self.connection.execute("INSERT INTO deck_folders (name, position, created_at) VALUES (?, ?, ?)",
+                                            (name, position, self._now())).lastrowid
+        self.connection.commit()
+        self.reload()
+        return folder_id
+
+    def rename_folder(self, folder_id, name):
+        name = (name or "").strip()
+        if folder_id not in self.folders:
+            raise KeyError(f"no folder {folder_id}")
+        if not name:
+            raise ValueError("Give the folder a name")
+        self.connection.execute("UPDATE deck_folders SET name = ? WHERE folder_id = ?", (name, folder_id))
+        self.connection.commit()
+        self.reload()
+
+    def delete_folder(self, folder_id):
+        """The folder goes; its decks stay, in no folder."""
+        if folder_id not in self.folders:
+            raise KeyError(f"no folder {folder_id}")
+        self.connection.execute("UPDATE decks SET folder_id = NULL WHERE folder_id = ?", (folder_id,))
+        self.connection.execute("DELETE FROM deck_folders WHERE folder_id = ?", (folder_id,))
+        self.connection.commit()
+        self.reload()
+
+    def _folder_named(self, name):
+        """The folder of that name, made if there's none (importing a decks file). Doesn't commit:
+        the import it's part of commits or rolls back as a whole."""
+        name = (name or "").strip()
+        if not name:
+            return None
+        for folder in self.folders.values():
+            if folder["name"].lower() == name.lower():
+                return folder["folder_id"]
+        position = 1 + max((f["position"] for f in self.folders.values()), default=0)
+        now = self._now()
+        folder_id = self.connection.execute("INSERT INTO deck_folders (name, position, created_at) VALUES (?, ?, ?)",
+                                            (name, position, now)).lastrowid
+        self.folders[folder_id] = {"folder_id": folder_id, "name": name, "position": position, "created_at": now}
+        return folder_id
+
     @all_or_nothing
-    def create(self, name, deck_format, commanders=(), status="active"):
+    def create(self, name, deck_format, commanders=(), status="active", folder_id=None):
         """A new, empty deck (Decks → New deck): its commander(s) if the format has one, and nothing
         else yet; cards come from the deck page. Returns the deck_id."""
         connection = self.connection
@@ -939,9 +999,10 @@ class DeckBook:
             raise ValueError("status must be active or inactive")
         now = self._now()
         deck_id = connection.execute(
-            "INSERT INTO decks (name, format, status, priority, notes, source, source_url, raw_text, created_at, updated_at) "
-            "VALUES (?, ?, ?, 0, '', 'builder', NULL, '', ?, ?)",
-            (name, (deck_format or "casual").strip().lower(), status, now, now)).lastrowid
+            "INSERT INTO decks (name, format, status, priority, notes, source, source_url, raw_text, created_at, updated_at, "
+            "folder_id) VALUES (?, ?, ?, 0, '', 'builder', NULL, '', ?, ?, ?)",
+            (name, (deck_format or "casual").strip().lower(), status, now, now,
+             folder_id if folder_id in self.folders else None)).lastrowid
         fetch = set()
         for position, oracle_id in enumerate(commanders, 1):
             if oracle_id not in self.resolver.representative:
@@ -982,8 +1043,10 @@ class DeckBook:
                 if pins:
                     line["pins"] = [{"pool": pool, "quantity": quantity} for pool, quantity in pins.items()]
                 lines.append(line)
+            folder = self.folders.get(deck.get("folder_id"))
             decks.append({key: deck.get(key) for key in ("name", "format", "status", "priority", "copy_policy", "notes",
-                                                        "source", "source_url")} | {"lines": lines})
+                                                        "source", "source_url")}
+                         | {"folder": folder["name"] if folder else None, "lines": lines})
         return {"format": self.FILE_FORMAT, "version": 1, "app_version": __version__,
                 "exported_at": self._now(), "decks": decks}
 
@@ -1033,6 +1096,9 @@ class DeckBook:
                     "created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)",
                     (name, *fields.values(), now, now)).lastrowid
                 result["imported"].append(name)
+            if spec.get("folder"):
+                connection.execute("UPDATE decks SET folder_id = ? WHERE deck_id = ?",
+                                   (self._folder_named(spec["folder"]), deck_id))
             fetch |= self._store_lines(deck_id, parsed, result["warnings"], name)
             touched.append(deck_id)
             pin_specs[deck_id] = [(line.get("section"), line.get("name"), pin) for line in spec.get("lines") or []
@@ -1141,8 +1207,10 @@ class DeckBook:
     @all_or_nothing
     def update(self, deck_id, changes):
         connection = self.connection
-        fields = {k: changes[k] for k in ("name", "format", "status", "priority", "notes", "copy_policy")
+        fields = {k: changes[k] for k in ("name", "format", "status", "priority", "notes", "copy_policy", "folder_id")
                   if k in changes}
+        if fields.get("folder_id") is not None and fields["folder_id"] not in self.folders:
+            raise ValueError("no such folder")
         if "status" in fields and fields["status"] not in ("active", "inactive"):
             raise ValueError("status must be active or inactive")
         if "copy_policy" in fields and fields["copy_policy"] not in COPY_POLICIES:
