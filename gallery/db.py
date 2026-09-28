@@ -265,6 +265,13 @@ CREATE INDEX IF NOT EXISTS {schema}.printings_by_id ON printings(scryfall_id);
 
 -- Reprints previewed or released in the last 90 days (docs/TOOLS.md, reprint
 -- radar). Rebuilt from each refresh's bulk file.
+-- Scryfall's rulings for a card (gallery/rules.py), fetched when a card is opened; kept a month.
+CREATE TABLE IF NOT EXISTS {schema}.rulings (
+    oracle_id   TEXT PRIMARY KEY,
+    fetched_at  TEXT NOT NULL,
+    data        TEXT NOT NULL                       -- JSON [{date, source, text}]
+);
+
 CREATE TABLE IF NOT EXISTS {schema}.new_printings (
     scryfall_id      TEXT PRIMARY KEY,
     oracle_id        TEXT NOT NULL,
@@ -285,7 +292,7 @@ CREATE INDEX IF NOT EXISTS {schema}.new_printings_by_oracle ON new_printings(ora
 USER_TABLES = ("holdings", "price_series", "legality_seen", "legality_changes", "decks", "deck_lines",
                "deck_pins", "deck_versions", "watchlist", "alerts", "meta", "binders", "binder_cards")
 CACHE_TABLES = ("cards", "oracle_cards", "sets", "oracle_tags", "oracle_taggings", "printings", "new_printings",
-                "set_cards")
+                "set_cards", "rulings")
 
 # Everything in one database: for tests and scratch copies.
 SCHEMA = USER_SCHEMA + CACHE_SCHEMA.replace("{schema}", "main")

@@ -3,6 +3,7 @@ import { h, $, clear, money, signedMoney, signedClass, manaCost, rulesText, fini
 import { openAddDialog, handMark } from './addcards.js';
 import { dialog as openDialog } from './setup.js';
 import { fileDialog, binderQuery } from './binders.js';
+import { linkRules } from './rules.js';
 import { watchButton } from './alerts.js';
 import { api, resize } from './api.js';
 import { cardFace, thumb, rarityGem } from './cards.js';
@@ -194,6 +195,7 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
     section(`Your copies${holdingTotals.qty ? ' · ' + int(holdingTotals.qty) : ''}`, holdingsTable),
     decks.length ? section(`In your decks · ${decks.length}`, deckUses(decks)) : null,
     holdings.length ? section('Binders', binderUses(card, holdings, binders)) : null,
+    section('Rulings', rulingsBox(card)),
     section('Function tags', tagChips),
     section('Legality', legalGrid));
 
@@ -317,4 +319,20 @@ function binderUses(card, holdings, binders) {
     : h('p.muted', 'Not in any binder yet.');
   return h('div', list, h('button.btn.small', { type: 'button', onclick: () => fileDialog({
     title: `${card.name}: binders`, choices: [...pools.values()], onDone: refresh }) }, '📒 Put in / take out of a binder…'));
+}
+
+/** The card's rulings (Wizards of the Coast's, from Gatherer, and Scryfall's notes), loaded on open. */
+function rulingsBox(card) {
+  const box = h('div.rulings', spinner('Looking up rulings…'));
+  const leave = link => { link.addEventListener('click', () => closeCard()); return link; };
+  api.rulings(card.scryfall_id, card.oracle_id).then(({ rulings = [], error }) => {
+    const note = h('p.small.muted', 'The rules text above is the Oracle text: the card’s current official wording, with any errata. ',
+      'Rule numbers link to the ', leave(h('a', { href: '#/rules' }, 'Comprehensive Rules')), '.');
+    if (error && !rulings.length) { clear(box).append(h('p.muted', error), note); return; }
+    if (!rulings.length) { clear(box).append(h('p.muted', 'No rulings for this card.'), note); return; }
+    clear(box).append(h('ul.ruling-list', rulings.map(r => h('li',
+      h('div.ruling-meta.small', h('b', r.source === 'wotc' ? 'Wizards of the Coast' : 'Scryfall'), r.date ? ` · ${r.date}` : ''),
+      h('div', ...linkRules(r.text || '').map(part => (typeof part === 'string' ? part : leave(part))))))), note);
+  }).catch(error => clear(box).append(h('p.muted', 'Couldn’t load rulings: ' + error.message)));
+  return box;
 }

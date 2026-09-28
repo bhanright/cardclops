@@ -1889,3 +1889,27 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
   .binder-row { grid-template-columns: 30px minmax(0, 1fr) auto; }
   .binder-row .br-actions { grid-column: 1 / -1; justify-content: flex-start; }
 }
+/* Rules (Tools → Rules) and card rulings */
+.rules-page .search-input { width: 100%; margin: 4px 0 14px; }
+.rules-layout { display: grid; grid-template-columns: minmax(200px, 280px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.rules-index { position: sticky; top: calc(var(--header-h, 64px) + 10px); max-height: calc(100vh - var(--header-h, 64px) - 30px); overflow-y: auto; font-size: .88rem; }
+.rules-index summary { cursor: pointer; padding: 4px 0; }
+.rules-index ul { list-style: none; margin: 2px 0 8px; padding-left: 10px; }
+.rules-index li a { color: var(--text); text-decoration: none; display: block; padding: 2px 0; }
+.rules-index li a:hover { color: var(--cyan); }
+.rules-results h3 { margin: 4px 0 10px; color: var(--lime); }
+.rule { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 10px; padding: 7px 8px; border-radius: 10px; }
+.rule.rule-sub { padding-left: 22px; }
+.rule.hit { background: var(--panel-3); outline: 2px solid var(--yellow); }
+.rule.glossary { grid-template-columns: 11em minmax(0, 1fr); }
+.rule-num { font-weight: 700; color: var(--cyan); text-decoration: none; font-variant-numeric: tabular-nums; }
+.rule-text p { margin: 0 0 4px; }
+.rule-example { color: var(--muted); font-size: .92em; }
+.rule-link { color: var(--cyan); }
+.ruling-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+.ruling-meta { color: var(--muted); }
+@media (max-width: 800px) {
+  .rules-layout { grid-template-columns: 1fr; }
+  .rules-index { position: static; max-height: none; }
+  .rule.glossary { grid-template-columns: 1fr; }
+}

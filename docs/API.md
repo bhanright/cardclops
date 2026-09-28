@@ -177,3 +177,20 @@ Card detail (`GET /api/cards/<id>`) carries `binders`: `[{"binder_id", "name", "
 "finish", "quantity"}]` for the card's copies. The gallery search reads `binder:"name"` (copies in a
 binder whose name contains that), `binder:any` and `binder:none` (copies in no binder). A collection export
 with ManaBox's Binder Name column fills those binders on import, each with exactly what the file puts in it.
+
+## Rules and rulings
+
+`GET /api/rules` → `{"downloaded": false}` until the Comprehensive Rules are downloaded, then
+`{"downloaded": true, "effective", "source_url", "chapters": [{"number", "title", "sections": [{"number",
+"title"}]}], "rule_count", "glossary_count"}`; opening it checks Wizards for a newer edition in the
+background once a month. `POST /api/rules/download` fetches the current file (linked from
+magic.wizards.com/rules, about 1 MB, into the card cache) and returns the same.
+
+`GET /api/rules/section/<702>` → `{"number", "title", "rules": [Rule]}`, Rule being `{"number": "702.19b",
+"section", "text", "examples": [text]}`. `GET /api/rules/search?q=` → `{"rules": [Rule], "glossary":
+[{"term", "text"}]}`: a rule number finds that rule and its subrules, words find rules and glossary entries
+containing all of them (150 rules at most). `GET /api/rules/glossary` → every glossary entry.
+
+`GET /api/card/<scryfall_id>/rulings?oracle_id=` → `{"rulings": [{"date", "source": "wotc"|"scryfall",
+"text"}]}`, newest first, from Scryfall; cached per card for a month (and served stale when offline), with
+`error` when Scryfall can't be reached and nothing is cached.

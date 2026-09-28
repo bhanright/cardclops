@@ -80,6 +80,14 @@ export const api = {
     commanders: (params, signal) => request('/api/build/commanders?' + qs(params), { signal }),
     draft: (commander, partner) => request('/api/build/draft?' + qs({ commander, partner })),
   },
+  rules: {
+    overview: () => request('/api/rules'),
+    section: number => request(`/api/rules/section/${number}`),
+    search: q => request('/api/rules/search?' + qs({ q })),
+    glossary: () => request('/api/rules/glossary'),
+    download: () => request('/api/rules/download', { method: 'POST', body: {} }),
+  },
+  rulings: (scryfallId, oracleId) => request(`/api/card/${encodeURIComponent(scryfallId)}/rulings?` + qs({ oracle_id: oracleId })),
   binders: {
     list: () => request('/api/binders'),
     create: fields => request('/api/binders', { method: 'POST', body: fields }),

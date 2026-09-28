@@ -27,6 +27,7 @@ from . import __version__
 from . import manual
 from . import setup as setup_module
 from .binders import BinderBook
+from .rules import RuleBook, rulings as card_rulings
 from .decks import DeckBook
 from .setup import Jobs
 from .sets import SetBook, image_url
@@ -54,6 +55,7 @@ class Gallery:
         self.lock = threading.Lock()     # sqlite3 connection shared across handler threads
         print("Loading collection…")
         self.jobs = Jobs(self)
+        self.rulebook = RuleBook()        # the Comprehensive Rules, once downloaded (Tools → Rules)
         self.load()
         print(f"Ready: {len(self.collection.entries):,} rows")
 
@@ -951,6 +953,33 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._json(gallery.summary())
             if route == "search":
                 return self._json(gallery.search(params))
+            if route == "card" and len(parts) == 4 and parts[3] == "rulings":
+                entries = gallery.collection.by_scryfall_id.get(parts[2])
+                oracle_id = entries[0].oracle_id if entries else params.get("oracle_id")
+                if not oracle_id:
+                    return self._json({"error": "no such card"}, HTTPStatus.NOT_FOUND)
+                try:
+                    with gallery.lock:
+                        return self._json({"rulings": card_rulings(gallery.connection, parts[2], oracle_id)})
+                except Exception as error:
+                    return self._json({"rulings": [], "error": f"Couldn't reach Scryfall for rulings ({error})"})
+            if route == "rules":
+                book = gallery.rulebook
+                try:
+                    if len(parts) == 2:
+                        book.check_now_and_then()
+                        return self._json(book.overview())
+                    if parts[2] == "section" and len(parts) == 4:
+                        return self._json(book.section(parts[3]))
+                    if parts[2] == "search":
+                        return self._json(book.search(params.get("q", "")))
+                    if parts[2] == "glossary":
+                        return self._json(book.glossary())
+                except KeyError as error:
+                    return self._json({"error": str(error).strip("'")}, HTTPStatus.NOT_FOUND)
+                except LookupError as error:
+                    return self._json({"error": str(error)}, HTTPStatus.CONFLICT)
+                return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)
             if route == "card" and len(parts) == 3:
                 detail = gallery.card(parts[2], whole_card=params.get("holdings") == "card")
                 return self._json(detail) if detail else self._json({"error": "not in collection"}, HTTPStatus.NOT_FOUND)
@@ -1060,6 +1089,11 @@ class Handler(SimpleHTTPRequestHandler):
                 return self._deck_write("POST", path, body)
             if path.startswith("/api/binders"):
                 return self._binder_write("POST", path, body)
+            if path == "/api/rules/download":
+                try:
+                    return self._json(self.gallery.rulebook.download())
+                except Exception as error:
+                    return self._json({"error": f"Couldn't download the rules: {error}"}, HTTPStatus.BAD_GATEWAY)
             if path.startswith("/api/setup/") or path in ("/api/refresh", "/api/quit", "/api/app/show"):
                 return self._setup_request(path, body)
             if path.startswith("/api/collection/"):
