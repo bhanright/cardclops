@@ -21,6 +21,12 @@ const MORE_THEMES = [
   { id: 'necronomicon', name: 'Necronomicon', note: 'Bound in something it shouldn’t be: bone, blood and a sickly glow', swatch: ['#110807', '#e0314a', '#9ad14a', '#d8b25c'] },
   { id: 'stovepipe', name: 'Stovepipe', note: 'A cast-iron wood stove: soot, ember, brass and copper', swatch: ['#12100e', '#f08a2b', '#d9aa4a', '#7fb3c9'] },
   { id: 'gamma', name: 'Gamma', note: 'Gamma radiation: a green glow, hazard yellow and a purple lab-accident', swatch: ['#07110b', '#7dff3a', '#ffe23d', '#b077ff'] },
+  { id: 'galactus', name: 'Galactus', note: 'The Devourer of Worlds: cosmic indigo, helmet purple and the Power Cosmic’s gold', swatch: ['#0a0720', '#a77bff', '#ff4fb8', '#ffd23f'] },
+  { id: 'unicorn', name: 'Unicorn', note: 'A pastel rainbow with sparkles', swatch: ['#f4ecff', '#e2449c', '#9d62e6', '#1c8fc4'], light: true },
+  { id: 'lemonhead', name: 'Lemonhead', note: 'The candy box: lemon yellow, the box’s red, sour green', swatch: ['#fff5b3', '#e0312c', '#4f9a00', '#a88000'], light: true },
+  { id: 'olympic', name: 'Olympic', note: 'The five rings on white: blue, yellow, black, green and red', swatch: ['#ffffff', '#0085c7', '#a88400', '#009f3d', '#e8173a'], light: true },
+  { id: 'spqr', name: 'SPQR', note: 'Imperial Rome: marble, Tyrian purple, legion crimson and gold', swatch: ['#f1ebe0', '#a855c0', '#e03a50', '#a88418'], light: true },
+  { id: 'sasquatch', name: 'Sasquatch', note: 'A Pacific Northwest forest at dusk: pine, russet fur and moss', swatch: ['#0d130e', '#c9793c', '#8cc063', '#e0bd52'] },
 ];
 const LIGHT_THEMES = new Set([...THEMES, ...MORE_THEMES].filter(t => t.light).map(t => t.id));
 const SIZES = [[90, 'Smaller'], [100, 'Normal'], [112.5, 'Larger'], [125, 'Largest']];

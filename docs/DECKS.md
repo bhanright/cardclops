@@ -164,6 +164,18 @@ commander section.
 
 `DELETE /api/decks/<id>` → `{"deleted": 3}`
 
+`GET /api/decks/export` → every deck as a file to save (`Content-Disposition: attachment`,
+`cardclops-decks-<date>.json`): `{"format": "cardclops-decks", "version": 1, "app_version", "exported_at",
+"decks": [{"name", "format", "status", "priority", "copy_policy", "notes", "source", "source_url",
+"lines": [{"section", "quantity", "name", "set_code"?, "number"?, "scryfall_id"?, "finish"?,
+"pins"?: [{"pool", "quantity"}]}]}]}`. It moves decks between copies of Cardclops (the phone app,
+cardclops.com, the Windows app).
+
+`POST /api/decks/import-file` body `{"file": <that object>, "on_conflict": "replace" | "keep" | "skip"}`
+→ `{"imported": [names], "replaced": [names], "skipped": [names], "warnings": […]}`. A deck whose name is
+already here is replaced in place (its history stays and gains an `import` version), kept beside the new
+one (named "… (imported)"), or left alone. Pins come across for copies this collection holds.
+
 `POST /api/decks/<id>/lines` body `{"oracle_id": "…"}` (any printing), `{"scryfall_id": "…"}` (that
 printing) or `{"name": "Sol Ring"}`, plus optional `"section"` (default `main`) and `"quantity"`
 (default 1) → DeckSummary + `line_id`. A card already in that section, with no printing asked for,

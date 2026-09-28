@@ -632,6 +632,8 @@ class Gallery:
             if method == "POST" and deck_id is None and action == "import":
                 imported, warnings = book.import_decks(body.get("decks") or [])
                 return {"imported": [book.summary(d) for d in imported], "warnings": warnings}
+            if method == "POST" and deck_id is None and action == "import-file":
+                return book.import_file(body.get("file"), body.get("on_conflict") or "replace")
             if deck_id not in book.decks:
                 raise KeyError(f"no deck {deck_id}")
             if method == "PATCH" and action is None:
@@ -848,6 +850,17 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.path.startswith("/img/"):
             super().log_message(format, *args)
 
+    def _download(self, payload, filename):
+        """JSON as a file to save (Content-Disposition: attachment)."""
+        body = json.dumps(payload, indent=1, ensure_ascii=False).encode()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _json(self, payload, status=HTTPStatus.OK):
         body = json.dumps(payload, separators=(",", ":")).encode()
         self.send_response(status)
@@ -936,6 +949,10 @@ class Handler(SimpleHTTPRequestHandler):
             if route == "decks":
                 if len(parts) == 2:
                     return self._json(gallery.decks_list())
+                if parts[2] == "export":
+                    with gallery.lock:
+                        data = gallery.deckbook.export_all()
+                    return self._download(data, f"cardclops-decks-{data['exported_at'][:10]}.json")
                 deck_id = int(parts[2])
                 if deck_id not in gallery.deckbook.decks:
                     return self._json({"error": "no such deck"}, HTTPStatus.NOT_FOUND)

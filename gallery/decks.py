@@ -929,6 +929,102 @@ class DeckBook:
             versions.record(self, deck_id, "import")
         return imported, warnings
 
+    # -- the decks file: every deck, to move them to another copy of Cardclops (docs/DECKS.md) --
+
+    FILE_FORMAT = "cardclops-decks"
+
+    def export_all(self):
+        """Every deck with its settings, lines (and the printings they ask for) and pins."""
+        from . import __version__
+        decks = []
+        for deck in self.ordered_decks():
+            lines = []
+            for state in sorted(self.lines[deck["deck_id"]], key=lambda s: s.row["position"]):
+                row = state.row
+                line = {"section": row["section"], "quantity": row["quantity"], "name": row["name"]}
+                if row["requested_set"]:
+                    line.update(set_code=row["requested_set"], number=row["requested_number"], scryfall_id=row["scryfall_id"])
+                if row["requested_finish"]:
+                    line["finish"] = row["requested_finish"]
+                pins = self.pins.get(row["line_id"])
+                if pins:
+                    line["pins"] = [{"pool": pool, "quantity": quantity} for pool, quantity in pins.items()]
+                lines.append(line)
+            decks.append({key: deck.get(key) for key in ("name", "format", "status", "priority", "copy_policy", "notes",
+                                                        "source", "source_url")} | {"lines": lines})
+        return {"format": self.FILE_FORMAT, "version": 1, "app_version": __version__,
+                "exported_at": self._now(), "decks": decks}
+
+    @all_or_nothing
+    def import_file(self, data, on_conflict="replace"):
+        """Decks from export_all(). A deck whose name is already here is replaced in place (keeping
+        its history), kept beside the imported one ("keep"), or left alone ("skip"). Pins come
+        across for copies this collection has. Returns {imported, replaced, skipped, warnings}."""
+        if not isinstance(data, dict) or data.get("format") != self.FILE_FORMAT:
+            raise ValueError("That isn't a Cardclops decks file (made with Export all decks)")
+        if on_conflict not in ("replace", "keep", "skip"):
+            raise ValueError("on_conflict must be replace, keep or skip")
+        connection = self.connection
+        here = {deck["name"].casefold(): deck["deck_id"] for deck in self.decks.values()}
+        result = {"imported": [], "replaced": [], "skipped": [], "warnings": []}
+        touched, fetch, pin_specs = [], set(), {}
+        for spec in data.get("decks") or []:
+            name = (spec.get("name") or "Untitled deck").strip()
+            parsed = [ParsedLine(section=line.get("section") if line.get("section") in SECTIONS else "main",
+                                 quantity=max(1, int(line.get("quantity") or 1)), name=str(line.get("name") or ""),
+                                 set_code=line.get("set_code"), number=line.get("number"), finish=line.get("finish"),
+                                 raw=str(line.get("name") or ""), scryfall_id=line.get("scryfall_id"))
+                      for line in spec.get("lines") or [] if line.get("name")]
+            fields = {"format": spec.get("format") or "auto",
+                      "status": spec.get("status") if spec.get("status") in ("active", "inactive") else "inactive",
+                      "priority": int(spec.get("priority") or 0),
+                      "copy_policy": spec.get("copy_policy") if spec.get("copy_policy") in COPY_POLICIES else "default",
+                      "notes": spec.get("notes") or "", "source": spec.get("source") or "file",
+                      "source_url": spec.get("source_url")}
+            existing = here.get(name.casefold())
+            if existing and on_conflict == "skip":
+                result["skipped"].append(name)
+                continue
+            now = self._now()
+            if existing and on_conflict == "replace":
+                deck_id = existing
+                connection.execute(
+                    "UPDATE decks SET format = ?, status = ?, priority = ?, copy_policy = ?, notes = ?, source = ?, "
+                    "source_url = ?, updated_at = ? WHERE deck_id = ?", (*fields.values(), now, deck_id))
+                connection.execute("DELETE FROM deck_lines WHERE deck_id = ?", (deck_id,))
+                result["replaced"].append(name)
+            else:
+                if existing:
+                    name = f"{name} (imported)"
+                deck_id = connection.execute(
+                    "INSERT INTO decks (name, format, status, priority, copy_policy, notes, source, source_url, raw_text, "
+                    "created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)",
+                    (name, *fields.values(), now, now)).lastrowid
+                result["imported"].append(name)
+            fetch |= self._store_lines(deck_id, parsed, result["warnings"], name)
+            touched.append(deck_id)
+            pin_specs[deck_id] = [(line.get("section"), line.get("name"), pin) for line in spec.get("lines") or []
+                                  for pin in line.get("pins") or []]
+        self._fetch_missing_cards(fetch)
+        # Pins, for copies this collection holds: matched to the stored line by section and name.
+        for deck_id, pins in pin_specs.items():
+            line_ids = {(row["section"], row["name"]): row["line_id"] for row in connection.execute(
+                "SELECT line_id, section, name FROM deck_lines WHERE deck_id = ?", (deck_id,))}
+            for section, name, pin in pins:
+                line_id = line_ids.get((section, name))
+                if line_id and pin.get("pool") in self.pools and int(pin.get("quantity") or 0) > 0:
+                    connection.execute("INSERT OR REPLACE INTO deck_pins VALUES (?, ?, ?)", (line_id, pin["pool"], int(pin["quantity"])))
+        connection.commit()
+        self.reload()
+        for deck_id in touched:
+            if self.decks[deck_id]["format"] == "auto":
+                connection.execute("UPDATE decks SET format = ? WHERE deck_id = ?", (self.guess_format(deck_id), deck_id))
+        connection.commit()
+        self.reload()
+        for deck_id in touched:
+            versions.record(self, deck_id, "import")
+        return result
+
     @all_or_nothing
     def replace_list(self, deck_id, text, parsed=None, reason="replace"):
         connection = self.connection
@@ -1116,8 +1212,13 @@ class DeckBook:
 
     @all_or_nothing
     def delete(self, deck_id):
-        self.connection.execute("DELETE FROM decks WHERE deck_id = ?", (deck_id,))
-        self.connection.commit()
+        # The foreign keys cascade these too, but only on a connection with foreign_keys on; a new
+        # deck can reuse the id, so nothing of the old one may be left behind either way.
+        connection = self.connection
+        connection.execute("DELETE FROM deck_pins WHERE line_id IN (SELECT line_id FROM deck_lines WHERE deck_id = ?)", (deck_id,))
+        for table in ("deck_lines", "deck_versions", "decks"):
+            connection.execute(f"DELETE FROM {table} WHERE deck_id = ?", (deck_id,))
+        connection.commit()
         self.reload()
 
     @all_or_nothing

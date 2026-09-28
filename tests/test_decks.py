@@ -310,5 +310,38 @@ class EditingTests(AllocationTests):
             self.book.add_line(deck_id, {"name": "No Such Card"})
 
 
+
+class DecksFileTests(AllocationTests):
+    """Export all decks to a file and read it back (the phone <-> cardclops.com transfer)."""
+
+    def test_round_trip_keeps_lines_printings_settings_and_pins(self):
+        deck_id = self.deck("Rings", "1 Sol Ring (C21) 263\n1 Plains\nSideboard\n1 Sol Ring")
+        self.book.update(deck_id, {"status": "inactive", "priority": 3, "notes": "hello", "copy_policy": "budget"})
+        main = next(s for s in self.book.lines[deck_id] if s.row["section"] == "main" and s.row["name"] == "Sol Ring")
+        self.book.pin(main.row["line_id"], f"{self.cheap['id']}|normal", 1)
+        data = json.loads(json.dumps(self.book.export_all()))        # through JSON, as a file would be
+        self.book.delete(deck_id)
+        result = self.book.import_file(data)
+        self.assertEqual(result["imported"], ["Rings"])
+        new_id = next(d for d, deck in self.book.decks.items() if deck["name"] == "Rings")
+        deck = self.book.decks[new_id]
+        self.assertEqual((deck["status"], deck["priority"], deck["notes"], deck["copy_policy"]), ("inactive", 3, "hello", "budget"))
+        rows = sorted((s.row["section"], s.row["name"], s.row["requested_set"]) for s in self.book.lines[new_id])
+        self.assertEqual(rows, [("main", "Plains", None), ("main", "Sol Ring", "c21"), ("sideboard", "Sol Ring", None)])
+        main = next(s for s in self.book.lines[new_id] if s.row["section"] == "main" and s.row["name"] == "Sol Ring")
+        self.assertEqual(self.book.pins[main.row["line_id"]], {f"{self.cheap['id']}|normal": 1})
+
+    def test_decks_already_here_are_replaced_kept_or_skipped(self):
+        deck_id = self.deck("Same", "1 Sol Ring")
+        data = self.book.export_all()
+        data["decks"][0]["lines"][0]["quantity"] = 2
+        self.assertEqual(self.book.import_file(data, "skip")["skipped"], ["Same"])
+        self.assertEqual(self.line(deck_id).row["quantity"], 1)
+        self.assertEqual(self.book.import_file(data, "replace")["replaced"], ["Same"])
+        self.assertEqual(self.line(deck_id).row["quantity"], 2)            # same deck, history kept
+        self.assertEqual(self.book.import_file(data, "keep")["imported"], ["Same (imported)"])
+        with self.assertRaises(ValueError):
+            self.book.import_file({"decks": []})
+
 if __name__ == "__main__":
     unittest.main()

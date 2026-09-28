@@ -94,6 +94,8 @@ export const api = {
     valueHistory: id => request(`/api/decks/${id}/value-history`),
     suggestions: id => request(`/api/decks/${id}/suggestions`),
     sync: id => request(`/api/decks/${id}/sync`, { method: 'POST', body: {} }),
+    importFile: (file, onConflict) => request('/api/decks/import-file', { method: 'POST', body: { file, on_conflict: onConflict } }),
+    exportUrl: '/api/decks/export',
     importArchidekt: (urls, status) => request('/api/decks/import-archidekt', { method: 'POST', body: { urls, status } }),
     archidektUser: username => request('/api/archidekt/decks?' + qs({ username })),
     manafix: (id, maxSwaps = 6) => request(`/api/decks/${id}/manafix?` + qs({ max_swaps: maxSwaps })),

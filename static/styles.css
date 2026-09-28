@@ -195,6 +195,100 @@
 :root[data-theme="stovepipe"] .dh-name h1 { text-shadow: 3px 3px 0 #6b2a12; }
 :root[data-theme="gamma"] .dh-name h1 { text-shadow: 0 0 12px rgba(125, 255, 58, .55), 3px 3px 0 #000; }
 
+/* Galactus, Unicorn, Lemonhead, Olympic, SPQR, Sasquatch (see js/settings.js for what each is). */
+:root[data-theme="galactus"] {
+  --bg: #0a0720; --bg-deep: #05040f; --bg-blob: #120d30;
+  --panel: #1a1340; --panel-2: #140f33; --panel-3: #2a1f5c; --well: #0f0b27;
+  --text: #f3efff; --muted: #b9aee0; --faint: #7466a6;
+  --pink: #ff4fb8; --lime: #5ef2c2; --cyan: #4cb8ff; --violet: #a77bff;
+  --orange: #ff8f45; --yellow: #ffd23f; --mint: #7ff0e0; --peach: #ffb08f;
+  --pink-text: #ff86cc; --pink-soft: #ffb0dd; --flat: #2e2560;
+  --tile-uncommon: #16204a; --tile-rare: #2a2040; --tile-mythic: #321a44;
+  --zebra: #171138; --grid: #2a2152; --grid-2: #3a2e70; --drop: #1e1648; --hatch: #07051a;
+  --tint-pink: #3a1440; --tint-magenta: #301a4a; --tint-green: #12303a; --legend-miss: #3c3464;
+  --glow-a: #2a1060; --glow-b: #0c1a44;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%232a2058'%3E%3Cpath d='M60 40a34 34 0 1 0 22 60a16 16 0 1 1 8-40a34 34 0 0 0-30-20Z'/%3E%3Ccircle cx='200' cy='60' r='3'/%3E%3Ccircle cx='230' cy='200' r='2'/%3E%3Ccircle cx='140' cy='170' r='2.5'/%3E%3Ccircle cx='30' cy='210' r='2'/%3E%3Ccircle cx='180' cy='120' r='12'/%3E%3C/g%3E%3Cpath d='M200 200l4-12 4 12 12 4-12 4-4 12-4-12-12-4Z' fill='%232e2360'/%3E%3C/svg%3E");
+}
+:root[data-theme="unicorn"] {
+  --bg: #f4ecff; --bg-deep: #ead9ff; --bg-blob: #fbe8f6;
+  --panel: #fffcff; --panel-2: #f8f0ff; --panel-3: #ecdcff; --well: #fffaff;
+  --text: #2e1446; --muted: #6b4f8c; --faint: #9b86b6;
+  --pink: #e2449c; --lime: #469c38; --cyan: #1c8fc4; --violet: #9d62e6;
+  --orange: #e5702e; --yellow: #b08400; --mint: #16a086; --peach: #e57a66;
+  --pink-text: #c01f78; --pink-soft: #a8186a; --flat: #e6d8f5;
+  --tile-uncommon: #e8f2ff; --tile-rare: #fff4dc; --tile-mythic: #ffe6f0;
+  --zebra: #faf3ff; --grid: #eadcff; --grid-2: #d8c4f5; --drop: #f1e4ff; --hatch: #e0cff5;
+  --tint-pink: #ffd6ec; --tint-magenta: #f1d8fb; --tint-green: #ddf4d6; --legend-miss: #d9cce8;
+  --glow-a: #ffe0f2; --glow-b: #d9f3ff;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke-width='6' stroke-linecap='round'%3E%3Cpath d='M30 110a40 40 0 0 1 80 0' stroke='%23f8cfe6'/%3E%3Cpath d='M42 110a28 28 0 0 1 56 0' stroke='%23d9e8ff'/%3E%3Cpath d='M54 110a16 16 0 0 1 32 0' stroke='%23e2f5d6'/%3E%3C/g%3E%3Cg fill='%23ecd6ff'%3E%3Cpath d='M190 40l5-14 5 14 14 5-14 5-5 14-5-14-14-5Z'/%3E%3Cpath d='M150 200l3-9 3 9 9 3-9 3-3 9-3-9-9-3Z'/%3E%3Cpath d='M220 170l2-7 2 7 7 2-7 2-2 7-2-7-7-2Z'/%3E%3C/g%3E%3C/svg%3E");
+  --mana-W: #f3e27a; --mana-C: #c9bfd9; --mana-N: #d3c9e3;
+  --r-common: #cdc2e2; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+}
+:root[data-theme="lemonhead"] {
+  --bg: #fff5b3; --bg-deep: #ffe766; --bg-blob: #fffbd6;
+  --panel: #fffdeb; --panel-2: #fff8cc; --panel-3: #ffef99; --well: #fffef5;
+  --text: #3a2600; --muted: #6e5418; --faint: #a08a4e;
+  --pink: #e0312c; --lime: #4f9a00; --cyan: #1780c2; --violet: #8f55dc;
+  --orange: #e0650c; --yellow: #a88000; --mint: #0e9a72; --peach: #e0745a;
+  --pink-text: #b81e1a; --pink-soft: #a01814; --flat: #f5e6a0;
+  --tile-uncommon: #eef6ff; --tile-rare: #fff0c2; --tile-mythic: #ffe2cc;
+  --zebra: #fffae0; --grid: #f5e7a6; --grid-2: #e8d47a; --drop: #fff3b8; --hatch: #f0df8f;
+  --tint-pink: #ffd9d0; --tint-magenta: #f5dcef; --tint-green: #e2f5c8; --legend-miss: #e6d9a6;
+  --glow-a: #fffbe0; --glow-b: #dff5c8;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%23fff0a0' stroke='%23f5dc6a' stroke-width='4'%3E%3Cpath d='M30 70q10-26 40-26t40 26q-10 26-40 26t-40-26Z'/%3E%3Cpath d='M150 190q8-20 32-20t32 20q-8 20-32 20t-32-20Z'/%3E%3C/g%3E%3Cg fill='%23fff9d0'%3E%3Ccircle cx='190' cy='60' r='4'/%3E%3Ccircle cx='60' cy='200' r='3'/%3E%3Ccircle cx='120' cy='130' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  --mana-W: #f3e27a; --mana-C: #c9bfd9; --mana-N: #d3c9e3;
+  --r-common: #cdc2e2; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+}
+:root[data-theme="olympic"] {
+  --bg: #f2f5fa; --bg-deep: #e1e8f3; --bg-blob: #f8fafd;
+  --panel: #ffffff; --panel-2: #f4f7fc; --panel-3: #e3ebf7; --well: #fbfcfe;
+  --text: #0b1b33; --muted: #44536e; --faint: #7f8aa0;
+  --pink: #e8173a; --lime: #009f3d; --cyan: #0085c7; --violet: #8a62e6;
+  --orange: #e0660c; --yellow: #a88400; --mint: #00968a; --peach: #e07a5a;
+  --pink-text: #c40e2c; --pink-soft: #a80c26; --flat: #dfe6f2;
+  --tile-uncommon: #e8f3fc; --tile-rare: #fdf6dc; --tile-mythic: #fde8e6;
+  --zebra: #f6f9fd; --grid: #e2e9f4; --grid-2: #c9d5e8; --drop: #eaf0f9; --hatch: #d6dfed;
+  --tint-pink: #fcdde2; --tint-magenta: #ece0f6; --tint-green: #d8f2e0; --legend-miss: #d3dbe8;
+  --glow-a: #e8f3fc; --glow-b: #fdf6dc;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke-width='5'%3E%3Ccircle cx='70' cy='90' r='22' stroke='%23dbe9f6'/%3E%3Ccircle cx='120' cy='90' r='22' stroke='%23e2e5ea'/%3E%3Ccircle cx='170' cy='90' r='22' stroke='%23f6dde0'/%3E%3Ccircle cx='95' cy='112' r='22' stroke='%23f6efd6'/%3E%3Ccircle cx='145' cy='112' r='22' stroke='%23d8efe0'/%3E%3C/g%3E%3C/svg%3E");
+  --mana-W: #f3e27a; --mana-C: #c9bfd9; --mana-N: #d3c9e3;
+  --r-common: #cdc2e2; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+}
+:root[data-theme="spqr"] {
+  --bg: #f1ebe0; --bg-deep: #e4d9c6; --bg-blob: #f7f2e9;
+  --panel: #fcf9f3; --panel-2: #f5efe4; --panel-3: #e9dfcd; --well: #fdfbf7;
+  --text: #2a1020; --muted: #5e4652; --faint: #8f7c82;
+  --pink: #e03a50; --lime: #5f8f2a; --cyan: #2f86b3; --violet: #a855c0;
+  --orange: #d2692e; --yellow: #a88418; --mint: #2f9a7a; --peach: #d98a6a;
+  --pink-text: #b41e36; --pink-soft: #9c1a2e; --flat: #e6dccb;
+  --tile-uncommon: #e9f1f5; --tile-rare: #f7eed5; --tile-mythic: #f5e2dc;
+  --zebra: #f8f3ea; --grid: #e6dccb; --grid-2: #d6c7ad; --drop: #efe6d6; --hatch: #dccfb8;
+  --tint-pink: #f6d9dc; --tint-magenta: #eedbf2; --tint-green: #e2edd2; --legend-miss: #dcd1c2;
+  --glow-a: #f4e6f2; --glow-b: #f7eed5;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23e2d6c0' stroke-width='5' stroke-linecap='round'%3E%3Cpath d='M40 60h50M44 66h42M48 72v110M58 72v110M68 72v110M78 72v110M44 182h42M40 188h50'/%3E%3Cpath d='M160 210q40-40 70-110'/%3E%3C/g%3E%3Cg fill='%23e2d6c0'%3E%3Cellipse cx='176' cy='184' rx='10' ry='5' transform='rotate(-40 176 184)'/%3E%3Cellipse cx='196' cy='156' rx='10' ry='5' transform='rotate(-50 196 156)'/%3E%3Cellipse cx='212' cy='128' rx='10' ry='5' transform='rotate(-60 212 128)'/%3E%3Cellipse cx='186' cy='200' rx='10' ry='5' transform='rotate(20 186 200)'/%3E%3Cellipse cx='206' cy='172' rx='10' ry='5' transform='rotate(10 206 172)'/%3E%3C/g%3E%3C/svg%3E");
+  --mana-W: #f3e27a; --mana-C: #c9bfd9; --mana-N: #d3c9e3;
+  --r-common: #cdc2e2; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+}
+:root[data-theme="sasquatch"] {
+  --bg: #0d130e; --bg-deep: #070b08; --bg-blob: #131b14;
+  --panel: #1b241a; --panel-2: #161e15; --panel-3: #283526; --well: #101710;
+  --text: #eee6d4; --muted: #b4ab93; --faint: #76705e;
+  --pink: #e0533f; --lime: #8cc063; --cyan: #7fb0c4; --violet: #a894d0;
+  --orange: #c9793c; --yellow: #e0bd52; --mint: #6fbf8a; --peach: #d9a07a;
+  --pink-text: #ec7f6d; --pink-soft: #f2a596; --flat: #2f3a2c;
+  --tile-uncommon: #1a2426; --tile-rare: #26261a; --tile-mythic: #2b1f18;
+  --zebra: #18201a; --grid: #263222; --grid-2: #374832; --drop: #1f2a1d; --hatch: #080c08;
+  --tint-pink: #3a1c16; --tint-magenta: #2e1f2e; --tint-green: #1f3219; --legend-miss: #3e4638;
+  --glow-a: #1c2a18; --glow-b: #2a1d12;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%23172017'%3E%3Cpath d='M60 20l30 50h-16l24 40h-18l26 44H30l26-44H38l24-40H46Z'/%3E%3Cellipse cx='190' cy='190' rx='16' ry='30'/%3E%3Ccircle cx='176' cy='152' r='6'/%3E%3Ccircle cx='188' cy='148' r='6'/%3E%3Ccircle cx='200' cy='150' r='5'/%3E%3Ccircle cx='209' cy='156' r='4.5'/%3E%3Ccircle cx='215' cy='164' r='4'/%3E%3C/g%3E%3C/svg%3E");
+}
+:root[data-theme="unicorn"] .dh-name h1 { text-shadow: 3px 3px 0 var(--pink); }
+:root[data-theme="lemonhead"] .dh-name h1 { text-shadow: 3px 3px 0 var(--pink); }
+:root[data-theme="olympic"] .dh-name h1 { text-shadow: 3px 3px 0 var(--cyan); }
+:root[data-theme="spqr"] .dh-name h1 { text-shadow: 3px 3px 0 var(--yellow); }
+:root[data-theme="galactus"] .dh-name h1 { text-shadow: 0 0 14px rgba(167, 123, 255, .6), 3px 3px 0 #000; }
+:root[data-theme="sasquatch"] .dh-name h1 { text-shadow: 3px 3px 0 #3a2410; }
+
 /* Settings → Appearance: reduce motion (as the system setting does), no foil shimmer. */
 :root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
   animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;
@@ -1762,3 +1856,6 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .theme-chooser { display: flex; flex-direction: column; gap: 10px; }
 .follow-device { font-size: .9rem; }
 .more-themes { margin-top: 8px; font-size: 1rem; color: var(--muted); }
+.decks-file { margin-top: 18px; padding-top: 14px; border-top: 2px dashed var(--panel-3); }
+.decks-file h3 { margin-bottom: 4px; }
+.tools-list { overflow-y: auto; overscroll-behavior: contain; }

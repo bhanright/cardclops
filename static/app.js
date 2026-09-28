@@ -101,6 +101,9 @@ function initToolsMenu() {
     const r = button.getBoundingClientRect();
     const width = Math.min(260, innerWidth - 16);
     list.style.top = `${r.bottom + 8}px`;
+    // Fixed to the screen, so it can't scroll with the page: in landscape on a phone it would run
+    // off the bottom. It gets the height that's there and scrolls inside that.
+    list.style.maxHeight = `${Math.max(160, innerHeight - r.bottom - 16)}px`;
     list.style.left = `${Math.max(8, Math.min(innerWidth - width - 8, r.right - width))}px`;
     list.style.width = `${width}px`;
   };

@@ -190,6 +190,7 @@ def _run_in_window(db):
     window.events.maximized += maximized
     window.events.restored += restored
     server.Handler.app_window = _Window(window)
+    webview.settings["ALLOW_DOWNLOADS"] = True     # Export all decks saves a file (a save dialog)
     try:
         # The page's own storage (theme, remembered choices) must survive a restart: not private.
         webview.start(boot, gui="edgechromium", private_mode=False, storage_path=str(CACHE_DIR / "webview"))

@@ -8,4 +8,5 @@
     <string name="no_app_for_link">No app can open this link.</string>
     <string name="download_failed">Couldn’t get that file.</string>
     <string name="logo_description">Cardclops logo</string>
+    <string name="file_saved">Saved</string>
 </resources>

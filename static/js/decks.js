@@ -40,6 +40,8 @@ export function showDecks(deckId) {
 // ---------- home ----------
 function buildHome() {
   const importBtn = h('button.btn.go', { type: 'button', 'aria-expanded': 'false', onclick: () => toggleImport() }, '＋ Import decks');
+  // Every deck in one file, to move them to another copy of Cardclops (the phone, cardclops.com).
+  const exportLink = h('a.btn.ghost', { href: api.decks.exportUrl, download: '', title: 'Save every deck in one file, to import into another copy of Cardclops' }, '⇩ Export all decks');
   toolbar = h('div.panel-tools');
   totalsBox = h('div.deck-totals');
   importPanel = buildImportPanel();
@@ -47,7 +49,7 @@ function buildHome() {
   grid = h('div.deck-grid', { 'aria-live': 'polite' });
   home.append(
     h('section.panel.decks-head',
-      h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, importBtn)),
+      h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, exportLink, importBtn)),
       totalsBox),
     importPanel,
     grid);
@@ -234,8 +236,45 @@ function buildImportPanel() {
     h('span.inline-label', 'Status ', statusSeg(() => status, v => { status = v; })),
     go),
   results,
-  archidektSection(() => status, results));
+  archidektSection(() => status, results),
+  decksFileSection(results));
   return form;
+}
+
+/** A file from "Export all decks" on another copy of Cardclops: every deck, with settings and pins. */
+function decksFileSection(results) {
+  let onConflict = 'replace';
+  const choices = [['replace', 'Replace them'], ['keep', 'Keep both'], ['skip', 'Skip them']];
+  const conflict = h('div.seg', { role: 'group', 'aria-label': 'Decks already here with the same name' });
+  const drawConflict = () => clear(conflict).append(...choices.map(([v, label]) => h('button.seg-btn', {
+    type: 'button', class: v === onConflict ? 'on' : null, 'aria-pressed': String(v === onConflict),
+    onclick: () => { onConflict = v; drawConflict(); } }, label)));
+  drawConflict();
+  const input = h('input', { type: 'file', accept: '.json,application/json', hidden: true, onchange: async () => {
+    const file = input.files[0];
+    input.value = '';
+    if (!file) return;
+    clear(results).append(spinner(`Reading ${file.name}…`));
+    try {
+      const data = JSON.parse(await file.text());
+      const r = await api.decks.importFile(data, onConflict);
+      const parts = [['Added', r.imported], ['Replaced', r.replaced], ['Skipped', r.skipped]].filter(([, list]) => list.length);
+      clear(results).append(h('div.panel.import-results',
+        h('h3', `From ${file.name}`),
+        ...parts.map(([label, list]) => h('p', h('b', `${label} ${list.length}: `), list.join(', '))),
+        r.warnings?.length ? h('details.warn-list', h('summary', `⚠ ${r.warnings.length} line${r.warnings.length === 1 ? '' : 's'} not understood`),
+          h('ul', r.warnings.map(w => h('li', `${w.deck}: `, h('code', w.line), ' — ', w.message)))) : null));
+      invalidateDecks();
+      load();
+    } catch (error) {
+      clear(results).append(errorBox(error instanceof SyntaxError ? 'That file isn’t a Cardclops decks file.' : error.message));
+    }
+  } });
+  return h('section.decks-file',
+    h('h3', 'From a Cardclops decks file'),
+    h('p.small.muted', 'Made with ⇩ Export all decks on another copy of Cardclops (your phone, cardclops.com). Lists, printings, commanders, format, status, priority, notes and pinned copies all come across.'),
+    h('div.form-row', h('span.inline-label', 'Decks already here with the same name: ', conflict),
+      h('button.btn', { type: 'button', onclick: () => input.click() }, '⇧ Choose a decks file…'), input));
 }
 
 /** Archidekt import: paste deck links, or list a user's public decks and pick. One deck a second server-side. */

@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -66,6 +67,18 @@ class MainActivity : ComponentActivity() {
     }
     private val openDocuments = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         answerFileChooser(uris.takeIf { it.isNotEmpty() }?.toTypedArray())
+    }
+
+    /** A file the page offered to save (Export all decks), waiting for the user to pick where. */
+    private var pendingSave: ByteArray? = null
+    private val saveDocument = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        val bytes = pendingSave
+        pendingSave = null
+        if (uri == null || bytes == null) return@registerForActivityResult
+        background.execute {
+            val saved = runCatching { contentResolver.openOutputStream(uri)?.use { it.write(bytes) } != null }.getOrDefault(false)
+            mainThread.post { if (!isDestroyed) Toast.makeText(this, if (saved) R.string.file_saved else R.string.download_failed, Toast.LENGTH_SHORT).show() }
+        }
     }
 
     private val isDebuggable: Boolean
@@ -195,10 +208,13 @@ class MainActivity : ComponentActivity() {
         // The page's theme (Settings → Appearance) sets the colors behind the status and navigation
         // bars, and whether their icons are dark. Only colors cross this bridge.
         web.addJavascriptInterface(ThemeBridge(), "CardclopsAndroid")
-        web.setDownloadListener { url, _, _, mimeType, _ ->
+        web.setDownloadListener { url, _, contentDisposition, mimeType, _ ->
             val uri = url.toUri()
-            if (isEngineUrl(uri) && mimeType.orEmpty().startsWith("text/")) shareFromEngine(uri)
-            else if (!isEngineUrl(uri)) openExternally(uri)
+            when {
+                !isEngineUrl(uri) -> openExternally(uri)
+                mimeType.orEmpty().startsWith("text/") -> shareFromEngine(uri)
+                else -> saveFromEngine(uri, contentDisposition)
+            }
         }
     }
 
@@ -213,6 +229,9 @@ class MainActivity : ComponentActivity() {
 
     private fun applyBars(top: Int, bottom: Int, light: Boolean) {
         root.setBackgroundColor(top)
+        // In landscape the three-button navigation bar sits at the side, over the window's own
+        // background rather than this view's, so that takes the theme too.
+        window.setBackgroundDrawable(ColorDrawable(bottom))
         enableEdgeToEdge(
             statusBarStyle = if (light) SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT) else SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = if (light) SystemBarStyle.light(bottom, bottom) else SystemBarStyle.dark(bottom),
@@ -243,6 +262,30 @@ class MainActivity : ComponentActivity() {
             startActivity(Intent(Intent.ACTION_VIEW, uri).addCategory(Intent.CATEGORY_BROWSABLE))
         } catch (_: ActivityNotFoundException) {
             Toast.makeText(this, R.string.no_app_for_link, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Fetches a file from the engine (with the token) and asks where to save it. */
+    private fun saveFromEngine(uri: Uri, contentDisposition: String?) {
+        val path = uri.encodedPath.orEmpty() + (uri.encodedQuery?.let { "?$it" } ?: "")
+        val name = Regex("filename=\"?([^\";]+)").find(contentDisposition.orEmpty())?.groupValues?.get(1)
+            ?: uri.lastPathSegment ?: "cardclops.json"
+        background.execute {
+            val bytes = try {
+                Engine.get(path, 60_000).toByteArray(Charsets.UTF_8)
+            } catch (error: Exception) {
+                Log.w(TAG, "Couldn't fetch $path", error)
+                null
+            }
+            mainThread.post {
+                if (isDestroyed) return@post
+                if (bytes == null) {
+                    Toast.makeText(this, R.string.download_failed, Toast.LENGTH_SHORT).show()
+                    return@post
+                }
+                pendingSave = bytes
+                saveDocument.launch(name)
+            }
         }
     }
 
@@ -308,6 +351,7 @@ class MainActivity : ComponentActivity() {
             when (entry) {
                 ".csv", "text/csv" -> types += listOf("text/csv", "text/comma-separated-values", "application/csv", "application/vnd.ms-excel")
                 ".txt", "text/plain" -> types += "text/plain"
+                ".json", "application/json" -> types += listOf("application/json", "application/octet-stream", "text/plain")
                 ".dek", ".dck" -> types += listOf("text/plain", "application/octet-stream", "application/xml", "text/xml")
                 else -> if (entry.contains('/')) types += entry
             }
