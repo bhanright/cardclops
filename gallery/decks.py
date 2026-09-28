@@ -929,6 +929,38 @@ class DeckBook:
             versions.record(self, deck_id, "import")
         return imported, warnings
 
+    @all_or_nothing
+    def create(self, name, deck_format, commanders=(), status="active"):
+        """A new, empty deck (Decks → New deck): its commander(s) if the format has one, and nothing
+        else yet; cards come from the deck page. Returns the deck_id."""
+        connection = self.connection
+        name = (name or "").strip() or "Untitled deck"
+        if status not in ("active", "inactive"):
+            raise ValueError("status must be active or inactive")
+        now = self._now()
+        deck_id = connection.execute(
+            "INSERT INTO decks (name, format, status, priority, notes, source, source_url, raw_text, created_at, updated_at) "
+            "VALUES (?, ?, ?, 0, '', 'builder', NULL, '', ?, ?)",
+            (name, (deck_format or "casual").strip().lower(), status, now, now)).lastrowid
+        fetch = set()
+        for position, oracle_id in enumerate(commanders, 1):
+            if oracle_id not in self.resolver.representative:
+                raise ValueError("unknown card for the commander")
+            oracle_id, shown_id, card_name, warning = self.resolver.resolve(SimpleNamespace(
+                name=self.resolver.representative[oracle_id][1], scryfall_id=None, set_code=None, number=None))
+            if oracle_id is None:
+                raise ValueError(warning or "unknown card for the commander")
+            connection.execute(
+                "INSERT INTO deck_lines (deck_id, position, section, quantity, name, oracle_id, scryfall_id) "
+                "VALUES (?, ?, 'commander', 1, ?, ?, ?)", (deck_id, position, card_name, oracle_id, shown_id))
+            if shown_id not in self.collection.by_scryfall_id:
+                fetch.add(shown_id)
+        self._fetch_missing_cards(fetch)
+        connection.commit()
+        self.reload()
+        versions.record(self, deck_id, "create")
+        return deck_id
+
     # -- the decks file: every deck, to move them to another copy of Cardclops (docs/DECKS.md) --
 
     FILE_FORMAT = "cardclops-decks"

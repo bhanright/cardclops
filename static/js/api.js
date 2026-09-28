@@ -105,6 +105,7 @@ export const api = {
   },
   decks: {
     list: q => request('/api/decks' + (q ? '?' + qs({ q }) : '')),
+    create: fields => request('/api/decks', { method: 'POST', body: fields }),
     import: decks => request('/api/decks/import', { method: 'POST', body: { decks } }),
     get: id => request(`/api/decks/${id}`),
     update: (id, fields) => request(`/api/decks/${id}`, { method: 'PATCH', body: fields }),

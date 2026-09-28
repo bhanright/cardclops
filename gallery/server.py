@@ -690,6 +690,10 @@ class Gallery:
         if method == "POST" and action == "sync" and deck_id in book.decks:
             return self.archidekt_sync(deck_id)
         with self.lock:
+            if method == "POST" and deck_id is None and action is None:          # Decks → New deck
+                created = book.create(body.get("name"), body.get("format"), body.get("commanders") or [],
+                                      body.get("status") or "active")
+                return book.summary(created)
             if method == "POST" and deck_id is None and action == "import":
                 imported, warnings = book.import_decks(body.get("decks") or [])
                 return {"imported": [book.summary(d) for d in imported], "warnings": warnings}

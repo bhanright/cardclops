@@ -1857,6 +1857,10 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .sort-label { display: inline-flex; align-items: center; gap: 6px; }
 .sort-caption { font-size: .85rem; color: var(--muted); font-weight: 700; }
 .clear-search { background: var(--pink); color: #000; }
+.new-deck { display: flex; flex-direction: column; gap: 12px; min-width: min(460px, 80vw); }
+.new-deck-field { display: flex; flex-direction: column; gap: 6px; }
+.new-deck-commander { display: flex; flex-direction: column; gap: 6px; }
+.new-deck-commander[hidden] { display: none; }
 .site-footer { margin: 28px var(--gutter) 22px; padding-top: 14px; border-top: 2px solid color-mix(in srgb, var(--muted) 35%, transparent); color: var(--muted); font-size: .78rem; line-height: 1.5; text-align: center; }
 .site-footer p { margin: 0 auto 4px; max-width: 70ch; }
 .site-footer a { color: inherit; }

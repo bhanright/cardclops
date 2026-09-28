@@ -4,11 +4,14 @@ import { api } from './api.js';
 import { lazyImg } from './cards.js';
 import { showDeckPage, hideDeckPage } from './deckpage.js';
 import { browserEdition } from './edition.js';
+import { dialog } from './setup.js';
 
 export const DECK_FORMATS = ['commander', 'standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'paupercommander',
   'oathbreaker', 'brawl', 'standardbrawl', 'historic', 'timeless', 'alchemy', 'explorer', 'penny', 'premodern',
   'oldschool', 'redux', 'predh', 'duel', 'gladiator', 'casual'];
 export const deckFormatLabel = f => (f === 'casual' ? 'Casual' : f ? formatLabel(f) : 'No format');
+// Formats built around a commander (gallery/deckstats.py COMMANDER_FORMAT_SIZES).
+export const COMMANDER_FORMATS = ['commander', 'paupercommander', 'oathbreaker', 'brawl', 'standardbrawl', 'predh', 'duel'];
 
 const PREFS_KEY = 'gallery.decks';
 const prefs = { filter: 'all', sort: 'name', q: '', ...store.get(PREFS_KEY, {}) };
@@ -40,7 +43,8 @@ export function showDecks(deckId) {
 
 // ---------- home ----------
 function buildHome() {
-  const importBtn = h('button.btn.go', { type: 'button', 'aria-expanded': 'false', onclick: () => toggleImport() }, '＋ Import decks');
+  const importBtn = h('button.btn', { type: 'button', 'aria-expanded': 'false', onclick: () => toggleImport() }, '＋ Import decks');
+  const newBtn = h('button.btn.go', { type: 'button', onclick: newDeckDialog }, '＋ New deck');
   // Every deck in one file, to move them to another copy of Cardclops (the phone, cardclops.com).
   const exportLink = h('a.btn.ghost', { href: api.decks.exportUrl, download: '', title: 'Save every deck in one file, to import into another copy of Cardclops' }, '⇩ Export all decks');
   toolbar = h('div.panel-tools');
@@ -50,13 +54,70 @@ function buildHome() {
   grid = h('div.deck-grid', { 'aria-live': 'polite' });
   home.append(
     h('section.panel.decks-head',
-      h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, exportLink, importBtn)),
+      h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, exportLink, importBtn, newBtn)),
       totalsBox,
       deckSearch()),
     importPanel,
     grid);
   home.importBtn = importBtn;
   buildToolbar();
+}
+
+/** Decks → New deck: a name, a format and (for a commander format) the commander. The deck page
+ *  that opens next adds the cards: search one at a time, or paste a list. */
+function newDeckDialog() {
+  const name = h('input.text-input', { type: 'text', placeholder: 'e.g. Atraxa Superfriends', 'aria-label': 'Deck name', maxlength: 120 });
+  const format = h('select.select', { 'aria-label': 'Format' },
+    DECK_FORMATS.map(f => h('option', { value: f, selected: f === 'commander' }, deckFormatLabel(f))));
+  const search = h('input.text-input', { type: 'search', placeholder: 'Search a card name', 'aria-label': 'Commander', autocomplete: 'off' });
+  const names = h('div.lookup-names');
+  const picked = h('p.small.muted', 'No commander yet: you can add one later from the deck page.');
+  let commander = null;
+  const commanderRow = h('div.new-deck-commander',
+    h('label.inline-label', h('b', 'Commander')), search, names, picked,
+    h('p.small.muted', 'Partners and Backgrounds can join it from the deck page.'));
+  const showCommander = () => { commanderRow.hidden = !COMMANDER_FORMATS.includes(format.value); };
+  format.addEventListener('change', showCommander);
+  showCommander();
+  const choose = (card, button) => {
+    commander = card;
+    for (const b of names.children) b.setAttribute('aria-pressed', String(b === button));
+    picked.textContent = `Commander: ${card.name}`;
+    if (!name.value.trim()) name.placeholder = card.name;
+  };
+  search.addEventListener('input', debounce(async () => {
+    const q = search.value.trim();
+    clear(names);
+    if (q.length < 2) return;
+    let cards;
+    try { cards = (await api.lookup({ q })).cards || []; } catch (error) { names.append(h('span.muted.small', error.message)); return; }
+    if (q !== search.value.trim()) return;
+    if (!cards.length) { names.append(h('span.muted.small', 'No card by that name.')); return; }
+    names.append(...cards.map(card => {
+      const b = h('button.mini-chip', { type: 'button', 'aria-pressed': 'false', onclick: () => choose(card, b) }, card.name);
+      return b;
+    }));
+  }, 300));
+  const status = h('div');
+  const create = h('button.btn.go', { type: 'button', onclick: async () => {
+    create.disabled = true;
+    const useCommander = commander && COMMANDER_FORMATS.includes(format.value);
+    try {
+      const deck = await api.decks.create({ name: name.value.trim() || (useCommander ? commander.name : ''), format: format.value,
+        commanders: useCommander ? [commander.oracle_id] : [] });
+      invalidateDecks();
+      close();
+      location.hash = `#/decks/${deck.deck_id}`;
+    } catch (error) { clear(status).append(errorBox(error.message)); create.disabled = false; }
+  } }, 'Create deck');
+  const close = dialog('New deck', h('div.new-deck',
+    h('label.new-deck-field', h('b', 'Name'), name),
+    h('label.new-deck-field', h('b', 'Format'), format),
+    commanderRow,
+    h('p.small.muted', 'Next, add cards on the deck page: search for them one at a time, or paste a list.'),
+    status,
+    h('div.form-row', create)));
+  name.focus();
 }
 
 function toggleImport(force) {

@@ -46,6 +46,8 @@ async function load({ quiet = false } = {}) {
     return;
   }
   if (mine !== token) return;
+  // A deck with nothing in it yet (just made with New deck) opens with the add-card form showing.
+  if (!quiet) addOpen = !fresh.lines.some(line => line.section !== 'commander');
   data = fresh;
   const y = scrollY;
   render();
