@@ -42,10 +42,16 @@ straight from Scryfall's image CDN.
 1. **Transport-free engine.** *Done 2026-09-28: gallery/api.py (`Api(gallery).handle(method, path, params, body)` → `Response`); the server keeps the security checks, static files and card images.* Move the request routing out of `server.Handler` into a
    `dispatch(method, path, params, body) -> (status, json | file)` that both the HTTP server and the
    browser call. The desktop, Android and server editions keep working unchanged on top of it.
-2. **Browser runtime.** Pyodide in a Web Worker (the page stays responsive); `static/js/api.js`
-   sends requests to the worker instead of fetch() in the public edition. The user database is a
-   SQLite file saved to the browser's storage (OPFS/IndexedDB) after writes and on leaving the page;
-   `navigator.storage.persist()` asked for. The card cache is a second, rebuildable file.
+2. **Browser runtime.** *Done 2026-09-28. The page is unchanged: a service worker (web/sw.js) answers
+   `/api/` by passing each request to the engine, which is Pyodide in a Web Worker
+   (web/engine/worker.js, running gallery/browser.py), and redirects `/img/` to Scryfall's image
+   server. The databases live in OPFS (mounted at /data, `syncfs()` 400 ms after a write and when
+   the tab is hidden). A Web Lock lets only one tab run the engine. `scripts/build_static.py` builds
+   dist-static/ (`--devdata` seeds test databases for `?devdata=1`). With the full collection: 9 s
+   to ready on the PC, 8–12 s cold on the phone.* Still to do in later phases: jobs (setup, refresh)
+   start threads, which Pyodide can't; Python's network calls (rulings, the rules file, set cards,
+   Archidekt) fail without `ssl`; the cache is 187 MB and needs slimming; `price_series` lives in
+   the user database (56 MB), so every save rewrites it.
 3. **Data in the browser.** The first-run wizard downloads and stream-parses Scryfall's bulk files
    (default cards ~75 MB compressed: Wi-Fi advised, as on Android), the tags, and optionally MTGJSON's
    90 days. "Refresh" on open when a day old. Rulings and the Comprehensive Rules fetched directly
@@ -56,7 +62,7 @@ straight from Scryfall's image CDN.
 5. **Keeping data safe:** browser storage can be cleared, so: Settings → "Back up everything" (the
    user database as a file) and "Restore", plus the existing decks file and CSV export; a gentle
    reminder when there's no recent backup.
-6. **Build and launch:** `scripts/build_static.ps1` assembles static/ + the engine + the worker into
+6. **Build and launch:** `scripts/build_static.py` assembles static/ + the engine + the worker into
    `dist-static/`; Cloudflare Pages deploys it. Move the private server to a private subdomain (Tunnel
    hostname + Access application), point cardclops.com at Pages, audit and publish the repo.
 

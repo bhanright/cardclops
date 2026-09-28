@@ -9,6 +9,7 @@ It is attached as the schema "cache"; table names are unique across both files,
 so queries never need to say which file a table is in.
 """
 import json
+import os
 import shutil
 import sqlite3
 import zlib
@@ -306,7 +307,9 @@ def connect(path=DATABASE_PATH, cache_path=CACHE_DATABASE_PATH):
         migrate_legacy()
     connection = sqlite3.connect(path, check_same_thread=False)
     connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA journal_mode=WAL")
+    # WAL needs shared memory, which a browser's file system doesn't have (gallery/browser.py sets MEMORY).
+    journal = os.environ.get("CARDCLOPS_JOURNAL", "WAL")
+    connection.execute(f"PRAGMA journal_mode={journal}")
     connection.execute("PRAGMA synchronous=NORMAL")
     connection.execute("PRAGMA foreign_keys=ON")         # deleting a deck deletes its lines and pins
     connection.executescript(USER_SCHEMA)
@@ -315,7 +318,7 @@ def connect(path=DATABASE_PATH, cache_path=CACHE_DATABASE_PATH):
         _add_missing_columns(connection, cache_schema="main")
     else:
         connection.execute("ATTACH DATABASE ? AS cache", (str(cache_path),))
-        connection.execute("PRAGMA cache.journal_mode=WAL")
+        connection.execute(f"PRAGMA cache.journal_mode={journal}")
         _add_missing_columns(connection, cache_schema="cache", only_cache=True)   # before indexes that use them
         connection.executescript(CACHE_SCHEMA.replace("{schema}", "cache"))
         _add_missing_columns(connection, cache_schema="cache")

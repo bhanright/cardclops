@@ -11,3 +11,4 @@ android/local.properties
 android/.idea/
 *.jks
 *.keystore
+dist-static/
