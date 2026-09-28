@@ -1,4 +1,5 @@
 # Cardclops
+<img width="1280" height="640" alt="cardclops-social" src="https://github.com/user-attachments/assets/e809accf-ab16-466e-af96-a334edb87e6e" />
 
 A local gallery for a Magic: The Gathering collection exported from ManaBox, with
 Scryfall's card data, Scryfall-syntax search across your own cards, price history,
