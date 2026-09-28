@@ -39,7 +39,7 @@ straight from Scryfall's image CDN.
 
 ## Phases
 
-1. **Transport-free engine.** Move the request routing out of `server.Handler` into a
+1. **Transport-free engine.** *Done 2026-09-28: gallery/api.py (`Api(gallery).handle(method, path, params, body)` → `Response`); the server keeps the security checks, static files and card images.* Move the request routing out of `server.Handler` into a
    `dispatch(method, path, params, body) -> (status, json | file)` that both the HTTP server and the
    browser call. The desktop, Android and server editions keep working unchanged on top of it.
 2. **Browser runtime.** Pyodide in a Web Worker (the page stays responsive); `static/js/api.js`

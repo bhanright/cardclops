@@ -26,8 +26,9 @@ from .deckcheck import DeckChecker
 from . import __version__
 from . import manual
 from . import setup as setup_module
+from .api import Api
 from .binders import BinderBook
-from .rules import RuleBook, rulings as card_rulings
+from .rules import RuleBook
 from .decks import DeckBook
 from .setup import Jobs
 from .sets import SetBook, image_url
@@ -44,7 +45,6 @@ FORMATS = ["standard", "pioneer", "modern", "legacy", "vintage", "pauper", "comm
 CARD_TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle", "Kindred"]
 RARITY_ORDER = {"common": 0, "uncommon": 1, "rare": 2, "special": 3, "mythic": 4, "bonus": 5}
 MAX_PAGE = 500
-ALERT_ROUTES = ("watchlist", "alerts", "alert-settings", "cards")
 
 
 class Gallery:
@@ -940,213 +940,47 @@ class Handler(SimpleHTTPRequestHandler):
         if self._refused(write=False):
             return
         url = urllib.parse.urlsplit(self.path)
-        params = {k: v[-1] for k, v in urllib.parse.parse_qs(url.query).items()}
         parts = [urllib.parse.unquote(p) for p in url.path.strip("/").split("/")]
-        gallery = self.gallery
         try:
             if parts[0] == "img" and len(parts) == 4:
                 return self._image(*parts[1:])
             if parts[0] != "api":
                 return super().do_GET()
-            route = parts[1] if len(parts) > 1 else ""
-            if route == "summary":
-                return self._json(gallery.summary())
-            if route == "search":
-                return self._json(gallery.search(params))
-            if route == "card" and len(parts) == 4 and parts[3] == "rulings":
-                entries = gallery.collection.by_scryfall_id.get(parts[2])
-                oracle_id = entries[0].oracle_id if entries else params.get("oracle_id")
-                if not oracle_id:
-                    return self._json({"error": "no such card"}, HTTPStatus.NOT_FOUND)
-                try:
-                    with gallery.lock:
-                        return self._json({"rulings": card_rulings(gallery.connection, parts[2], oracle_id)})
-                except Exception as error:
-                    return self._json({"rulings": [], "error": f"Couldn't reach Scryfall for rulings ({error})"})
-            if route == "rules":
-                book = gallery.rulebook
-                try:
-                    if len(parts) == 2:
-                        book.check_now_and_then()
-                        return self._json(book.overview())
-                    if parts[2] == "section" and len(parts) == 4:
-                        return self._json(book.section(parts[3]))
-                    if parts[2] == "search":
-                        return self._json(book.search(params.get("q", "")))
-                    if parts[2] == "glossary":
-                        return self._json(book.glossary())
-                except KeyError as error:
-                    return self._json({"error": str(error).strip("'")}, HTTPStatus.NOT_FOUND)
-                except LookupError as error:
-                    return self._json({"error": str(error)}, HTTPStatus.CONFLICT)
-                return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)
-            if route == "card" and len(parts) == 3:
-                detail = gallery.card(parts[2], whole_card=params.get("holdings") == "card")
-                return self._json(detail) if detail else self._json({"error": "not in collection"}, HTTPStatus.NOT_FOUND)
-            if route == "prices" and len(parts) == 3:
-                return self._json(gallery.price_series(parts[2]))
-            if route == "portfolio":
-                return self._json(gallery.portfolio())
-            if route == "movers":
-                return self._json(gallery.movers(params))
-            if route == "stats":
-                return self._json(gallery.stats())
-            if route == "extras":
-                return self._json(gallery.extras(params))
-            if route == "tags":
-                return self._json(gallery.tags(params.get("q", "")))
-            if route == "legality-changes":
-                return self._json(gallery.legality_changes())
-            if route == "reprints":
-                return self._json(gallery.reprints(params))
-            if route == "sets":
-                with gallery.lock:
-                    if len(parts) == 2:
-                        return self._json(gallery.setbook.list(params))
-                    if len(parts) == 4 and parts[3] == "missing.txt":
-                        return self._text(gallery.setbook.missing_text(parts[2].lower(), params))
-                    try:
-                        return self._json(gallery.setbook.detail(parts[2].lower(), params))
-                    except KeyError:
-                        return self._json({"error": "no such set"}, HTTPStatus.NOT_FOUND)
-            if route == "setup" and len(parts) == 3 and parts[2] == "status":
-                return self._json(gallery.jobs.status())
-            if route == "setup" and len(parts) == 3 and parts[2] == "progress":
-                return self._json(gallery.jobs.progress())
-            if route in ALERT_ROUTES:
-                return self._alert_request("GET", parts, params, {})
-            if route == "collection" and parts[2:] == ["manual"]:
-                with gallery.lock:
-                    return self._json({"rows": manual.rows(gallery.connection)})
-            if route == "build" and len(parts) == 3 and parts[2] == "commanders":
-                return self._json(gallery.build_commanders(params))
-            if route == "build" and len(parts) == 3 and parts[2] == "draft":
-                if not params.get("commander"):
-                    return self._json({"error": "Choose a commander"}, HTTPStatus.BAD_REQUEST)
-                return self._json(gallery.build_draft(params))
-            if route == "archidekt" and len(parts) == 3 and parts[2] == "decks":
-                from . import archidekt
-                username = params.get("username", "").strip()
-                if not username:
-                    return self._json({"error": "Give an Archidekt username"}, HTTPStatus.BAD_REQUEST)
-                try:
-                    return self._json({"decks": archidekt.list_decks(username)})
-                except urllib.error.HTTPError as error:
-                    return self._json({"error": f"Archidekt answered {error.code}"}, HTTPStatus.BAD_GATEWAY)
-            if route == "binders":
-                with gallery.lock:
-                    if len(parts) == 2:
-                        return self._json(gallery.binderbook.listing())
-                    if len(parts) == 4 and parts[2].isdigit() and parts[3] == "export":
-                        binder_id = int(parts[2])
-                        if binder_id not in gallery.binderbook.binders:
-                            return self._json({"error": "no such binder"}, HTTPStatus.NOT_FOUND)
-                        text = gallery.binderbook.export_csv(binder_id)
-                        name = re.sub(r"[^A-Za-z0-9 _-]", "", gallery.binderbook.binders[binder_id]["name"]).strip() or "binder"
-                        return self._file(text.encode(), "text/csv; charset=utf-8", f"{name}.csv")
-                return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)
-            if route == "decks":
-                if len(parts) == 2:
-                    try:
-                        return self._json(gallery.decks_list(params.get("q", "")))
-                    except ValueError as error:
-                        return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
-                if parts[2] == "export":
-                    with gallery.lock:
-                        data = gallery.deckbook.export_all()
-                    return self._download(data, f"cardclops-decks-{data['exported_at'][:10]}.json")
-                deck_id = int(parts[2])
-                if deck_id not in gallery.deckbook.decks:
-                    return self._json({"error": "no such deck"}, HTTPStatus.NOT_FOUND)
-                action = parts[3] if len(parts) > 3 else None
-                if action is None:
-                    return self._json(gallery.deck_detail(deck_id))
-                if action == "value-history":
-                    return self._json(gallery.deck_value_history(deck_id))
-                if action == "suggestions":
-                    return self._json(gallery.deck_suggestions(deck_id))
-                if action == "manafix":
-                    return self._json(gallery.deck_manafix(deck_id, params))
-                if action == "versions":
-                    return self._json(gallery.deck_versions(deck_id))
-                if action == "goldfish":
-                    return self._json(gallery.deck_goldfish(deck_id, params))
-                if action == "copy-policies":
-                    return self._json(gallery.deck_copy_policies(deck_id))
-            return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)
-        except Exception as error:     # a bad request must not take the server down
+        except Exception as error:
             traceback.print_exc()
             return self._json({"error": f"{type(error).__name__}: {error}"}, HTTPStatus.INTERNAL_SERVER_ERROR)
+        params = {k: v[-1] for k, v in urllib.parse.parse_qs(url.query).items()}
+        self._send(Api(self.gallery, Handler.app_window).handle("GET", url.path, params))
 
-    def do_POST(self):
+    def _write_method(self, method):
+        """POST, PATCH, PUT and DELETE: every write goes to the API (gallery/api.py)."""
         if self._refused(write=True):
             return
         length = int(self.headers.get("Content-Length", 0) or 0)
         try:
             body = json.loads(self.rfile.read(length) or b"{}")
-            path = urllib.parse.urlsplit(self.path).path
-            if path.startswith("/api/decks"):
-                return self._deck_write("POST", path, body)
-            if path.startswith("/api/binders"):
-                return self._binder_write("POST", path, body)
-            if path == "/api/rules/download":
-                try:
-                    return self._json(self.gallery.rulebook.download())
-                except Exception as error:
-                    return self._json({"error": f"Couldn't download the rules: {error}"}, HTTPStatus.BAD_GATEWAY)
-            if path.startswith("/api/setup/") or path in ("/api/refresh", "/api/quit", "/api/app/show"):
-                return self._setup_request(path, body)
-            if path.startswith("/api/collection/"):
-                return self._collection_request("POST", path, body)
-            post_parts = path.strip("/").split("/")
-            if len(post_parts) > 1 and post_parts[1] in ALERT_ROUTES:
-                return self._alert_request("POST", post_parts, {}, body)
-            if path == "/api/deckcheck":
-                return self._json(self.gallery.deck_checker.check(body.get("text", ""), self.gallery.summarize))
-            if path == "/api/ask":
-                question = (body.get("question") or "").strip()
-                if not question:
-                    return self._json({"error": "Ask a question first."}, HTTPStatus.BAD_REQUEST)
-                try:
-                    return self._json(ask.translate(question, self.gallery.collection.tag_index, query.compile_query))
-                except (ask.AskError, ValueError) as error:
-                    return self._json({"error": str(error)})
-            return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)
-        except Exception as error:
-            traceback.print_exc()
-            return self._json({"error": f"{type(error).__name__}: {error}"}, HTTPStatus.INTERNAL_SERVER_ERROR)
+        except ValueError as error:
+            return self._json({"error": f"The request body isn't JSON: {error}"}, HTTPStatus.BAD_REQUEST)
+        path = urllib.parse.urlsplit(self.path).path
+        self._send(Api(self.gallery, Handler.app_window).handle(method, path, body=body))
 
-    def _setup_request(self, path, body):
-        jobs = self.gallery.jobs
-        try:
-            if path == "/api/setup/download":
-                return self._json(jobs.download(bool(body.get("price_history", True))))
-            if path == "/api/setup/import":
-                if not body.get("text"):
-                    return self._json({"error": "Choose a CSV file first."}, HTTPStatus.BAD_REQUEST)
-                return self._json(jobs.import_collection(body.get("filename", "collection.csv"), body["text"]))
-            if path == "/api/setup/options":
-                scheduled = setup_module.set_daily_refresh(bool(body.get("daily_refresh")))
-                return self._json({"daily_refresh_scheduled": scheduled})
-            if path == "/api/setup/complete":
-                return self._json(jobs.complete())
-            if path == "/api/refresh":
-                return self._json(jobs.refresh())
-            if path == "/api/quit":
-                self._json({"quitting": True})
-                if Handler.app_window:                 # the Windows app: closing its window ends it
-                    threading.Thread(target=Handler.app_window.close, daemon=True).start()
-                else:
-                    threading.Thread(target=self.server.shutdown, daemon=True).start()
-                return None
-            if path == "/api/app/show":
-                # Starting Cardclops.exe while it runs brings its window forward (gallery/app.py).
-                if Handler.app_window:
-                    Handler.app_window.show()
-                return self._json({"shown": bool(Handler.app_window)})
-        except RuntimeError as error:
-            return self._json({"error": str(error)}, HTTPStatus.CONFLICT)
-        return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)
+    def _send(self, response):
+        """Write an API Response (gallery/api.py) as HTTP."""
+        if response.kind == "text":
+            self._text(response.body)
+        elif response.kind == "file":
+            self._file(response.body, response.content_type, response.filename)
+        elif response.kind == "download":
+            self._download(response.body, response.filename)
+        else:
+            self._json(response.body, response.status)
+        if response.after == "shutdown":
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
+        elif callable(response.after):
+            response.after()
+
+    def do_POST(self):
+        self._write_method("POST")
 
     def _text(self, text):
         body = text.encode("utf-8")
@@ -1155,62 +989,6 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
-
-    def _collection_request(self, method, path, body):
-        try:
-            return self._json(self.gallery.collection_change(method, path.strip("/").split("/"), body))
-        except KeyError as error:
-            return self._json({"error": str(error).strip("'")}, HTTPStatus.NOT_FOUND)
-        except (ValueError, LookupError) as error:
-            return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
-
-    def _alert_request(self, method, parts, params, body):
-        try:
-            return self._json(self.gallery.alert_request(method, parts, params, body))
-        except KeyError as error:
-            return self._json({"error": str(error)}, HTTPStatus.NOT_FOUND)
-        except (ValueError, LookupError) as error:
-            return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
-
-    def _binder_write(self, method, path, body):
-        try:
-            return self._json(self.gallery.binder_change(method, path.strip("/").split("/"), body))
-        except KeyError as error:
-            return self._json({"error": str(error).strip("'")}, HTTPStatus.NOT_FOUND)
-        except (ValueError, LookupError, query.QueryError) as error:
-            return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
-
-    def _deck_write(self, method, path, body):
-        parts = path.strip("/").split("/")          # api, decks, <id> or "import", [action]
-        deck_id = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else None
-        action = parts[3] if len(parts) > 3 else (parts[2] if deck_id is None and len(parts) > 2 else None)
-        try:
-            return self._json(self.gallery.deck_change(method, deck_id, action, body, tuple(parts[4:])))
-        except KeyError as error:
-            return self._json({"error": str(error)}, HTTPStatus.NOT_FOUND)
-        except (ValueError, LookupError) as error:
-            return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
-
-    def _write_method(self, method):
-        if self._refused(write=True):
-            return
-        length = int(self.headers.get("Content-Length", 0) or 0)
-        try:
-            body = json.loads(self.rfile.read(length) or b"{}")
-            path = urllib.parse.urlsplit(self.path).path
-            if path.startswith("/api/decks/"):
-                return self._deck_write(method, path, body)
-            if path.startswith("/api/binders"):
-                return self._binder_write(method, path, body)
-            if path.startswith("/api/collection/"):
-                return self._collection_request(method, path, body)
-            write_parts = path.strip("/").split("/")
-            if len(write_parts) > 1 and write_parts[1] in ALERT_ROUTES:
-                return self._alert_request(method, write_parts, {}, body)
-            return self._json({"error": "unknown endpoint"}, HTTPStatus.NOT_FOUND)
-        except Exception as error:
-            traceback.print_exc()
-            return self._json({"error": f"{type(error).__name__}: {error}"}, HTTPStatus.INTERNAL_SERVER_ERROR)
 
     def do_PATCH(self):
         self._write_method("PATCH")

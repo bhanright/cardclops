@@ -3,6 +3,10 @@
 Served by `gallery/server.py` at `http://localhost:8765`. All JSON. Prices are USD
 unless a field says otherwise. Days are `YYYY-MM-DD`.
 
+The routing lives in gallery/api.py (`Api(gallery).handle(method, path, params, body)` returns a
+`Response`), so the same endpoints can be served over HTTP (gallery/server.py) or called directly, as
+the browser edition will. The server adds the security checks, static files and `/img/` card images.
+
 ## Shared shapes
 
 **CardSummary** — one tile in the gallery.
