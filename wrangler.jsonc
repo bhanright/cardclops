@@ -1,0 +1,11 @@
+// The public edition on Cloudflare (docs/PUBLIC_EDITION_PLAN.md, phase 6): a static site only, no
+// Worker code. Cloudflare's build runs `python scripts/build_static.py --data-url https://data.cardclops.com/`
+// and then `npx wrangler deploy`, which uploads dist-static/. Its _headers file (the security policy
+// and cache rules) is applied by Cloudflare, not served.
+{
+  "name": "cardclops",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist-static"
+  }
+}
