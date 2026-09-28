@@ -7,7 +7,7 @@ import { browserEdition } from './edition.js';
 
 export const DECK_FORMATS = ['commander', 'standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'paupercommander',
   'oathbreaker', 'brawl', 'standardbrawl', 'historic', 'timeless', 'alchemy', 'explorer', 'penny', 'premodern',
-  'oldschool', 'predh', 'duel', 'gladiator', 'casual'];
+  'oldschool', 'redux', 'predh', 'duel', 'gladiator', 'casual'];
 export const deckFormatLabel = f => (f === 'casual' ? 'Casual' : f ? formatLabel(f) : 'No format');
 
 const PREFS_KEY = 'gallery.decks';

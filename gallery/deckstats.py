@@ -34,6 +34,8 @@ from collections import Counter
 from dataclasses import dataclass
 from functools import lru_cache
 
+from . import redux
+
 COLORS = "WUBRG"
 TYPE_ORDER = ("Creature", "Planeswalker", "Battle", "Instant", "Sorcery", "Artifact", "Enchantment", "Land")
 PERMANENT_TYPES = {"Creature", "Planeswalker", "Battle", "Artifact", "Enchantment", "Land"}
@@ -48,9 +50,9 @@ COMMANDER_FORMAT_SIZES = {"commander": 100, "duel": 100, "paupercommander": 100,
                           "brawl": 100, "standardbrawl": 60, "oathbreaker": 60}
 # Constructed formats (60-card minimum, 15-card sideboard, four copies).
 CONSTRUCTED_FORMATS = {"standard", "pioneer", "modern", "legacy", "vintage", "pauper", "historic", "timeless",
-                       "alchemy", "explorer", "penny", "premodern", "oldschool", "future"}
+                       "alchemy", "explorer", "penny", "premodern", "oldschool", "future", "redux"}
 OTHER_FORMATS = ("standard", "pioneer", "modern", "legacy", "vintage", "pauper", "commander", "brawl",
-                 "historic", "timeless")
+                 "historic", "timeless", "redux")
 
 NUMBER_WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
                 "ten": 10, "eleven": 11, "twelve": 12}
@@ -780,6 +782,10 @@ def check_legality(playing, sideboard, commanders, deck_format, facts):
         limit = copy_limit(first_line[name].card, singleton=commander_format)
         if limit is not None and count > limit and name not in already:
             problems.append({"name": name, "reason": f"{count} copies; {limit} allowed"})
+
+    # Redux: a dual land and its shockland share four copies (gallery/redux.py)
+    if deck_format == redux.FORMAT:
+        problems += redux.pair_problems(copies)
 
     # Commander rules: eligibility and color identity
     if commander_format:

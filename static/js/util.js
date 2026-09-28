@@ -159,7 +159,7 @@ export const COLOR_NAMES = { W: 'White', U: 'Blue', B: 'Black', R: 'Red', G: 'Gr
 export const RARITY_ORDER = ['common', 'uncommon', 'rare', 'mythic', 'special', 'bonus'];
 export const FORMAT_ORDER = ['standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'commander', 'oathbreaker',
   'brawl', 'standardbrawl', 'competitivebrawl', 'historic', 'timeless', 'alchemy', 'explorer', 'penny', 'premodern', 'oldschool',
-  'duel', 'predh', 'paupercommander', 'gladiator', 'future'];
+  'duel', 'predh', 'paupercommander', 'gladiator', 'future', 'redux'];
 export const FORMAT_LABELS = { standardbrawl: 'Std Brawl', competitivebrawl: 'Comp Brawl', tlr: 'TLR', paupercommander: 'Pauper EDH', predh: 'PreDH', oldschool: 'Old School', penny: 'Penny', duel: 'Duel Cmdr' };
 export const formatLabel = f => FORMAT_LABELS[f] || f.charAt(0).toUpperCase() + f.slice(1);
 export function sortFormats(list) {

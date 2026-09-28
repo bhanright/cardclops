@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 from types import SimpleNamespace
 from datetime import datetime
 
-from . import scryfall, versions
+from . import redux, scryfall, versions
 from .collection import build_entry
 from .deckstats import can_be_commander, commanders_pair, has_partner_ability
 
@@ -377,7 +377,7 @@ class DeckBook:
             card = entries[0].card
         else:
             row = self.connection.execute("SELECT raw FROM cards WHERE scryfall_id = ?", (scryfall_id,)).fetchone()
-            card = json.loads(row["raw"]) if row else None
+            card = redux.annotate(json.loads(row["raw"])) if row else None
         self.card_cache[scryfall_id] = card
         return card
 

@@ -67,6 +67,7 @@ FORMATS = (
     "standard", "future", "historic", "timeless", "gladiator", "pioneer", "modern", "legacy",
     "pauper", "vintage", "penny", "commander", "oathbreaker", "standardbrawl", "brawl",
     "competitivebrawl", "alchemy", "paupercommander", "duel", "oldschool", "premodern", "predh", "tlr",
+    "redux",                                  # not Scryfall's: gallery/redux.py works it out
 )
 FORMAT_ALIASES = {"edh": "commander", "pdh": "paupercommander", "duelcommander": "duel",
                   "pennydreadful": "penny", "historicbrawl": "brawl"}

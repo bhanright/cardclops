@@ -29,7 +29,7 @@ Syntax (Scryfall's, plus collection extensions):
 - name words or "quoted"; !"Exact Name"; o:/oracle: rules text ("phrase" or /regex/; ~ = this card's name)
 - t: type; c: colors (c:b has black, c=b exactly black, c<=ub within U/B, c>=2 color count); id: color identity (id:esper fits Esper)
 - mv / cmc numeric (mv<3); m: mana symbols ({G}{G}); pow, tou, loy numeric; r: rarity (r>=rare)
-- f:/legal: format legal (pauper, commander, modern, standard, pioneer, legacy, vintage, ...); banned:, restricted:
+- f:/legal: format legal (pauper, commander, modern, standard, pioneer, legacy, vintage, redux, ...); banned:, restricted:
 - k: keyword ability; otag: Scryfall Tagger function tag (include descendants, e.g. otag:removal)
 - is: foil, nonfoil, etched, dfc, commander, reserved, gamechanger, permanent, spell, vanilla, ...
 - s:/set: set code; year / date; a: artist; usd, eur, tix numeric price per copy

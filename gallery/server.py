@@ -19,7 +19,7 @@ from collections import Counter, defaultdict
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from . import ask, backups, query
+from . import ask, backups, query, redux
 from .collection import COLOR_ORDER, Collection
 from .db import get_meta
 from .deckcheck import DeckChecker
@@ -42,7 +42,7 @@ from .similar import SimilarityIndex
 IMAGE_SIZES = {"small", "normal", "large", "art_crop", "png", "border_crop"}
 FORMATS = ["standard", "pioneer", "modern", "legacy", "vintage", "pauper", "commander", "oathbreaker",
            "brawl", "standardbrawl", "historic", "timeless", "alchemy", "explorer", "penny", "duel",
-           "oldschool", "premodern", "predh", "paupercommander", "gladiator", "future"]
+           "oldschool", "premodern", "predh", "paupercommander", "gladiator", "future", "redux"]
 CARD_TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Planeswalker", "Land", "Battle", "Kindred"]
 RARITY_ORDER = {"common": 0, "uncommon": 1, "rare": 2, "special": 3, "mythic": 4, "bonus": 5}
 MAX_PAGE = 500
@@ -380,7 +380,7 @@ class Gallery:
             _store_card(self.connection, cards[0])
             self.connection.commit()
         self.deckbook.card_cache.pop(scryfall_id, None)
-        return cards[0]
+        return redux.annotate(cards[0])
 
     def price_series(self, scryfall_id):
         finishes = {e.finish for e in self.collection.by_scryfall_id.get(scryfall_id, [])}

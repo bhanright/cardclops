@@ -200,7 +200,9 @@ class Collection:
             tags_by_oracle[row["oracle_id"]].add(row["slug"])
         tags_by_oracle = {k: frozenset(v) for k, v in tags_by_oracle.items()}
 
-        cards = {row["scryfall_id"]: slim(json.loads(row["raw"]))
+        from . import redux
+        redux.load(connection)                   # Redux isn't one of Scryfall's formats: worked out here
+        cards = {row["scryfall_id"]: redux.annotate(slim(json.loads(row["raw"])))
                  for row in connection.execute("SELECT scryfall_id, raw FROM cards")}
         self.entries = [
             build_entry(holding, cards[holding["scryfall_id"]], tags_by_oracle)

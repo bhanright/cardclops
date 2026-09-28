@@ -31,7 +31,7 @@ let current = null; // {store, view}
 let generation = 0;
 let controller = null;
 let showAllFormats = false;
-const PRIMARY_FORMATS = ['standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'commander', 'premodern', 'penny', 'historic', 'timeless', 'brawl', 'oathbreaker', 'paupercommander'];
+const PRIMARY_FORMATS = ['standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'commander', 'premodern', 'penny', 'historic', 'timeless', 'brawl', 'oathbreaker', 'paupercommander', 'redux'];
 
 export function initGallery(context) {
   ctx = context;
