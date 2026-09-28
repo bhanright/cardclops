@@ -100,34 +100,52 @@ class BrowserJobs(Jobs):
         return self.manifest
 
     async def _update_pack(self, low, high):
-        """Download and install the pack if the published one is newer than ours. True if it was."""
+        """Bring the pack up to the published card data. A pack on the current base needs only the
+        day's changes file (a few MB); otherwise the base pack (26 MB) comes first, then the changes.
+        True if anything was downloaded."""
         manifest = await self._fetch_manifest()
+        base, delta = manifest["pack"], manifest.get("delta")
+        latest = delta["built_at"] if delta else base["built_at"]
         with self.gallery.lock:
             connection = self.gallery.connection
-            installed = pack.installed(connection).get("pack_built_at")
-            if installed and installed >= manifest["built_at"]:
+            have = pack.installed(connection)
+        if have.get("pack_built_at") and have["pack_built_at"] >= latest:
+            with self.gallery.lock:
                 # Up to date. The card data's date is the installed pack's (it may have been cleared
                 # when a damaged cache was discarded, browser.py).
                 row = connection.execute("SELECT value FROM pack.catalog_info WHERE key = 'scryfall_updated_at'").fetchone()
                 if row:
                     set_meta(connection, "scryfall_updated_at", row[0])
                     connection.commit()
-                return False
-        size = manifest["pack"]["bytes"]
-        self._update(stage=f"Downloading card data ({size / 1e6:.0f} MB)", percent=low)
+            return False
+        need_base = have.get("pack_base") != base["built_at"]
+        middle = (low + high) // 2 if need_base and delta else high
+        if need_base:
+            packed = await self._download("Downloading card data", base, low, middle)
+            self._update(stage="Unpacking card data", percent=middle, message="")
+            await asyncio.sleep(0)                   # let the page see the new stage first
+            with self.gallery.lock:
+                pack.install(connection, packed)
+        if delta:
+            changes = await self._download("Downloading today's changes", delta, middle if need_base else low, high)
+            self._update(stage="Updating card data", percent=high, message="")
+            await asyncio.sleep(0)
+            with self.gallery.lock:
+                pack.apply_delta(connection, changes)
+        with self.gallery.lock:
+            set_meta(connection, "scryfall_updated_at", manifest.get("scryfall_updated_at") or latest)
+            connection.commit()
+        return True
+
+    async def _download(self, stage, published, low, high):
+        """A published file's bytes, with the progress bar moving from `low` to `high`."""
+        size = published["bytes"]
+        self._update(stage=f"{stage} ({size / 1e6:.1f} MB)", percent=low)
 
         def progress(done, total):
             self._update(percent=round(low + (high - low) * min(done / (total or size), 1.0)),
-                         message=f"{min(done, size) / 1e6:.0f} of {size / 1e6:.0f} MB")
-        packed = await net.fetch_async(data_url(manifest["pack"]["file"]), progress=progress)
-        self._update(stage="Unpacking card data", percent=high, message="")
-        await asyncio.sleep(0)                   # let the page see the new stage first
-        with self.gallery.lock:
-            connection = self.gallery.connection
-            pack.install(connection, packed)
-            set_meta(connection, "scryfall_updated_at", manifest.get("scryfall_updated_at") or manifest["built_at"])
-            connection.commit()
-        return True
+                         message=f"{min(done, size) / 1e6:.1f} of {size / 1e6:.1f} MB")
+        return await net.fetch_async(data_url(published["file"]), progress=progress)
 
     def _wanted_ids(self):
         connection = self.gallery.connection

@@ -8,6 +8,7 @@ import os
 import sqlite3
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
@@ -105,6 +106,86 @@ class PackTests(unittest.TestCase):
         book.connection = connection
         self.assertEqual(book.image_for(SID, "back"),
                          f"https://cards.scryfall.io/normal/back/6/d/{SID}.jpg")
+
+
+class DeltaTests(unittest.TestCase):
+    """Most days publish only the changes since the base pack (gallery/pack.py)."""
+
+    def setUp(self):
+        self.folder = Path(tempfile.mkdtemp())
+        self.cache = make_cache(self.folder)
+        self.out = self.folder / "published"
+        self.first = pack.build(self.cache, self.out, log=lambda message: None)
+
+    def change_the_cache(self):
+        cache = sqlite3.connect(self.cache)
+        cache.execute("UPDATE set_cards SET prices = '{\"usd\":\"2.0\"}' WHERE scryfall_id = ?", (SID,))
+        cache.execute("INSERT INTO set_cards (scryfall_id, set_code, collector_number, name) "
+                      "VALUES ('new-card', 'c21', '264', 'New Card')")
+        cache.execute("DELETE FROM oracle_taggings")
+        cache.commit()
+        cache.close()
+
+    def installed_browser(self):
+        target = self.folder / "pack.sqlite"
+        browser = db.connect(self.folder / "b-user.sqlite", self.folder / "b-cache.sqlite", pack_path=target)
+        with mock.patch.dict(os.environ, {"CARDCLOPS_PACK": str(target)}):
+            pack.install(browser, (self.out / self.first["pack"]["file"]).read_bytes())
+        return browser
+
+    def test_the_next_day_publishes_changes_that_bring_a_pack_up_to_date(self):
+        self.change_the_cache()
+        with mock.patch("gallery.pack.datetime") as clock:
+            clock.now.return_value = _later(self.first)
+            clock.strptime.side_effect = datetime.strptime
+            second = pack.build(self.cache, self.out, log=lambda message: None)
+        self.assertEqual(second["pack"], self.first["pack"])                    # the base stays
+        self.assertEqual(second["delta"]["base"], self.first["pack"]["built_at"])
+        browser = self.installed_browser()
+        pack.apply_delta(browser, (self.out / second["delta"]["file"]).read_bytes())
+        self.assertEqual(browser.execute("SELECT prices FROM pack.set_cards WHERE scryfall_id = ?", (SID,)).fetchone()[0],
+                         '{"usd":"2.0"}')
+        self.assertEqual(browser.execute("SELECT name FROM printings WHERE collector_number = '264'").fetchone()[0], "New Card")
+        self.assertEqual(browser.execute("SELECT COUNT(*) FROM pack.oracle_taggings").fetchone()[0], 0)
+        self.assertEqual(pack.installed(browser)["pack_built_at"], second["delta"]["built_at"])
+        self.assertEqual(pack.installed(browser)["pack_base"], self.first["pack"]["built_at"])
+
+    def test_changes_for_another_base_are_refused(self):
+        self.change_the_cache()
+        with mock.patch("gallery.pack.datetime") as clock:
+            clock.now.return_value = _later(self.first)
+            clock.strptime.side_effect = datetime.strptime
+            second = pack.build(self.cache, self.out, log=lambda message: None)
+        browser = self.installed_browser()
+        browser.execute("UPDATE pack.catalog_info SET value = 'other' WHERE key = 'pack_base'")
+        browser.commit()
+        with self.assertRaises(RuntimeError):
+            pack.apply_delta(browser, (self.out / second["delta"]["file"]).read_bytes())
+
+    def test_a_week_old_base_or_large_changes_bring_a_new_base(self):
+        self.change_the_cache()
+        with mock.patch("gallery.pack.datetime") as clock:
+            clock.now.return_value = _later(self.first, days=8)
+            clock.strptime.side_effect = datetime.strptime
+            weekly = pack.build(self.cache, self.out, log=lambda message: None)
+        self.assertNotEqual(weekly["pack"]["built_at"], self.first["pack"]["built_at"])
+        self.assertNotIn("delta", weekly)
+        cache = sqlite3.connect(self.cache)
+        cache.execute("UPDATE set_cards SET prices = '{\"usd\":\"9.0\"}'")
+        cache.commit()
+        cache.close()
+        with mock.patch("gallery.pack.datetime") as clock, mock.patch("gallery.pack.DELTA_MAX_SHARE", 0.0):
+            clock.now.return_value = _later(weekly, days=1)
+            clock.strptime.side_effect = datetime.strptime
+            big = pack.build(self.cache, self.out, log=lambda message: None)
+        self.assertNotIn("delta", big)
+        self.assertNotEqual(big["pack"]["built_at"], weekly["pack"]["built_at"])
+
+
+def _later(manifest, days=1):
+    """A clock `days` after the manifest's pack was built (UTC)."""
+    built = datetime.strptime(manifest["pack"]["built_at"], "%Y%m%d%H%M").replace(tzinfo=timezone.utc)
+    return built + timedelta(days=days)
 
 
 class PriceFileTests(unittest.TestCase):

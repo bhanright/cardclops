@@ -8,8 +8,11 @@ catalog into a compact file each day (`build`), and browsers download that (`ins
 docs/PUBLIC_EDITION_PLAN.md has the reasoning and Scryfall's terms.
 
 A published pack folder holds:
-    manifest.json           what's current: the pack file, the rules file, the price files
-    cards-<stamp>.sqlite.gz the catalog; a new name each day, so it can be cached forever
+    manifest.json           what's current: the pack file, the changes file, the rules file, the prices
+    cards-<stamp>.sqlite.gz the base catalog, rebuilt weekly; named by its build time, so it can be
+                            cached forever
+    delta-<stamp>.json.gz   the day's changes since that base (prices, mostly): a few MB, so a browser
+                            that already has the base doesn't download it again every day
     rules/<name>.txt        the Comprehensive Rules (Wizards' site doesn't answer web pages)
 """
 import gzip
@@ -18,7 +21,7 @@ import json
 import os
 import shutil
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .db import CATALOG_SCHEMA, CATALOG_TABLES
@@ -27,6 +30,8 @@ from .db import CATALOG_SCHEMA, CATALOG_TABLES
 # installs packs of its own format.
 PACK_FORMAT = 1
 PACKS_KEPT = 2                  # the newest, and the one before for browsers mid-download
+BASE_MAX_AGE = timedelta(days=7)       # a new base pack at least weekly, so the changes stay small
+DELTA_MAX_SHARE = 0.4                  # ... and sooner when they'd be more than this share of a pack
 
 # `printings` is the same rows as set_cards; the pack makes it a view rather than a copy (11 MB).
 PRINTINGS_VIEW = """
@@ -61,11 +66,19 @@ def _key_table(pack, table, key):
         pack.execute(sql)
 
 
-def build(cache_path, out_dir, rules_dir=None, log=print):
-    """Write today's pack from a refreshed cache database into `out_dir`, update its manifest and
-    return the manifest. `rules_dir` is where the app keeps the downloaded rules file."""
+def build(cache_path, out_dir, rules_dir=None, work_dir=None, log=print):
+    """Publish today's catalog from a refreshed cache database into `out_dir` and return the manifest.
+
+    A browser that has a pack needs only what changed since, so most days publish a changes file
+    (`delta-<stamp>.json.gz`, everything that differs from the current base pack) rather than a new
+    pack. A new base pack is published when there's none, when the base is BASE_MAX_AGE old, when the
+    changes grow past DELTA_MAX_SHARE of the pack (a big set release), or when the tables' columns
+    changed. The base's uncompressed copy is kept in `work_dir` (not published) to compare against.
+    `rules_dir` is where the app keeps the downloaded rules file."""
     out_dir = Path(out_dir)
+    work_dir = Path(work_dir) if work_dir else out_dir.parent / f"{out_dir.name}-work"
     out_dir.mkdir(parents=True, exist_ok=True)
+    work_dir.mkdir(parents=True, exist_ok=True)
     source = sqlite3.connect(f"file:{Path(cache_path).as_posix()}?mode=ro", uri=True)
     info = dict(source.execute("SELECT key, value FROM catalog_info").fetchall())
     if "legality_formats" not in info or not source.execute("SELECT COUNT(*) FROM set_cards").fetchone()[0]:
@@ -73,9 +86,50 @@ def build(cache_path, out_dir, rules_dir=None, log=print):
     source.close()
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M")
-    work = out_dir / "building.sqlite"
-    work.unlink(missing_ok=True)
-    pack = sqlite3.connect(work)
+    catalog = work_dir / "building.sqlite"
+    _build_catalog(cache_path, catalog, stamp)
+
+    manifest_path = out_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
+    base_path = work_dir / "base.sqlite"
+    base = manifest.get("pack")
+    delta = None
+    if base and base_path.exists() and _age(base["built_at"]) < BASE_MAX_AGE:
+        delta = _delta(base_path, catalog, base["built_at"], stamp)
+    if delta is not None:
+        packed = gzip.compress(json.dumps(delta, separators=(",", ":")).encode(), compresslevel=9, mtime=0)
+        if len(packed) > DELTA_MAX_SHARE * base["bytes"]:
+            log(f"Changes since the base pack are {len(packed) / 1e6:.1f} MB; publishing a new base")
+            delta = None
+    if delta is not None:
+        name = f"delta-{stamp}.json.gz"
+        (out_dir / name).write_bytes(packed)
+        catalog.unlink()
+        rows = sum(len(t["upsert"]) + len(t["delete"]) for t in delta["tables"].values())
+        log(f"Changes {name}: {rows:,} rows since pack {base['built_at']}, {len(packed) / 1e6:.1f} MB compressed")
+        manifest["delta"] = {"file": name, "built_at": stamp, "base": base["built_at"], "bytes": len(packed),
+                             "sha256": hashlib.sha256(packed).hexdigest()}
+    else:
+        manifest.pop("delta", None)
+        manifest["pack"] = _publish_base(catalog, base_path, out_dir, stamp, log)
+
+    manifest.update(format=PACK_FORMAT, built_at=stamp, scryfall_updated_at=info.get("scryfall_updated_at"),
+                    credits="Card data from Scryfall (scryfall.com). Price history from MTGJSON (mtgjson.com), "
+                            "MIT licensed. Magic: The Gathering is (c) Wizards of the Coast.")
+    rules = _publish_rules(rules_dir, out_dir, log) if rules_dir else None
+    if rules:
+        manifest["rules"] = rules
+    _write_json(manifest_path, manifest)
+    for pattern in ("cards-*.sqlite.gz", "delta-*.json.gz"):
+        for old in sorted(out_dir.glob(pattern))[:-PACKS_KEPT]:
+            old.unlink()
+    return manifest
+
+
+def _build_catalog(cache_path, path, stamp):
+    """The catalog tables from the cache, shaped for the pack (keyed tables, no image URLs)."""
+    path.unlink(missing_ok=True)
+    pack = sqlite3.connect(path)
     pack.executescript(CATALOG_SCHEMA.replace("{schema}", "main"))
     pack.execute("DROP TABLE printings")
     for table, key in KEYED_TABLES.items():
@@ -92,30 +146,62 @@ def build(cache_path, out_dir, rules_dir=None, log=print):
     pack.execute("INSERT OR REPLACE INTO catalog_info VALUES ('pack_built_at', ?)", (stamp,))
     pack.commit()
     pack.execute("DETACH DATABASE source")
-    pack.execute("VACUUM")
     pack.close()
 
+
+def _publish_base(catalog, base_path, out_dir, stamp, log):
+    """Make the new catalog the base pack: compressed into `out_dir`, kept whole as `base_path`."""
+    pack = sqlite3.connect(catalog)
+    pack.execute("INSERT OR REPLACE INTO catalog_info VALUES ('pack_base', ?)", (stamp,))
+    pack.commit()
+    pack.execute("VACUUM")
+    pack.close()
     name = f"cards-{stamp}.sqlite.gz"
-    raw = work.read_bytes()
+    raw = catalog.read_bytes()
     packed = gzip.compress(raw, compresslevel=9, mtime=0)
     (out_dir / name).write_bytes(packed)
-    work.unlink()
+    catalog.replace(base_path)
     log(f"Pack {name}: {len(raw) / 1e6:.1f} MB, {len(packed) / 1e6:.1f} MB compressed")
+    return {"file": name, "built_at": stamp, "bytes": len(packed), "sqlite_bytes": len(raw),
+            "sha256": hashlib.sha256(packed).hexdigest()}
 
-    manifest_path = out_dir / "manifest.json"
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else {}
-    manifest.update(format=PACK_FORMAT, built_at=stamp, scryfall_updated_at=info.get("scryfall_updated_at"),
-                    pack={"file": name, "bytes": len(packed), "sqlite_bytes": len(raw),
-                          "sha256": hashlib.sha256(packed).hexdigest()},
-                    credits="Card data from Scryfall (scryfall.com). Price history from MTGJSON (mtgjson.com), "
-                            "MIT licensed. Magic: The Gathering is (c) Wizards of the Coast.")
-    rules = _publish_rules(rules_dir, out_dir, log) if rules_dir else None
-    if rules:
-        manifest["rules"] = rules
-    _write_json(manifest_path, manifest)
-    for old in sorted(out_dir.glob("cards-*.sqlite.gz"))[:-PACKS_KEPT]:
-        old.unlink()
-    return manifest
+
+def _age(stamp):
+    return datetime.now(timezone.utc) - datetime.strptime(stamp, "%Y%m%d%H%M").replace(tzinfo=timezone.utc)
+
+
+def _delta(base_path, catalog, base_stamp, stamp):
+    """{base, built_at, tables: {name: {columns, key, upsert: [rows], delete: [keys]}}}: what turns the
+    base pack into `catalog`. None when a table's columns differ (a new base is needed then)."""
+    new = sqlite3.connect(catalog)
+    new.execute("INSERT OR REPLACE INTO catalog_info VALUES ('pack_base', ?)", (base_stamp,))
+    new.commit()
+    new.execute("ATTACH DATABASE ? AS base", (str(base_path),))
+    tables = {}
+    for table in CATALOG_TABLES:
+        if table == "printings":
+            continue
+        columns = [row[1] for row in new.execute(f"PRAGMA main.table_info({table})")]
+        if columns != [row[1] for row in new.execute(f"PRAGMA base.table_info({table})")]:
+            new.close()
+            return None
+        key = _primary_key(new, table)
+        listed = ", ".join(columns)
+        keys = ", ".join(key)
+        upsert = new.execute(f"SELECT {listed} FROM main.{table} EXCEPT SELECT {listed} FROM base.{table}").fetchall()
+        delete = new.execute(f"SELECT {keys} FROM base.{table} EXCEPT SELECT {keys} FROM main.{table}").fetchall()
+        if upsert or delete:
+            tables[table] = {"columns": columns, "key": key, "upsert": [list(r) for r in upsert],
+                             "delete": [list(r) for r in delete]}
+    new.close()
+    return {"base": base_stamp, "built_at": stamp, "tables": tables}
+
+
+def _primary_key(connection, table):
+    """The primary key's columns, in order; the whole row for a table without one."""
+    info = connection.execute(f"PRAGMA main.table_info({table})").fetchall()
+    key = [row[1] for row in sorted(info, key=lambda r: r[5]) if row[5]]
+    return key or [row[1] for row in info]
 
 
 def _publish_rules(rules_dir, out_dir, log):
@@ -143,12 +229,36 @@ def _write_json(path, data):
 # ---- in the browser ------------------------------------------------------------------------------
 
 def installed(connection):
-    """{built_at, format} of the attached pack, or {} before the first download."""
+    """{pack_built_at, pack_base, pack_format} of the attached pack (pack_built_at is the latest
+    changes applied; pack_base the base pack they apply to), or {} before the first download."""
     try:
         return dict(connection.execute(
-            "SELECT key, value FROM pack.catalog_info WHERE key IN ('pack_built_at', 'pack_format')").fetchall())
+            "SELECT key, value FROM pack.catalog_info "
+            "WHERE key IN ('pack_built_at', 'pack_base', 'pack_format')").fetchall())
     except sqlite3.Error:
         return {}
+
+
+def apply_delta(connection, packed):
+    """Apply a downloaded changes file (gzip bytes) to the attached pack, which must be its base."""
+    delta = json.loads(gzip.decompress(packed))
+    base = installed(connection).get("pack_base")
+    if base != delta["base"]:
+        raise RuntimeError(f"These changes are for pack {delta['base']}, not {base}")
+    connection.commit()
+    try:
+        for table, change in delta["tables"].items():
+            key = change["key"]
+            where = " AND ".join(f"{column} = ?" for column in key)
+            connection.executemany(f"DELETE FROM pack.{table} WHERE {where}", change["delete"])
+            columns = change["columns"]
+            marks = ", ".join("?" * len(columns))
+            connection.executemany(f"INSERT OR REPLACE INTO pack.{table} ({', '.join(columns)}) VALUES ({marks})",
+                                   change["upsert"])
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
 
 
 def install(connection, packed):
