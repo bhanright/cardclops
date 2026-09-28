@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cardclops social preview</title>
+<!-- The source of static/images/social-preview.png (1280x640, used by the page's og:image and GitHub's social preview).
+     Render: msedge --headless=new --hide-scrollbars --allow-file-access-from-files --window-size=1280,640 --screenshot=out.png <this file> -->
+<style>
+  @font-face { font-family: 'Lilita One'; src: url('../../static/fonts/LilitaOne-normal-latin.woff2') format('woff2'); }
+  @font-face { font-family: 'Rubik'; font-weight: 300 900; src: url('../../static/fonts/Rubik-normal-latin.woff2') format('woff2'); }
+  :root { --bg: #140a24; --panel: #2a1650; --ink: #000; --pink: #ff3fa4; --lime: #b8ff3c; --cyan: #2ee6ff; --yellow: #ffe03d; --paper: #fff6e8; --violet: #a77bff; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1280px; height: 640px; overflow: hidden; background: var(--bg); }
+  body { position: relative; font-family: 'Rubik', sans-serif; color: var(--paper); }
+
+  /* Soft blobs in the background, as in the app */
+  .blob { position: absolute; border-radius: 48% 52% 44% 56% / 52% 44% 56% 48%; background: #1f1038; }
+  .b1 { width: 620px; height: 560px; left: -140px; top: 120px; }
+  .b2 { width: 520px; height: 420px; right: -120px; top: -160px; background: #1b0e33; }
+  .squiggle { position: absolute; fill: none; stroke: #2a1650; stroke-width: 10; stroke-linecap: round; }
+
+  /* A fan of cards behind the eye */
+  .fan { position: absolute; left: 118px; top: 118px; width: 360px; height: 420px; }
+  .card { position: absolute; width: 214px; height: 298px; border: 6px solid var(--ink); border-radius: 18px;
+          box-shadow: 8px 8px 0 var(--ink); left: 70px; top: 50px; }
+  .card::before { content: ''; position: absolute; left: 14px; right: 14px; top: 14px; height: 132px; border: 4px solid var(--ink);
+                  border-radius: 8px; background: rgba(255, 255, 255, .35); }
+  .card::after { content: ''; position: absolute; left: 14px; right: 14px; top: 162px; height: 12px; border-radius: 6px;
+                 background: rgba(0, 0, 0, .35); box-shadow: 0 26px 0 rgba(0, 0, 0, .25), 0 52px 0 rgba(0, 0, 0, .2); }
+  .c1 { background: var(--cyan); transform: rotate(-16deg) translate(-70px, 14px); }
+  .c2 { background: var(--lime); transform: rotate(-2deg) translate(0, -8px); }
+  .c3 { background: var(--yellow); transform: rotate(13deg) translate(76px, 10px); }
+  .eye { position: absolute; left: 150px; top: 160px; width: 300px; height: 300px; filter: drop-shadow(10px 10px 0 var(--ink)); }
+
+  .text { position: absolute; left: 560px; top: 120px; width: 660px; }
+  .wordmark { font-family: 'Lilita One', sans-serif; font-size: 142px; line-height: .95; letter-spacing: 1px;
+              color: var(--paper); text-shadow: 7px 7px 0 var(--ink); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
+  .wordmark .card-word { color: var(--lime); }
+  .tagline { margin-top: 26px; font-size: 37px; font-weight: 700; line-height: 1.22; max-width: 640px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .pill { font-size: 22px; font-weight: 800; color: #000; padding: 8px 18px; border: 4px solid var(--ink); border-radius: 999px;
+          box-shadow: 4px 4px 0 var(--ink); }
+  .p1 { background: var(--pink); } .p2 { background: var(--cyan); } .p3 { background: var(--yellow); } .p4 { background: var(--lime); }
+  .url { position: absolute; left: 560px; bottom: 58px; font-family: 'Lilita One', sans-serif; font-size: 40px; color: var(--cyan);
+         text-shadow: 4px 4px 0 var(--ink); letter-spacing: 1px; }
+  .stripe { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: var(--pink); border-top: 5px solid var(--ink); }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <svg class="squiggle" width="1280" height="640" viewBox="0 0 1280 640" style="left:0;top:0">
+    <path d="M1040 470c40-40 80 40 120 0s80 40 120 0"/>
+    <path d="M40 70c30-30 60 30 90 0s60 30 90 0"/>
+  </svg>
+
+  <div class="fan">
+    <div class="card c1"></div>
+    <div class="card c2"></div>
+    <div class="card c3"></div>
+  </div>
+  <svg class="eye" viewBox="0 0 64 64" aria-hidden="true">
+    <path d="M32 4C50 4 60 16 58 32S46 60 30 60 4 50 6 32 16 4 32 4Z" fill="#ff3fa4" stroke="#000" stroke-width="4"/>
+    <path d="M14 20c6-4 10-3 13 1M50 20c-5-4-9-3-12 1" fill="none" stroke="#000" stroke-width="3.5" stroke-linecap="round"/>
+    <ellipse cx="32" cy="35" rx="15" ry="12" fill="#fff6e8" stroke="#000" stroke-width="3.5"/>
+    <circle cx="34" cy="36" r="6.5" fill="#000"/>
+    <circle cx="36.5" cy="33.5" r="2" fill="#fff6e8"/>
+  </svg>
+
+  <div class="text">
+    <div class="wordmark"><span class="card-word">Card</span>clops</div>
+    <p class="tagline">Your Magic collection,<br>with deck analysis and more.</p>
+    <div class="pills">
+      <span class="pill p1">Free</span>
+      <span class="pill p2">No account</span>
+      <span class="pill p3">Decks &amp; prices</span>
+      <span class="pill p4">Web · Windows · Android</span>
+    </div>
+  </div>
+  <div class="url">cardclops.com</div>
+  <div class="stripe"></div>
+</body>
+</html>
