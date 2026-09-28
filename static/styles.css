@@ -1536,7 +1536,7 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--lime); }
 
 /* ---------- header bell ---------- */
 .bell { position: relative; display: grid; place-items: center; width: 44px; height: 44px; flex: none; margin-left: auto; background: var(--panel); border: var(--line); border-radius: 50% 44% 52% 46%; box-shadow: var(--shadow-sm); }
-.bell + .header-stats { margin-left: 0; }
+.bell + .header-stats, .gear + .header-stats { margin-left: 0; }   /* the stats sit right after the bell and gear */
 .bell.gear { margin-left: 8px; }                  /* beside the bell, which takes the free space */
 .bell svg { width: 26px; height: 26px; }
 .bell:hover { background: var(--panel-3); transform: rotate(-8deg); }

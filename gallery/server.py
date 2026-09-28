@@ -973,6 +973,8 @@ class Handler(SimpleHTTPRequestHandler):
         try:
             if parts[0] == "img" and len(parts) == 4:
                 return self._image(*parts[1:])
+            if url.path in ("/", "/index.html"):
+                return self._page()
             if parts[0] != "api":
                 return super().do_GET()
         except Exception as error:
@@ -980,6 +982,23 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json({"error": f"{type(error).__name__}: {error}"}, HTTPStatus.INTERNAL_SERVER_ERROR)
         params = {k: v[-1] for k, v in urllib.parse.parse_qs(url.query).items()}
         self._send(Api(self.gallery, Handler.app_window).handle("GET", url.path, params))
+
+    # The page's stylesheets and script, stamped with each file's change time: a browser restoring a
+    # tab can reuse cached files without asking (Chrome on Android did, running an old app.js under a
+    # new page), and a new address is one it can't have cached.
+    STAMPED = ("styles.css", "fonts/fonts.css", "app.js")
+
+    def _page(self):
+        html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+        for name in self.STAMPED:
+            stamp = int((STATIC_DIR / name).stat().st_mtime)
+            html = html.replace(f'"{name}"', f'"{name}?v={stamp}"', 1)
+        body = html.encode()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def _write_method(self, method):
         """POST, PATCH, PUT and DELETE: every write goes to the API (gallery/api.py)."""
