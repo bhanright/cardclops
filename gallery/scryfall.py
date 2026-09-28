@@ -1,38 +1,50 @@
 """Talking to Scryfall: bulk files, the sets list, and the few cards bulk data misses.
 
-Scryfall's guidelines: send a User-Agent and Accept header, keep API calls to
-about ten per second, and use bulk files rather than the API for anything
-large. Bulk files and card images are served from their CDN without limits.
+Scryfall's guidelines: send a User-Agent and Accept header, keep to its rate
+limits, and use bulk files rather than the API for anything large. Bulk files
+and card images are served from their CDN without limits.
+
+The limits (scryfall.com/docs/api/rate-limits, checked 2026-09-28) are hard:
+2 a second for /cards/search, /cards/named, /cards/random and /cards/collection,
+10 a second for everything else. A 429 answer blocks the caller for 30 seconds
+and must not be ignored.
 """
 import gzip
 import json
 import time
-import urllib.request
 
-from .paths import RAW_DIR, USER_AGENT, ssl_context
+from . import net
+from .paths import RAW_DIR
 
 API = "https://api.scryfall.com"
 SECONDS_BETWEEN_API_CALLS = 0.12
+SECONDS_BETWEEN_SLOW_CALLS = 0.55               # the 2-a-second endpoints, with a margin
+SLOW_ENDPOINTS = ("/cards/search", "/cards/named", "/cards/random", "/cards/collection")
+SECONDS_AFTER_429 = 31
 _last_api_call = 0.0
 
 
-def _request(url, data=None):
-    headers = {"User-Agent": USER_AGENT, "Accept": "application/json"}
-    if data is not None:
-        headers["Content-Type"] = "application/json"
-        data = json.dumps(data).encode()
-    return urllib.request.Request(url, data=data, headers=headers)
+def seconds_between(url):
+    """How long to leave after a call to `url` before the next one."""
+    path = url.split("api.scryfall.com", 1)[-1]
+    return SECONDS_BETWEEN_SLOW_CALLS if path.startswith(SLOW_ENDPOINTS) else SECONDS_BETWEEN_API_CALLS
 
 
 def api_get(url, data=None):
-    """One polite API call: waits out the rate limit, returns parsed JSON."""
+    """One polite API call: waits out the rate limit, returns parsed JSON. After a 429 it waits
+    out Scryfall's 30-second block and tries once more."""
     global _last_api_call
-    wait = SECONDS_BETWEEN_API_CALLS - (time.monotonic() - _last_api_call)
-    if wait > 0:
-        time.sleep(wait)
-    _last_api_call = time.monotonic()
-    with urllib.request.urlopen(_request(url, data), timeout=60, context=ssl_context()) as response:
-        return json.load(response)
+    for attempt in (1, 2):
+        wait = seconds_between(url) - (time.monotonic() - _last_api_call)
+        if wait > 0:
+            time.sleep(wait)
+        _last_api_call = time.monotonic()
+        try:
+            return net.get_json(url, data)
+        except net.NetError as error:
+            if error.status != 429 or attempt == 2:
+                raise
+            time.sleep(SECONDS_AFTER_429)
 
 
 def bulk_file(kind, log=print, progress=None):
@@ -51,16 +63,7 @@ def bulk_file(kind, log=print, progress=None):
             stale.unlink()
         size_mb = entry.get("compressed_size", 0) / 1e6
         log(f"  downloading {kind} ({size_mb:.0f} MB)")
-        partial = target.with_suffix(".part")
-        total = entry.get("compressed_size") or 0
-        done = 0
-        with urllib.request.urlopen(_request(url), timeout=600, context=ssl_context()) as response, open(partial, "wb") as out:
-            while chunk := response.read(1 << 20):
-                out.write(chunk)
-                done += len(chunk)
-                if progress and total:
-                    progress(min(done / total, 1.0))
-        partial.rename(target)
+        net.download(url, target, progress, entry.get("compressed_size") or 0)
     return target, entry["updated_at"]
 
 

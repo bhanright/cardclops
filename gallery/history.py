@@ -13,10 +13,10 @@ import csv
 import json
 import lzma
 import time
-import urllib.request
 
+from . import net
 from .db import merge_price_points, set_meta
-from .paths import RAW_DIR, USER_AGENT, ssl_context
+from .paths import RAW_DIR
 
 BASE = "https://mtgjson.com/api/v5"
 IDENTIFIERS_FILE = "csv/cardIdentifiers.csv.xz"
@@ -35,13 +35,7 @@ def _download(name, log, reuse=False):
     if reuse and target.exists() and time.time() - target.stat().st_mtime < REUSE_WITHIN_SECONDS:
         return target
     log(f"  downloading {name}")
-    request = urllib.request.Request(f"{BASE}/{name}", headers={"User-Agent": USER_AGENT})
-    partial = target.with_suffix(".part")
-    with urllib.request.urlopen(request, timeout=900, context=ssl_context()) as response, open(partial, "wb") as out:
-        while chunk := response.read(1 << 20):
-            out.write(chunk)
-    partial.replace(target)
-    return target
+    return net.download(f"{BASE}/{name}", target, timeout=900)
 
 
 def _uuid_map(connection, log, reuse=False):

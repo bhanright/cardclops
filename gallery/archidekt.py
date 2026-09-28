@@ -9,14 +9,12 @@ second apart.
 Moxfield is deliberately absent: its terms forbid automated access without
 written approval, so Moxfield decks come in as pasted "Copy for Moxfield" text.
 """
-import json
 import re
 import time
 import urllib.parse
-import urllib.request
 
+from . import net
 from .decks import ParsedLine
-from .paths import USER_AGENT, ssl_context
 
 API = "https://archidekt.com/api"
 SECONDS_BETWEEN_CALLS = 1.0
@@ -35,9 +33,7 @@ def _get(url):
     if wait > 0:
         time.sleep(wait)
     _last_call = time.monotonic()
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
-    with urllib.request.urlopen(request, timeout=60, context=ssl_context()) as response:
-        return json.load(response)
+    return net.get_json(url)
 
 
 def deck_id_from(text):

@@ -198,6 +198,7 @@ function wizard(status, resolve) {
   // Resume where the data says we are, never ahead of what's actually done.
   let step = !status.has_card_data ? Math.min(saved, 1) : !status.has_collection ? Math.max(2, Math.min(saved, 3)) : Math.max(3, Math.min(saved, 4));
   let priceHistory = true;
+  const browser = status.edition === 'browser';
   let cardDataReady = status.has_card_data;
   let collectionDone = status.has_collection;
   // Reflect a task that already exists (a reinstall); otherwise off until the user ticks it.
@@ -223,8 +224,10 @@ function wizard(status, resolve) {
       h('p', 'Cardclops shows your Magic cards as a gallery you can search like Scryfall, tracks what they’re worth, checks decks against what you own and a lot more.'),
       h('ul.setup-facts',
         h('li', h('b', 'Free, and it stays on this device. '), 'Nothing you import is uploaded anywhere. The only things it downloads are public card data and prices, and card images as you look at them.'),
-        h('li', h('b', 'Your data lives in '), h('code', status.data_dir || '—'), h('span.muted', ' (your collection, decks, backups)')),
-        h('li', h('b', 'Card data and images are cached in '), h('code', status.cache_dir || '—'), h('span.muted', ' (safe to delete; it downloads again)'))),
+        ...(browser ? [
+          h('li', h('b', 'Your data lives in this browser, on this device. '), 'There is no account and no server copy, so clearing this site’s data in the browser deletes it. Back it up now and then from Tools.')] : [
+          h('li', h('b', 'Your data lives in '), h('code', status.data_dir || '—'), h('span.muted', ' (your collection, decks, backups)')),
+          h('li', h('b', 'Card data and images are cached in '), h('code', status.cache_dir || '—'), h('span.muted', ' (safe to delete; it downloads again)'))])),
       navRow(h('button.btn.go', { type: 'button', onclick: () => go(1) }, 'Get started →'))];
   }
 
@@ -233,8 +236,10 @@ function wizard(status, resolve) {
     const mb = status.downloads || {};
     const next = h('button.btn.go', { type: 'button', disabled: !cardDataReady, onclick: () => go(2) }, 'Next →');
     const history = h('input', { type: 'checkbox', checked: priceHistory, onchange: e => { priceHistory = e.target.checked; } });
-    const download = h('button.btn.go', { type: 'button', onclick: () => start() }, `⇩ Download (${int((mb.scryfall_mb || 0) + (priceHistory ? mb.history_mb || 0 : 0))} MB)`);
-    history.addEventListener('change', () => { download.textContent = `⇩ Download (${int((mb.scryfall_mb || 0) + (priceHistory ? mb.history_mb || 0 : 0))} MB)`; });
+    const cardMb = browser ? mb.pack_mb : mb.scryfall_mb;
+    const label = () => `⇩ Download (${int((cardMb || 0) + (priceHistory ? mb.history_mb || 0 : 0))} MB)`;
+    const download = h('button.btn.go', { type: 'button', onclick: () => start() }, label());
+    history.addEventListener('change', () => { download.textContent = label(); });
     const start = async () => {
       download.disabled = true;
       try { await api.setup.download(priceHistory); } catch (error) { clear(view).append(errorBox(error.message)); download.disabled = false; return; }
@@ -254,10 +259,12 @@ function wizard(status, resolve) {
     // Resuming mid-download: pick the progress back up.
     api.setup.progress().then(p => { if (p && !p.done && p.job === 'download') { download.disabled = true; follow(); } }).catch(() => {});
     return [h('h2', 'Card data'),
-      h('p', 'To show and search your cards, Cardclops needs Scryfall’s card database: every card, printing, image link and today’s price.'),
+      h('p', browser ? 'To show and search your cards, Cardclops needs the card database: every card, printing and today’s price, from Scryfall, prepared by Cardclops each day.'
+        : 'To show and search your cards, Cardclops needs Scryfall’s card database: every card, printing, image link and today’s price.'),
       cardDataReady ? h('div.setup-ok', `✓ Card data is here${status.card_data_date ? ` (from ${status.card_data_date})` : ''}. You can move on.`) : h('div.setup-choice',
-        h('div.setup-item', h('b', 'Scryfall card data'), h('span.muted', ` · about ${int(mb.scryfall_mb)} MB · required`)),
-        h('label.setup-item.check', history, h('span', h('b', ' Price history for the last 90 days'), h('span.muted', ` · MTGJSON · about ${int(mb.history_mb)} MB · optional`),
+        h('div.setup-item', h('b', 'Scryfall card data'), h('span.muted', ` · about ${int(cardMb)} MB · required`)),
+        h('label.setup-item.check', history, h('span', h('b', browser ? ' Price history' : ' Price history for the last 90 days'),
+          h('span.muted', browser ? ' · MTGJSON · fetched for your cards after you import them · optional' : ` · MTGJSON · about ${int(mb.history_mb)} MB · optional`),
           h('span.small.muted.block', 'Fills the price charts right away instead of starting from today.')))),
       cardDataReady ? null : h('p.small.muted', 'Nothing is downloaded until you press the button.'),
       cardDataReady ? null : h('div.form-row', download),
@@ -301,7 +308,7 @@ function wizard(status, resolve) {
         box('reprint_alerts', 'Wide reprints of cards I hold', 'When a reprint that could lower a card’s price is announced.'),
         box('legality_alerts', 'Bans, unbans and rotations', 'When a format change touches a card you hold.'),
         status.platform === 'win32' ? box('windows_notifications', 'Show Windows notifications', 'Otherwise alerts wait quietly in the gallery.') : null),
-      status.ask_available === false && status.platform !== 'android' ? h('p.small.hint', h('b', 'About the Ask box: '), 'turning English questions into searches needs the Claude command-line tool, which isn’t installed. Everything else works without it.') : null,
+      status.ask_available === false && status.platform !== 'android' && !browser ? h('p.small.hint', h('b', 'About the Ask box: '), 'turning English questions into searches needs the Claude command-line tool, which isn’t installed. Everything else works without it.') : null,
       navRow(saving, next)];
   }
 

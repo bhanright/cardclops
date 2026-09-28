@@ -31,6 +31,7 @@ from .binders import BinderBook
 from .rules import RuleBook
 from .decks import DeckBook
 from .setup import Jobs
+from .runtime import IN_BROWSER
 from .sets import SetBook, image_url
 from .radar import Radar
 from .alerts import Alerts
@@ -54,7 +55,11 @@ class Gallery:
         self.connection = connection
         self.lock = threading.Lock()     # sqlite3 connection shared across handler threads
         print("Loading collection…")
-        self.jobs = Jobs(self)
+        if IN_BROWSER:
+            from .browser_jobs import BrowserJobs
+            self.jobs = BrowserJobs(self)
+        else:
+            self.jobs = Jobs(self)
         self.rulebook = RuleBook()        # the Comprehensive Rules, once downloaded (Tools → Rules)
         self.load()
         print(f"Ready: {len(self.collection.entries):,} rows")

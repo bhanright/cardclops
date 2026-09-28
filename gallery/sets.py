@@ -137,7 +137,8 @@ class SetBook:
             counts = variants or main
             have = self._owned(card, mode, finish)
             printing = self.owned_printing.get(card["scryfall_id"], {"nonfoil": 0, "foil": 0, "value": 0.0})
-            prices = json.loads(card["prices"] or "{}")
+            stored = json.loads(card["prices"] or "{}")          # only the prices known are stored
+            prices = {key: stored.get(key) for key in ("usd", "usd_foil", "usd_etched")}
             same_card = self.owned_card.get(card["oracle_id"], 0) if card["oracle_id"] else 0
             if counts:
                 totals["cards"] += 1
@@ -189,4 +190,10 @@ class SetBook:
                                       (scryfall_id,)).fetchone()
         if not row:
             return None
-        return row["image_back"] if face == "back" else row["image_front"]
+        url = row["image_back"] if face == "back" else row["image_front"]
+        if url and url.startswith("https://"):
+            return url
+        if face == "back" and not url:
+            return None
+        # The card pack stores no URLs (gallery/pack.py); Scryfall's follow a fixed pattern.
+        return f"https://cards.scryfall.io/normal/{face}/{scryfall_id[0]}/{scryfall_id[1]}/{scryfall_id}.jpg"

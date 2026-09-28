@@ -10,15 +10,16 @@ Gatherer (the set release notes' FAQ lands there) and Scryfall's own notes. They
 card for a month.
 """
 import json
+import os
 import re
 import threading
 import urllib.parse
-import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from . import scryfall
-from .paths import CACHE_DIR, ssl_context
+from . import net, scryfall
+from .paths import CACHE_DIR
+from .runtime import IN_BROWSER, in_background
 
 RULES_PAGE = "https://magic.wizards.com/en/rules"
 RULES_DIR = CACHE_DIR / "rules"
@@ -32,9 +33,22 @@ RULE_NUMBER = re.compile(r"\b(\d{3}\.\d+[a-z]?|\d{3})\b")
 
 
 def _get(url, timeout=60):
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=timeout, context=ssl_context()) as response:
-        return response.read()
+    return net.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout)
+
+
+def _find_rules_file():
+    """(url, file name) of the current rules file. Wizards' site doesn't answer web pages, so the
+    browser edition takes the copy published beside the card pack (scripts/build_pack.py)."""
+    if IN_BROWSER:
+        base = os.environ["CARDCLOPS_DATA_URL"]
+        published = net.get_json(base + "manifest.json")["rules"]
+        return base + published["file"], published["name"]
+    page = _get(RULES_PAGE).decode("utf-8", errors="replace")
+    links = re.findall(r'https://media\.wizards\.com/[^"\'<>]*?MagicCompRules[^"\'<>]*?\.txt', page)
+    if not links:
+        raise RuntimeError("Couldn't find the rules file on Wizards' rules page")
+    url = links[0].replace(" ", "%20")
+    return url, urllib.parse.unquote(url.rsplit("/", 1)[-1]).replace(" ", "-")
 
 
 def parse(text):
@@ -108,12 +122,7 @@ class RuleBook:
     def download(self):
         """Fetch the current rules file (from the link on Wizards' rules page) if it's newer."""
         with self.lock:
-            page = _get(RULES_PAGE).decode("utf-8", errors="replace")
-            links = re.findall(r'https://media\.wizards\.com/[^"\'<>]*?MagicCompRules[^"\'<>]*?\.txt', page)
-            if not links:
-                raise RuntimeError("Couldn't find the rules file on Wizards' rules page")
-            url = links[0].replace(" ", "%20")
-            name = urllib.parse.unquote(url.rsplit("/", 1)[-1]).replace(" ", "-")
+            url, name = _find_rules_file()
             self.directory.mkdir(parents=True, exist_ok=True)
             target = self.directory / name
             if not target.exists():
@@ -146,7 +155,7 @@ class RuleBook:
                 print(f"Rules check failed: {error}")
             finally:
                 self.checking = False
-        threading.Thread(target=work, name="rules-check", daemon=True).start()
+        in_background(work, "rules-check")
 
     # -- reading --
 

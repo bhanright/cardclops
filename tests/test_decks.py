@@ -119,7 +119,7 @@ class AllocationTests(unittest.TestCase):
                                     (card["id"], self.oracle, card["name"], json.dumps(card)))
             self.connection.execute("INSERT INTO printings VALUES (?, ?, ?, ?, ?)",
                                     (card["set"], card["collector_number"], card["id"], self.oracle, card["name"]))
-        self.connection.execute("INSERT INTO oracle_cards VALUES (?, 'Sol Ring', 'sol ring', 'Artifact', '{1}', '', 1.0, ?)",
+        self.connection.execute("INSERT INTO oracle_cards VALUES (?, 'Sol Ring', 'sol ring', 'Artifact', '{1}', '', 1.0, ?, NULL)",
                                 (self.oracle, self.cheap["id"]))
         holdings = [(self.cheap["id"], "normal", 2), (self.pricey["id"], "normal", 1)]
         for scryfall_id, finish, quantity in holdings:
@@ -188,7 +188,7 @@ class AllocationTests(unittest.TestCase):
             self.connection.execute("INSERT INTO cards VALUES (?, ?, ?, ?)", (card["id"], oracle, "Mountain", json.dumps(card)))
             self.connection.execute("INSERT INTO holdings (scryfall_id, name, finish, quantity, condition, language) "
                                     "VALUES (?, 'Mountain', 'normal', 1, 'near_mint', 'en')", (card["id"],))
-        self.connection.execute("INSERT INTO oracle_cards VALUES (?, 'Mountain', 'mountain', 'Basic Land — Mountain', '', '', 0.1, ?)",
+        self.connection.execute("INSERT INTO oracle_cards VALUES (?, 'Mountain', 'mountain', 'Basic Land — Mountain', '', '', 0.1, ?, NULL)",
                                 (oracle, cheap["id"]))
         self.collection.reload()
         self.book = DeckBook(self.connection, self.collection)
@@ -235,7 +235,7 @@ class EditingTests(AllocationTests):
         card.update(fields)
         self.connection.execute("INSERT INTO cards VALUES (?, ?, ?, ?)", (card["id"], oracle, name, json.dumps(card)))
         self.connection.execute("INSERT INTO printings VALUES (?, ?, ?, ?, ?)", (set_code, number, card["id"], oracle, name))
-        self.connection.execute("INSERT INTO oracle_cards VALUES (?, ?, ?, ?, '', '', 0.25, ?)",
+        self.connection.execute("INSERT INTO oracle_cards VALUES (?, ?, ?, ?, '', '', 0.25, ?, NULL)",
                                 (oracle, name, fold(name), type_line, card["id"]))
         return oracle
 

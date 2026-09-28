@@ -172,9 +172,12 @@ CREATE TABLE IF NOT EXISTS binder_cards (
 ) WITHOUT ROWID;
 """
 
-# Scryfall's card data. "{schema}" is "cache" in the app (a second file) and
-# "main" when everything lives in one database, as in the tests.
-CACHE_SCHEMA = """
+# Scryfall's card data, in two parts: the card objects of your own cards and their rulings
+# (CARD_CACHE_SCHEMA), and the catalog of all of Magic that every user shares (CATALOG_SCHEMA).
+# "{schema}" is "cache" in the apps (both parts in a second file) and "main" when everything lives
+# in one database, as in the tests. The browser edition downloads the catalog ready-made as the
+# card pack (scripts/build_pack.py) and attaches it as a third file, "pack".
+CARD_CACHE_SCHEMA = """
 -- Scryfall's card object for every printing the collection holds.
 -- `raw` keeps the whole object so new features can read fields we did not
 -- pull out into columns.
@@ -186,6 +189,15 @@ CREATE TABLE IF NOT EXISTS {schema}.cards (
 );
 CREATE INDEX IF NOT EXISTS {schema}.cards_by_oracle ON cards(oracle_id);
 
+-- Scryfall's rulings for a card (gallery/rules.py), fetched when a card is opened; kept a month.
+CREATE TABLE IF NOT EXISTS {schema}.rulings (
+    oracle_id   TEXT PRIMARY KEY,
+    fetched_at  TEXT NOT NULL,
+    data        TEXT NOT NULL                       -- JSON [{date, source, text}]
+);
+"""
+
+CATALOG_SCHEMA = """
 -- One row per distinct card (oracle identity) in all of Magic, used where the
 -- question is about cards the collection does not hold: deck checks and set sizes.
 CREATE TABLE IF NOT EXISTS {schema}.oracle_cards (
@@ -196,7 +208,15 @@ CREATE TABLE IF NOT EXISTS {schema}.oracle_cards (
     mana_cost      TEXT,
     color_identity TEXT,
     cheapest_usd   REAL,                  -- cheapest non-foil printing, when known
-    scryfall_id    TEXT                   -- a representative printing, for images
+    scryfall_id    TEXT,                  -- a representative printing, for images
+    legalities     TEXT                   -- one letter per format in catalog_info's legality_formats:
+                                          -- l legal, n not legal, b banned, r restricted
+);
+
+-- Facts about the catalog as a whole: when it was built, and the order of legality_formats.
+CREATE TABLE IF NOT EXISTS {schema}.catalog_info (
+    key   TEXT PRIMARY KEY,
+    value TEXT
 );
 CREATE INDEX IF NOT EXISTS {schema}.oracle_by_name ON oracle_cards(name_folded);
 
@@ -226,9 +246,9 @@ CREATE TABLE IF NOT EXISTS {schema}.set_cards (
     colors           TEXT,                -- letters from WUBRG
     layout           TEXT,
     finishes         TEXT,                -- JSON list: nonfoil, foil, etched
-    prices           TEXT,                -- JSON {usd, usd_foil, usd_etched}
+    prices           TEXT,                -- JSON {usd, usd_foil, usd_etched, eur, eur_foil}, only those known
     image_front      TEXT,                -- Scryfall's "normal" image URL; other sizes swap the size segment
-    image_back       TEXT,
+    image_back       TEXT,                -- (in the card pack: no URLs, image_back 'y' for a back face)
     variation        INTEGER,             -- 1 for promos and variants outside the main numbering
     released_at      TEXT,
     in_booster       INTEGER              -- 1 when the card comes in the set's boosters
@@ -266,13 +286,6 @@ CREATE INDEX IF NOT EXISTS {schema}.printings_by_id ON printings(scryfall_id);
 
 -- Reprints previewed or released in the last 90 days (docs/TOOLS.md, reprint
 -- radar). Rebuilt from each refresh's bulk file.
--- Scryfall's rulings for a card (gallery/rules.py), fetched when a card is opened; kept a month.
-CREATE TABLE IF NOT EXISTS {schema}.rulings (
-    oracle_id   TEXT PRIMARY KEY,
-    fetched_at  TEXT NOT NULL,
-    data        TEXT NOT NULL                       -- JSON [{date, source, text}]
-);
-
 CREATE TABLE IF NOT EXISTS {schema}.new_printings (
     scryfall_id      TEXT PRIMARY KEY,
     oracle_id        TEXT NOT NULL,
@@ -290,18 +303,22 @@ CREATE INDEX IF NOT EXISTS {schema}.new_printings_by_oracle ON new_printings(ora
 
 """
 
+CACHE_SCHEMA = CARD_CACHE_SCHEMA + CATALOG_SCHEMA
+
 USER_TABLES = ("holdings", "price_series", "legality_seen", "legality_changes", "decks", "deck_lines",
                "deck_pins", "deck_versions", "watchlist", "alerts", "meta", "binders", "binder_cards")
-CACHE_TABLES = ("cards", "oracle_cards", "sets", "oracle_tags", "oracle_taggings", "printings", "new_printings",
-                "set_cards", "rulings")
+CARD_CACHE_TABLES = ("cards", "rulings")
+CATALOG_TABLES = ("oracle_cards", "catalog_info", "sets", "oracle_tags", "oracle_taggings", "printings", "new_printings", "set_cards")
+CACHE_TABLES = CARD_CACHE_TABLES + CATALOG_TABLES
 
 # Everything in one database: for tests and scratch copies.
 SCHEMA = USER_SCHEMA + CACHE_SCHEMA.replace("{schema}", "main")
 BACKUPS_KEPT = 14
 
 
-def connect(path=DATABASE_PATH, cache_path=CACHE_DATABASE_PATH):
-    """Your database with the card cache attached. With `cache_path=None`, one file holds everything."""
+def connect(path=DATABASE_PATH, cache_path=CACHE_DATABASE_PATH, pack_path=None):
+    """Your database with the card cache attached. With `cache_path=None`, one file holds everything.
+    With `pack_path` (the browser edition), the catalog is that separate, downloaded file."""
     ensure_dirs()
     if path == DATABASE_PATH and not DATABASE_PATH.exists() and (LEGACY_DATA_DIR / "collection.sqlite").exists():
         migrate_legacy()
@@ -316,13 +333,33 @@ def connect(path=DATABASE_PATH, cache_path=CACHE_DATABASE_PATH):
     if cache_path is None:
         connection.executescript(CACHE_SCHEMA.replace("{schema}", "main"))
         _add_missing_columns(connection, cache_schema="main")
-    else:
+    elif pack_path is None:
         connection.execute("ATTACH DATABASE ? AS cache", (str(cache_path),))
         connection.execute(f"PRAGMA cache.journal_mode={journal}")
         _add_missing_columns(connection, cache_schema="cache", only_cache=True)   # before indexes that use them
         connection.executescript(CACHE_SCHEMA.replace("{schema}", "cache"))
         _add_missing_columns(connection, cache_schema="cache")
+    else:
+        connection.execute("ATTACH DATABASE ? AS cache", (str(cache_path),))
+        connection.execute(f"PRAGMA cache.journal_mode={journal}")
+        connection.executescript(CARD_CACHE_SCHEMA.replace("{schema}", "cache"))
+        # A cache made before the pack existed has its own catalog tables, which would hide the
+        # pack's (unqualified names look in the cache first). They're cache: drop them.
+        for table in CATALOG_TABLES:
+            connection.execute(f"DROP TABLE IF EXISTS cache.{table}")
+        attach_pack(connection, pack_path)
     return connection
+
+
+def attach_pack(connection, pack_path):
+    """Attach the card pack as "pack". Before the first download it is an empty catalog, so the
+    engine starts (with no cards) rather than failing."""
+    connection.execute("ATTACH DATABASE ? AS pack", (str(pack_path),))
+    connection.execute(f"PRAGMA pack.journal_mode={os.environ.get('CARDCLOPS_JOURNAL', 'WAL')}")
+    # A real pack is complete as built (and its printings is a view, which the schema would try to
+    # index); only an empty file needs the tables.
+    if not connection.execute("SELECT 1 FROM pack.sqlite_master LIMIT 1").fetchone():
+        connection.executescript(CATALOG_SCHEMA.replace("{schema}", "pack"))
 
 
 def backup(connection, when=None):
@@ -388,7 +425,8 @@ LATE_COLUMNS = [("user", "decks", "copy_policy", "TEXT NOT NULL DEFAULT 'default
                 ("cache", "sets", "printed_size", "INTEGER"),
                 ("cache", "sets", "digital", "INTEGER"),
                 ("cache", "sets", "parent_set_code", "TEXT"),
-                ("cache", "set_cards", "in_booster", "INTEGER")]
+                ("cache", "set_cards", "in_booster", "INTEGER"),
+                ("cache", "oracle_cards", "legalities", "TEXT")]
 
 
 def _add_missing_columns(connection, schema="main", cache_schema="main", only_cache=False):

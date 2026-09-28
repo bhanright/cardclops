@@ -186,15 +186,20 @@ def refresh_scryfall(connection, log=print, progress=None):
     connection.executemany("INSERT OR IGNORE INTO printings VALUES (?, ?, ?, ?, ?)", printings)
 
     connection.execute("DELETE FROM oracle_cards")
+    formats = sorted({fmt for (_, _, _, card) in cheapest.values() for fmt in card.get("legalities", {})})
     connection.executemany(
-        "INSERT INTO oracle_cards VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO oracle_cards (oracle_id, name, name_folded, type_line, mana_cost, color_identity, cheapest_usd, "
+        "scryfall_id, legalities) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
             (oracle_id, name, name.lower(), card.get("type_line"),
              card.get("mana_cost") or (card.get("card_faces") or [{}])[0].get("mana_cost"),
-             "".join(card.get("color_identity", [])), usd, scryfall_id)
+             "".join(card.get("color_identity", [])), usd, scryfall_id,
+             encode_legalities(card.get("legalities", {}), formats))
             for oracle_id, (usd, scryfall_id, name, card) in cheapest.items()
         ],
     )
+    connection.execute("INSERT OR REPLACE INTO catalog_info VALUES ('legality_formats', ?)", (json.dumps(formats),))
+    connection.execute("INSERT OR REPLACE INTO catalog_info VALUES ('scryfall_updated_at', ?)", (updated_at,))
 
     log("Scryfall sets")
     connection.execute("DELETE FROM sets")
@@ -227,6 +232,24 @@ def refresh_scryfall(connection, log=print, progress=None):
     log(f"Stored {len(held_ids):,} printings, prices for {price_day}, {changes} legality changes")
 
 
+LEGALITY_LETTERS = {"legal": "l", "not_legal": "n", "banned": "b", "restricted": "r"}
+LEGALITY_WORDS = {letter: word for word, letter in LEGALITY_LETTERS.items()}
+
+
+def encode_legalities(legalities, formats):
+    """Scryfall's {format: status} as one letter per format, in the order of `formats`: a card's
+    legalities in 21 bytes rather than 560, for the catalog's 35,000 cards."""
+    return "".join(LEGALITY_LETTERS.get(legalities.get(fmt), "n") for fmt in formats)
+
+
+def decode_legalities(letters, formats):
+    return {fmt: LEGALITY_WORDS.get(letter, "not_legal") for fmt, letter in zip(formats, letters or "")}
+
+
+# Every printing's prices kept in the catalog (set_cards.prices): what the set view shows, and in the
+# browser edition the day's prices for your cards.
+SET_CARD_PRICES = ("usd", "usd_foil", "usd_etched", "eur", "eur_foil")
+
 SPECIAL_FRAMES = {"showcase", "extendedart", "inverted", "etched", "shatteredglass"}
 
 
@@ -256,7 +279,7 @@ def _set_card_row(card, oracle_id):
             card.get("rarity"), card.get("type_line") or (faces[0].get("type_line") if faces else None),
             card.get("mana_cost") or (faces[0].get("mana_cost") if faces else None),
             "".join(c for c in "WUBRG" if c in colors), card.get("layout"), json.dumps(card.get("finishes", [])),
-            json.dumps({k: prices.get(k) for k in ("usd", "usd_foil", "usd_etched")}),
+            json.dumps({k: prices[k] for k in SET_CARD_PRICES if prices.get(k) is not None}, separators=(",", ":")),
             front.get("normal"), back.get("normal"), int(variation), card.get("released_at"),
             int(bool(card.get("booster"))))
 

@@ -1,20 +1,20 @@
 """The JSON API, without HTTP: a request in, a Response out (docs/API.md lists the endpoints).
 
 The web server (gallery/server.py) hands every /api/ request here and writes the Response back;
-the browser edition (docs/PUBLIC_EDITION_PLAN.md) will call handle() directly, with no server. So
+the browser edition (gallery/browser.py) calls handle() directly, with no server. So
 nothing here may touch sockets, headers or the HTTP handler: the security checks, static files and
 card images stay with the server.
 """
 import re
 import threading
 import traceback
-import urllib.error
 import urllib.parse
 from dataclasses import dataclass, field
 from http import HTTPStatus
 
 from . import ask, manual, query
 from . import setup as setup_module
+from .net import NetError
 from .rules import rulings as card_rulings
 
 ALERT_ROUTES = ("watchlist", "alerts", "alert-settings", "cards")
@@ -133,8 +133,9 @@ class Api:
                 return _error("Give an Archidekt username", HTTPStatus.BAD_REQUEST)
             try:
                 return Response({"decks": archidekt.list_decks(username)})
-            except urllib.error.HTTPError as error:
-                return _error(f"Archidekt answered {error.code}", HTTPStatus.BAD_GATEWAY)
+            except NetError as error:
+                return _error(f"Archidekt answered {error.status}" if error.status else str(error),
+                              HTTPStatus.BAD_GATEWAY)
         if route == "binders":
             with gallery.lock:
                 if len(parts) == 2:
