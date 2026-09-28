@@ -31,7 +31,7 @@ the online version exists.
 
 ## Phase 2: accounts and login (about 2 sessions)
 
-- **A. Cloudflare Access (recommended).** cardclops.com is already behind Access. Add friends to the
+- **A. Cloudflare Access (recommended).** The private edition is already behind Access. Add users to the
   policy (email one-time PIN); the server verifies the `Cf-Access-Jwt-Assertion` header against the
   team's certificates and maps the email to a user folder. No passwords stored; Cloudflare does rate
   limiting, resets and 2FA. The apps sign in through Access's page inside their window.
@@ -57,7 +57,7 @@ comes later.
 - Archidekt: one rate limit shared across users.
 - Admin page: users, storage, last seen, disable/delete, invites.
 - Per-user backups, export (the decks file exists), and account deletion.
-- Capacity: the CX23 has 4 GB; after phase 1's memory change it holds a handful of active users. A
+- Capacity: a 4 GB server; after phase 1's memory change it holds a handful of active users. A
   larger server (about €8–15/month) gives headroom.
 
 ## Decisions to make first

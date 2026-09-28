@@ -3,7 +3,7 @@
 Decided 2026-09-28. One repo, two editions:
 
 - **Private edition** (today's app): the engine on the owner's server, moving from cardclops.com to a
-  subdomain (a private subdomain) behind Cloudflare Access; also the Windows and Android apps.
+  private subdomain behind Cloudflare Access; also the Windows and Android apps.
 - **Public edition**: a static site on cardclops.com (Cloudflare Pages, free). The same Python engine
   runs in each visitor's browser through Pyodide; each visitor's collection lives in their browser.
   No accounts, no server holding anyone's data, nothing to secure but static files.
@@ -16,7 +16,7 @@ The repo (bhanright/cardclops) goes public at launch, after an audit for persona
 The real engine (gallery/*.py, 580 KB) in Pyodide 0.28.3 with the owner's collection (20,826 rows,
 35,554 copies, a 58 MB trimmed database):
 
-| | PC (Chrome) | phone (Chrome) |
+| | PC (Chrome) | Phone (Chrome) |
 |---|---|---|
 | Python ready | 1.7 s | 3.3 s |
 | Collection built | 1.8 s | 1.4 s |
@@ -44,7 +44,7 @@ Most of the pack is card ids, which are random and don't compress; the pack stor
 often as its lookups need (tables keyed by id, no image URLs, `printings` a view of `set_cards`). It exists only to run Cardclops, is credited to
 Scryfall, and is one download a day for Scryfall instead of one per visitor. Each visitor's own
 cards still come whole from Scryfall's API (`/cards/collection`), and images load unaltered from
-Scryfall's image server. the owner is asking Scryfall to confirm this is fine; if they object,
+Scryfall's image server. The owner has asked Scryfall to confirm this is fine; if they object,
 the engine switches to direct bulk downloads.
 
 **Price history.** MTGJSON (MIT licensed, notice kept) is downloaded once a day by the same job and
@@ -129,7 +129,7 @@ copy taken in one step, and OPFS swaps a file in whole, so a stored file is neve
    `scripts/build_static.py` assembles static/ + the engine + the worker into
    `dist-static/`, with Pyodide's files copied in rather than loaded from jsDelivr, and a Content
    Security Policy allowing only the site itself, Scryfall and Anthropic; Cloudflare Pages deploys it. The server's daily job builds the pack and price
-   files and publishes them (a data subdomain cached by Cloudflare, or R2). Move the private server to a private subdomain (Tunnel
+   files and publishes them (a data subdomain cached by Cloudflare, or R2). Move the private server to its own subdomain (Tunnel
    hostname + Access application), point cardclops.com at Pages, audit and publish the repo.
 
 Estimate: 6–10 sessions; phase 1 is the risky refactor, phases 2–3 the bulk of the work.
