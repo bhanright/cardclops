@@ -25,8 +25,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def end_headers(self):
         path = self.path.split("?", 1)[0]
+        # Always the one site, never echoed from the request: Cloudflare's cache doesn't vary by Origin,
+        # so an answer naming one site could be served to another.
         self.send_header("Access-Control-Allow-Origin", self.origin)
-        self.send_header("Vary", "Origin")
         self.send_header("X-Content-Type-Options", "nosniff")
         if path.startswith("/cards-") and path.endswith(".sqlite.gz"):
             self.send_header("Cache-Control", LONG)
