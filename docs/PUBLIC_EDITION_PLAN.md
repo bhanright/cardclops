@@ -101,14 +101,22 @@ copy taken in one step, and OPFS swaps a file in whole, so a stored file is neve
       256 files from it) and the browser's loader.
    e. *Refresh on open* when the pack is a day old; the wizard's wording for the browser.
    f. *Slimmer storage:* the per-browser cache without fields the engine never reads.
-4. **Server-only features off:** the Ask box (Claude CLI), background daily refresh and alerts (they
-   run on open instead), Windows notifications, Quit, the scheduled task, Archidekt import by link
-   (paste lists instead, unless Archidekt allows CORS). Settings explains each.
+4. **Server-only features off.** *Done 2026-09-28. The page knows its edition from
+   `static/js/edition.js` (engine/boot.js marks it). The Ask box stays, with the visitor's own
+   Anthropic API key (the owner's choice): set in Settings → Ask box, kept in the page's storage, sent
+   with each question and used by gallery/ask.py for one direct call to Anthropic (which allows
+   browser calls with the `anthropic-dangerous-direct-browser-access` header); no key, no Ask
+   button. Quit, the scheduled task and Windows notifications are hidden; refresh and alerts run
+   when Cardclops opens. Archidekt answers only its own pages, so its link and username import
+   becomes a note to paste the list (the engine refuses those calls with the same advice). Settings
+   → About this edition lists the differences.* Because a key lives in the page, the site must run
+   only its own scripts at launch: Pyodide gets self-hosted (phase 6).
 5. **Keeping data safe:** browser storage can be cleared, so: Settings → "Back up everything" (the
    user database as a file) and "Restore", plus the existing decks file and CSV export; a gentle
    reminder when there's no recent backup.
 6. **Build and launch:** `scripts/build_static.py` assembles static/ + the engine + the worker into
-   `dist-static/`; Cloudflare Pages deploys it. The server's daily job builds the pack and price
+   `dist-static/`, with Pyodide's files copied in rather than loaded from jsDelivr, and a Content
+   Security Policy allowing only the site itself, Scryfall and Anthropic; Cloudflare Pages deploys it. The server's daily job builds the pack and price
    files and publishes them (a data subdomain cached by Cloudflare, or R2). Move the private server to a private subdomain (Tunnel
    hostname + Access application), point cardclops.com at Pages, audit and publish the repo.
 

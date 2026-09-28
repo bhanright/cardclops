@@ -154,5 +154,37 @@ class SlimCardTests(unittest.TestCase):
                                       "card_faces": [{"name": "A"}, {"name": "B"}]})
 
 
+class AskWithKeyTests(unittest.TestCase):
+    """The Ask box through Anthropic's API with the visitor's key (browser edition)."""
+
+    def setUp(self):
+        self.tags = mock.Mock(labels={})
+
+    def test_the_key_goes_to_anthropic_in_the_right_headers(self):
+        from gallery import ask
+        reply = {"content": [{"type": "text", "text": '{"query": "t:dragon", "explanation": "dragons"}'}]}
+        with mock.patch("gallery.net.get", return_value=json.dumps(reply).encode()) as get:
+            answer = ask.translate("my dragons", self.tags, lambda q, t: None, api_key="sk-ant-x")
+        self.assertEqual(answer, {"query": "t:dragon", "explanation": "dragons"})
+        url, data, headers = get.call_args.args[:3]
+        self.assertEqual(url, ask.API_URL)
+        self.assertEqual(headers["x-api-key"], "sk-ant-x")
+        self.assertEqual(headers["anthropic-dangerous-direct-browser-access"], "true")
+        self.assertEqual(json.loads(data)["model"], ask.API_MODEL)
+
+    def test_a_refused_key_says_so(self):
+        from gallery import ask, net
+        with mock.patch("gallery.net.get", side_effect=net.NetError(ask.API_URL, 401)):
+            with self.assertRaises(ask.AskError) as caught:
+                ask.translate("my dragons", self.tags, lambda q, t: None, api_key="sk-ant-bad")
+        self.assertIn("didn't accept that API key", str(caught.exception))
+
+    def test_without_a_key_the_command_line_tool_is_used(self):
+        from gallery import ask
+        with mock.patch("gallery.ask._run_claude", return_value=("t:elf", "elves")) as cli:
+            self.assertEqual(ask.translate("elves", self.tags, lambda q, t: None)["query"], "t:elf")
+        cli.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()

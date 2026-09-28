@@ -1,16 +1,25 @@
-"""Turn an English question into a search query, using the local `claude` CLI.
+"""Turn an English question into a search query, using the local `claude` CLI, or in the browser
+edition the visitor's own Anthropic API key.
 
 The model only writes the query; the gallery's own engine runs it, so every
 number the user sees comes from their data, not from the model. A query that
 fails to parse goes back to the model once with the error.
+
+The API key (browser edition) is the visitor's: the page keeps it in its own storage and sends it
+with each question; it is used for this one call to Anthropic and never stored or logged here.
 """
 import json
 import re
 import shutil
 import subprocess
 
+from . import net
+
 MODEL = "sonnet"
 TIMEOUT_SECONDS = 90
+API_URL = "https://api.anthropic.com/v1/messages"
+API_MODEL = "claude-sonnet-5"
+API_VERSION = "2023-06-01"
 
 SYSTEM_PROMPT = """You translate questions about a Magic: The Gathering collection into Scryfall search syntax,
 which a local engine runs against the user's own cards. Reply with JSON only:
@@ -83,7 +92,30 @@ def _run_claude(prompt):
     if completed.returncode != 0:
         raise AskError(f"claude exited with {completed.returncode}: {completed.stderr.strip()[:300]}")
     envelope = json.loads(completed.stdout)
-    text = envelope.get("result", "") if isinstance(envelope, dict) else str(envelope)
+    return _parse_answer(envelope.get("result", "") if isinstance(envelope, dict) else str(envelope))
+
+
+API_ERRORS = {401: "Anthropic didn't accept that API key. Check it in Settings → Ask box.",
+              403: "That API key isn't allowed to use the model. Check it in the Anthropic Console.",
+              429: "Your Anthropic account is being rate limited or is out of credit; try again shortly.",
+              529: "Anthropic's API is overloaded right now; try again in a minute."}
+
+
+def _run_api(prompt, api_key):
+    """One call to Anthropic's Messages API with the visitor's key. Browsers may call it directly
+    once they say so (the anthropic-dangerous-direct-browser-access header)."""
+    body = {"model": API_MODEL, "max_tokens": 400, "system": SYSTEM_PROMPT,
+            "messages": [{"role": "user", "content": prompt}]}
+    headers = {"x-api-key": api_key, "anthropic-version": API_VERSION, "content-type": "application/json",
+               "anthropic-dangerous-direct-browser-access": "true"}
+    try:
+        reply = json.loads(net.get(API_URL, json.dumps(body).encode(), headers, timeout=TIMEOUT_SECONDS))
+    except net.NetError as error:
+        raise AskError(API_ERRORS.get(error.status, f"Couldn't reach Anthropic ({error})")) from None
+    return _parse_answer("".join(part.get("text", "") for part in reply.get("content", [])))
+
+
+def _parse_answer(text):
     match = re.search(r"\{.*\}", text, re.DOTALL)
     if not match:
         raise AskError(f"Claude's reply was not a query: {text[:200]}")
@@ -91,14 +123,15 @@ def _run_claude(prompt):
     return answer.get("query", "").strip(), answer.get("explanation", "").strip()
 
 
-def translate(question, tag_index, compile_query):
+def translate(question, tag_index, compile_query, api_key=None):
+    """{query, explanation} for `question`: through the API with `api_key`, else the local CLI."""
+    run = (lambda prompt: _run_api(prompt, api_key)) if api_key else _run_claude
     tags = _candidate_tags(question, tag_index)
     prompt = f"Question: {question}\n\nCandidate function tags:\n" + "\n".join(tags or ["(none matched)"])
-    query, explanation = _run_claude(prompt)
+    query, explanation = run(prompt)
     try:
         compile_query(query, tag_index)
     except ValueError as error:
-        query, explanation = _run_claude(
-            f"{prompt}\n\nYour previous query `{query}` failed to parse: {error}. Fix it.")
+        query, explanation = run(f"{prompt}\n\nYour previous query `{query}` failed to parse: {error}. Fix it.")
         compile_query(query, tag_index)
     return {"query": query, "explanation": explanation}

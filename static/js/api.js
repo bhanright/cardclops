@@ -1,4 +1,5 @@
 // Thin wrappers over the JSON API in docs/API.md.
+import { askKey } from './edition.js';
 
 export class ApiError extends Error {}
 
@@ -37,7 +38,7 @@ export const api = {
   stats: () => request('/api/stats'),
   deckcheck: text => request('/api/deckcheck', { method: 'POST', body: { text } }),
   extras: params => request('/api/extras?' + qs(params)),
-  ask: (question, signal) => request('/api/ask', { method: 'POST', body: { question }, signal }),
+  ask: (question, signal) => request('/api/ask', { method: 'POST', body: { question, api_key: askKey() || undefined }, signal }),
   tags: (q, signal) => request('/api/tags?' + qs({ q }), { signal }),
   legalityChanges: () => request('/api/legality-changes'),
   alerts: {

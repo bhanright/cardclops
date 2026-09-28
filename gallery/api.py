@@ -15,6 +15,7 @@ from http import HTTPStatus
 from . import ask, manual, query
 from . import setup as setup_module
 from .net import NetError
+from .runtime import IN_BROWSER
 from .rules import rulings as card_rulings
 
 ALERT_ROUTES = ("watchlist", "alerts", "alert-settings", "cards")
@@ -222,7 +223,8 @@ class Api:
             if not question:
                 return _error("Ask a question first.", HTTPStatus.BAD_REQUEST)
             try:
-                return Response(ask.translate(question, gallery.collection.tag_index, query.compile_query))
+                return Response(ask.translate(question, gallery.collection.tag_index, query.compile_query,
+                                              api_key=(body.get("api_key") or "").strip() or None))
             except (ask.AskError, ValueError) as error:
                 return Response({"error": str(error)})
         return _error("unknown endpoint", HTTPStatus.NOT_FOUND)
@@ -257,6 +259,8 @@ class Api:
             if path == "/api/refresh":
                 return Response(jobs.refresh())
             if path == "/api/quit":
+                if IN_BROWSER:
+                    return _error("In a browser, close the tab to quit.", HTTPStatus.BAD_REQUEST)
                 if self.app_window:                   # the Windows app: closing its window ends it
                     window = self.app_window
                     return Response({"quitting": True}, after=lambda: threading.Thread(target=window.close, daemon=True).start())

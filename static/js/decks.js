@@ -3,6 +3,7 @@ import { h, $, clear, int, money, spinner, errorBox, store, symbol, formatLabel,
 import { api } from './api.js';
 import { lazyImg } from './cards.js';
 import { showDeckPage, hideDeckPage } from './deckpage.js';
+import { browserEdition } from './edition.js';
 
 export const DECK_FORMATS = ['commander', 'standard', 'pioneer', 'modern', 'legacy', 'vintage', 'pauper', 'paupercommander',
   'oathbreaker', 'brawl', 'standardbrawl', 'historic', 'timeless', 'alchemy', 'explorer', 'penny', 'premodern',
@@ -271,7 +272,8 @@ function buildImportPanel() {
     h('span.inline-label', 'Status ', statusSeg(() => status, v => { status = v; })),
     go),
   results,
-  archidektSection(() => status, results),
+  browserEdition ? h('p.hint.arch-note', h('b', 'From Archidekt: '), 'use the deck’s Export option to copy its list as text, and paste it above. (Archidekt doesn’t let other websites read its decks, so importing by link needs the Cardclops app.)')
+    : archidektSection(() => status, results),
   decksFileSection(results));
   return form;
 }

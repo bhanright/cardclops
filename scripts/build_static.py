@@ -50,7 +50,10 @@ def build(devdata=None, pack=None, data_url="/pack/"):
     # Cloudflare Pages: always check the service worker and engine files for updates.
     # Pack files are named by date and never change; the manifest and price files are replaced daily.
     (OUT / "_headers").write_text("/sw.js\n  Cache-Control: no-cache\n/engine/*\n  Cache-Control: no-cache\n"
-                                  "/pack/manifest.json\n  Cache-Control: no-cache\n/pack/prices/*\n  Cache-Control: no-cache\n",
+                                  "/pack/manifest.json\n  Cache-Control: no-cache\n/pack/prices/*\n  Cache-Control: no-cache\n"
+                                  # the page's own scripts: always revalidated, so a release never mixes versions
+                                  "/app.js\n  Cache-Control: no-cache\n/js/*\n  Cache-Control: no-cache\n"
+                                  "/styles.css\n  Cache-Control: no-cache\n",
                                   encoding="utf-8")
 
     if pack:

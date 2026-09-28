@@ -15,6 +15,7 @@ import urllib.parse
 
 from . import net
 from .decks import ParsedLine
+from .runtime import IN_BROWSER
 
 API = "https://archidekt.com/api"
 SECONDS_BETWEEN_CALLS = 1.0
@@ -27,8 +28,15 @@ FINISHES = {"foil": "foil", "etched": "etched"}
 _last_call = 0.0
 
 
+# Archidekt's API answers only its own pages, so a web page (the browser edition) can't read it.
+IN_BROWSER_MESSAGE = ("Archidekt doesn't let other websites read its decks. Paste the list instead: "
+                      "use the deck's Export option on Archidekt to copy its list as text.")
+
+
 def _get(url):
     global _last_call
+    if IN_BROWSER:
+        raise net.NetError(url, 0, IN_BROWSER_MESSAGE)
     wait = SECONDS_BETWEEN_CALLS - (time.monotonic() - _last_call)
     if wait > 0:
         time.sleep(wait)

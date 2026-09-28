@@ -5,6 +5,7 @@ import { h, clear, int, spinner, errorBox, toast, store } from './util.js';
 import { api } from './api.js';
 import { refreshNow, updateCollection } from './setup.js';
 import { openHandAdded } from './addcards.js';
+import { browserEdition, askKey, setAskKey } from './edition.js';
 
 export const SETTINGS_KEY = 'gallery.settings';     // index.html reads the same key
 const DEFAULTS = { theme: 'neon', textScale: 100, motion: 'system', foil: true, hoverPreview: true };
@@ -118,7 +119,9 @@ export async function showSettings() {
       row('Motion', 'Wobbling logo, ringing bell, sliding cards', choices('motion', [['system', 'Follow my device'], ['reduce', 'Reduce']], s.motion)),
       row('Foil shimmer', 'The rainbow sheen on foil cards', toggle('foil', 'Show it', s.foil !== false)),
       canHover ? row('Card previews', 'A large image when the pointer rests on a card name', toggle('hoverPreview', 'Show them', s.hoverPreview !== false)) : null),
-    h('section.panel', h('div.panel-head', h('h2', 'Data and updates')), dataBox)));
+    h('section.panel', h('div.panel-head', h('h2', 'Data and updates')), dataBox),
+    browserEdition ? askPanel() : null,
+    browserEdition ? editionPanel() : null));
   document.title = 'Settings · Cardclops';
 
   let status, summary;
@@ -139,18 +142,60 @@ export async function showSettings() {
     })()
     : h('span', status.platform === 'android'
       ? 'When you open the app on Wi-Fi, if the data is more than a day old.'
+      : browserEdition ? 'When you open Cardclops, if the card data is more than a day old.'
       : 'Automatically, once a day.');
   clear(dataBox).append(
     h('dl.pref-facts',
       h('dt', 'Version'), h('dd', `Cardclops ${status.version}`),
       h('dt', 'Card data'), h('dd', status.card_data_date ? `Scryfall and prices from ${status.card_data_date}` : 'Not downloaded yet'),
       h('dt', 'Collection'), h('dd', `${int(summary.copies)} copies of ${int(summary.unique_cards)} cards`),
-      h('dt', 'Your data'), h('dd', h('code', status.data_dir), h('span.muted.small', ' — collection, decks, backups')),
-      h('dt', 'Card cache'), h('dd', h('code', status.cache_dir), h('span.muted.small', ' — safe to delete; it downloads again'))),
+      ...(browserEdition ? [
+        h('dt', 'Your data'), h('dd', 'In this browser, on this device', h('span.muted.small', ' — clearing this site’s data in the browser deletes it'))] : [
+        h('dt', 'Your data'), h('dd', h('code', status.data_dir), h('span.muted.small', ' — collection, decks, backups')),
+        h('dt', 'Card cache'), h('dd', h('code', status.cache_dir), h('span.muted.small', ' — safe to delete; it downloads again'))])),
     row('Price updates', null, daily),
     row('Housekeeping', null, h('div.form-row',
       h('button.btn.small', { type: 'button', onclick: refreshNow }, '⟳ Refresh card data now'),
       h('button.btn.small', { type: 'button', onclick: updateCollection }, '⇪ Update my collection'),
       h('button.btn.small.ghost', { type: 'button', onclick: openHandAdded }, '✎ Cards added by hand'),
       h('a.btn.small.ghost', { href: '#/alerts' }, '🔔 Price alert settings'))));
+}
+
+/** The Ask box in the browser edition: the visitor's own Anthropic API key (static/js/edition.js). */
+function askPanel() {
+  const input = h('input.text-input', { type: 'password', autocomplete: 'off', spellcheck: 'false', placeholder: 'sk-ant-…',
+    'aria-label': 'Anthropic API key', value: askKey() });
+  const state = h('span.muted.small');
+  const show = () => {
+    state.textContent = askKey() ? '✓ Ask is on.' : 'Ask is off.';
+    const askMode = document.querySelector('.search-form .seg.mode');
+    if (askMode) askMode.hidden = !askKey();
+  };
+  const save = h('button.btn.small.go', { type: 'button', onclick: () => {
+    const value = input.value.trim();
+    if (value && !value.startsWith('sk-ant-')) { toast('That doesn’t look like an Anthropic API key (they start sk-ant-)'); return; }
+    setAskKey(value); show(); toast(value ? 'Ask box on' : 'Key removed');
+  } }, 'Save');
+  const remove = h('button.btn.small.ghost', { type: 'button', onclick: () => { input.value = ''; setAskKey(''); show(); toast('Key removed'); } }, 'Remove');
+  show();
+  return h('section.panel',
+    h('div.panel-head', h('h2', 'Ask box'), h('span.muted.small', 'Optional')),
+    h('p', 'Ask turns a question in plain English (“blue instants under $1 that counter creatures”) into a search, using Claude. ',
+      'It needs your own Anthropic API key, from ', h('a', { href: 'https://console.anthropic.com/settings/keys', target: '_blank', rel: 'noopener' }, 'console.anthropic.com'),
+      '. Anthropic bills the key’s account per use; a question costs well under a cent.'),
+    row('API key', 'Kept in this browser only; sent only to Anthropic, with each question', h('div.form-row', input, save, remove)),
+    h('p.small.muted', 'Anyone who can use this browser profile could read the key. Use a key made for Cardclops, with a spending limit, and remove it from shared computers. ', state));
+}
+
+/** What the browser edition leaves out, and why. */
+function editionPanel() {
+  return h('section.panel',
+    h('div.panel-head', h('h2', 'About this edition')),
+    h('p', 'This is Cardclops in your browser: no account, and nothing you import leaves this device. A few things work differently from the app:'),
+    h('ul.pref-list',
+      h('li', h('b', 'Updates '), 'happen when you open Cardclops, if the card data is a day old, rather than on a schedule.'),
+      h('li', h('b', 'Price alerts '), 'wait in the bell rather than as system notifications.'),
+      h('li', h('b', 'Archidekt decks '), 'come in by pasting their list: Archidekt doesn’t let other websites read its decks.'),
+      h('li', h('b', 'The Ask box '), 'needs your own Anthropic API key (above).'),
+      h('li', h('b', 'Quitting '), 'is closing the tab.')));
 }

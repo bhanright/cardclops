@@ -5,6 +5,8 @@
 // One tab runs the engine: the databases are files in the browser's storage, and two engines writing
 // them at once would lose changes. A second tab says so instead of starting.
 
+window.CARDCLOPS_EDITION = 'browser';               // static/js/edition.js reads it
+
 const splash = document.createElement('div');
 splash.className = 'boot-splash';
 splash.innerHTML = `<div class="boot-card"><div class="blob-eye" aria-hidden="true"></div>

@@ -118,7 +118,9 @@ formats; set codes in parentheses and `*F*` markers ignored; section headers lik
 
 `POST /api/ask` body `{"question": "black cards under 3 mana that destroy nonland permanents"}` →
 `{"query": "c:b mv<3 o:/destroy target nonland permanent/", "explanation": "…"}` or `{"error": "…"}`.
-Uses the local `claude` CLI; can take 5–20 s.
+Uses the local `claude` CLI; can take 5–20 s. With `"api_key"` in the body (the browser edition sends
+the visitor's own, kept in the page's storage) it calls Anthropic's Messages API with that key
+instead; the key is used for that call only.
 
 `GET /api/tags?q=remov` → `[{"slug", "description", "count"}]` (count = distinct cards you own with it), up to 30.
 

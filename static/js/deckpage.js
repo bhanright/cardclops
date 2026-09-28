@@ -10,6 +10,7 @@ import { statsPanels } from './deckstats.js';
 import { manafixControls } from './manafix.js';
 import { copyPolicyControls, goldfishSection, historySection } from './deckextras.js';
 import { DECK_FORMATS, deckFormatLabel, colorPips, invalidateDecks } from './decks.js';
+import { browserEdition } from './edition.js';
 
 const SECTIONS = ['commander', 'companion', 'main', 'sideboard', 'maybeboard'];
 const SECTION_LABEL = { commander: 'Commander', companion: 'Companion', main: 'Main deck', sideboard: 'Sideboard', maybeboard: 'Maybeboard' };
@@ -209,7 +210,7 @@ function header(deck) {
       h('div.progress.big', { role: 'progressbar', 'aria-valuenow': pctOwned, 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-label': 'Copies owned' },
         h('span.progress-fill', { class: pctOwned >= 100 ? 'full' : null, style: { width: pctOwned + '%' } })),
       h('div.form-row.dh-actions',
-        deck.source === 'archidekt' ? h('button.btn.small.go', { type: 'button', title: 'Re-read this deck from Archidekt; your pins are kept', onclick: async e => {
+        deck.source === 'archidekt' && !browserEdition ? h('button.btn.small.go', { type: 'button', title: 'Re-read this deck from Archidekt; your pins are kept', onclick: async e => {
           e.target.disabled = true; e.target.textContent = 'Syncing…';
           try {
             const r = await api.decks.sync(deckId);

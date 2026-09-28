@@ -246,7 +246,8 @@ class Gallery:
             "ask_available": ask.available(),
             "decks": self.deckbook.totals(),
             "reprints": self.radar.headline(),
-            "app": {"version": __version__, "installed": setup_module.installed(), "platform": sys.platform},
+            "app": {"version": __version__, "installed": setup_module.installed(), "platform": sys.platform,
+                    "edition": os.environ.get("CARDCLOPS_EDITION", "app")},
             "alerts": {"unseen": self.alerts.list(True, 1)["unseen"],
                        "watching": self.connection.execute("SELECT COUNT(*) FROM watchlist").fetchone()[0]},
         }
