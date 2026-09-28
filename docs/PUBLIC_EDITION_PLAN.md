@@ -56,9 +56,12 @@ and all of them again after a week away. The job keeps every day it sees, so his
 MTGJSON's rolling 90 days. Each day's prices come from the pack (Scryfall's usd is TCGplayer's
 market price), recorded for your cards as the apps record them from the bulk file.
 
-**Storage.** The browser keeps three files: yours (collection, decks, binders, settings), the pack
-(replaced whole when a newer one is out), and a per-browser cache (your cards' Scryfall objects,
-price history, rulings), which can be rebuilt.
+**Storage.** The browser keeps three files: yours (collection, decks, binders, settings, price
+history), the pack (replaced whole when a newer one is out), and a per-browser cache (your cards'
+Scryfall objects without the fields nothing reads, and rulings), which can be rebuilt; a damaged
+cache or pack is deleted on start and fetched again (gallery/browser.py). Python keeps all three in
+memory; the worker copies changed files back to OPFS only while no transaction is open, from a
+copy taken in one step, and OPFS swaps a file in whole, so a stored file is never half-written.
 
 ## Phases
 
@@ -68,23 +71,34 @@ price history, rulings), which can be rebuilt.
 2. **Browser runtime.** *Done 2026-09-28. The page is unchanged: a service worker (web/sw.js) answers
    `/api/` by passing each request to the engine, which is Pyodide in a Web Worker
    (web/engine/worker.js, running gallery/browser.py), and redirects `/img/` to Scryfall's image
-   server. The databases live in OPFS (mounted at /data, `syncfs()` 400 ms after a write and when
-   the tab is hidden). A Web Lock lets only one tab run the engine. `scripts/build_static.py` builds
+   server. The databases live in OPFS (loaded at /data, saved 400 ms after a write and when the tab
+   is hidden; step 3 replaced `syncfs()`, which could store a file mid-transaction). A Web Lock lets only one tab run the engine. `scripts/build_static.py` builds
    dist-static/ (`--devdata` seeds test databases for `?devdata=1`). With the full collection: 9 s
    to ready on the PC, 8–12 s cold on the phone.* Still to do in later phases: jobs (setup, refresh)
    start threads, which Pyodide can't; Python's network calls (rulings, the rules file, set cards,
    Archidekt) fail without `ssl`; the cache is 187 MB and needs slimming; `price_series` lives in
    the user database (56 MB), so every save rewrites it.
-3. **Data in the browser.** In order:
+3. **Data in the browser.** *Done 2026-09-28 (a–f below). Measured with the owner's collection
+   (20,826 rows, 19,379 printings) on a fresh browser profile, the pack served locally: the pack
+   installs in under 3 s; the import takes 4 min 53 s on the PC and 5 min 7 s on the phone, nearly
+   all of it Scryfall's 2-a-second limit on /cards/collection (75 cards a call); a refresh takes
+   15 s on the PC, with the page frozen at most 8 s (rebuilding the collection, as at start). Cold
+   start on the phone afterwards: 8–12 s, as in phase 2. Browser storage for that
+   collection: pack 68 MB, cache 78 MB of card objects, yours 30 MB; a 2,000-card collection
+   needs about a tenth of the cache. Found on the way: Scryfall's 2-a-second endpoints were
+   being called at 8 a second by the apps too (fixed in gallery/scryfall.py), and `syncfs()` could
+   store a database mid-transaction (the worker now saves its own copies).* In order:
    a. *Network:* one seam (`gallery/net.py`) for every download; the browser edition answers it
       with the browser's own fetch (no `ssl` in Pyodide). Rulings, sets and single cards from
-      Scryfall's API; the Comprehensive Rules if Wizards' file allows CORS, else the page links out.
+      Scryfall's API. Wizards' rules page and file don't allow CORS, so the pack job publishes the
+      rules file beside the pack (as many rules sites host it).
    b. *The card pack:* `scripts/build_pack.py` builds it from a refreshed cache database; the
       browser downloads it and attaches it as a third database.
    c. *Jobs without threads:* in the browser, setup, import and refresh are coroutines on
       Pyodide's event loop, so the page stays answered while they run. Import fetches the new
       cards' objects from `/cards/collection` (75 per request, spaced as Scryfall asks).
-   d. *Price history:* `scripts/build_prices.py` (shards and daily files) and the browser's loader.
+   d. *Price history:* `scripts/build_prices.py` (a store of every printing's market price, and the
+      256 files from it) and the browser's loader.
    e. *Refresh on open* when the pack is a day old; the wizard's wording for the browser.
    f. *Slimmer storage:* the per-browser cache without fields the engine never reads.
 4. **Server-only features off:** the Ask box (Claude CLI), background daily refresh and alerts (they
