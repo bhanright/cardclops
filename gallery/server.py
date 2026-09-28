@@ -60,7 +60,7 @@ class Gallery:
             self.jobs = BrowserJobs(self)
         else:
             self.jobs = Jobs(self)
-        self.rulebook = RuleBook()        # the Comprehensive Rules, once downloaded (Tools → Rules)
+        self.rulebook = RuleBook()        # the Comprehensive Rules, once downloaded (More → Rules)
         self.load()
         print(f"Ready: {len(self.collection.entries):,} rows")
 

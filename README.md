@@ -124,7 +124,7 @@ scripts/          notify.ps1, the Windows notification for price alerts
 
 ## Settings
 
-Tools → Settings chooses a theme (Neon, the original; Light; Dark, or Light/Dark following the
+Settings (the ⚙ button, top right) chooses a theme (Neon, the original; Light; Dark, or Light/Dark following the
 device; and under More themes: Lollipop, Astronaut, Necronomicon, Stovepipe, Gamma, Galactus, Unicorn,
 Lemonhead, Olympic, SPQR and Sasquatch), text size,
 reduced motion, the foil shimmer and hover previews. These are saved in the browser, per device.
@@ -148,7 +148,7 @@ moved it and renamed the old folder `data.migrated-<date>`.
 Cardclops is under the MIT License (`LICENSE`). The data and software it uses come under their own
 terms: card data and images from Scryfall, price history from MTGJSON (MIT), the fonts under the SIL
 Open Font License, and the browser edition's Python, Pyodide, under the Mozilla Public License 2.0.
-The app's About page (Tools → About & credits) lists them.
+The app's About page (More → About & credits) lists them.
 
 Cardclops is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by
 Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.

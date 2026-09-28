@@ -3,7 +3,7 @@
 The gallery starts with an empty database; the page runs the setup wizard.
 Downloads, imports and refreshes run one at a time in a background thread and
 report progress. Nothing is downloaded, scheduled or switched on unless the
-user asks for it in the wizard or the Tools menu.
+user asks for it in the wizard or the More menu.
 """
 import os
 import shutil

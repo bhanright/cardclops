@@ -322,8 +322,8 @@ function wizard(status, resolve) {
       resolve();
     } }, 'Open my gallery →');
     return [h('h2', 'All set!'),
-      h('p', collectionDone ? 'Your collection is in. Search it, build decks and watch prices from the gallery.' : 'You can import your collection any time from Tools → Update my collection.'),
-      h('ul.setup-facts', h('li', 'Tip: press ', h('kbd', '/'), ' anywhere to jump to the search box.'), h('li', 'The ', h('b', 'Tools'), ' menu has Deck check, Extras, Price alerts, Update my collection and Refresh card data.')),
+      h('p', collectionDone ? 'Your collection is in. Search it, build decks and watch prices from the gallery.' : 'You can import your collection any time from More → Update my collection.'),
+      h('ul.setup-facts', h('li', 'Tip: press ', h('kbd', '/'), ' anywhere to jump to the search box.'), h('li', 'The ', h('b', 'More'), ' menu has Deck check, Extras, Price alerts, Update my collection and Refresh card data.')),
       navRow(finish)];
   }
 

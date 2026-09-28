@@ -1537,9 +1537,11 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--lime); }
 /* ---------- header bell ---------- */
 .bell { position: relative; display: grid; place-items: center; width: 44px; height: 44px; flex: none; margin-left: auto; background: var(--panel); border: var(--line); border-radius: 50% 44% 52% 46%; box-shadow: var(--shadow-sm); }
 .bell + .header-stats { margin-left: 0; }
+.bell.gear { margin-left: 8px; }                  /* beside the bell, which takes the free space */
 .bell svg { width: 26px; height: 26px; }
 .bell:hover { background: var(--panel-3); transform: rotate(-8deg); }
 .bell[aria-current] { background: var(--orange); }
+.bell.gear:hover { transform: rotate(30deg); }
 .bell.ringing svg { animation: ring 2.4s ease-in-out infinite; transform-origin: 50% 15%; }
 @keyframes ring { 0%, 70%, 100% { transform: rotate(0); } 75% { transform: rotate(14deg); } 82% { transform: rotate(-12deg); } 89% { transform: rotate(8deg); } }
 .bell-count { position: absolute; top: -8px; right: -10px; min-width: 22px; height: 22px; padding: 0 5px; display: grid; place-items: center; font: 400 .8rem var(--font-display); color: #000; background: var(--pink); border: 2px solid #000; border-radius: var(--pill); }

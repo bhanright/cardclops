@@ -1,4 +1,4 @@
-"""The Comprehensive Rules (Tools → Rules), and card rulings (a card's detail view).
+"""The Comprehensive Rules (More → Rules), and card rulings (a card's detail view).
 
 The rules are Wizards of the Coast's plain-text file, linked from magic.wizards.com/rules; the app
 downloads it on first use (about 1 MB) into the card cache and checks for a newer edition monthly.

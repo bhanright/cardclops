@@ -22,7 +22,7 @@ import { askShown } from './js/edition.js';
 import { remindIfDue } from './js/backup.js';
 
 const TABS = ['gallery', 'decks', 'sets', 'build', 'dashboard', 'radar', 'deck', 'extras', 'alerts', 'settings', 'binders', 'rules', 'about'];
-const TOOL_TABS = { radar: 'Radar', deck: 'Deck check', extras: 'Extras', alerts: 'Alerts', settings: 'Settings', binders: 'Binders', rules: 'Rules', about: 'About' };   // live under the Tools menu
+const TOOL_TABS = { radar: 'Radar', deck: 'Deck check', extras: 'Extras', alerts: 'Alerts', binders: 'Binders', rules: 'Rules', about: 'About' };   // live under the Tools menu
 const DEFAULTS = { q: '', sort: 'name', dir: 'asc', unique: 'prints', view: 'grid' };
 const VALID = {
   sort: ['name', 'usd', 'value', 'mv', 'added', 'set', 'rarity', 'qty', 'gain', 'paid', 'change1', 'change7', 'change30',
@@ -93,13 +93,13 @@ function syncTabs() {
   const inTools = tab in TOOL_TABS;
   toolsBtn.classList.toggle('on', inTools);
   // On a phone the tab row has no room for a longer name ("Settings", "Deck check"), which would
-  // wrap the button onto a row of its own; it stays "Tools", highlighted.
+  // wrap the button onto a row of its own; it stays "More", highlighted.
   const roomy = !matchMedia('(max-width: 700px)').matches;
-  toolsBtn.firstChild.textContent = inTools && roomy ? `${TOOL_TABS[tab]} ` : 'Tools ';
-  toolsBtn.setAttribute('aria-label', inTools ? `Tools menu, showing ${TOOL_TABS[tab]}` : 'Tools menu');
+  toolsBtn.firstChild.textContent = inTools && roomy ? `${TOOL_TABS[tab]} ` : 'More ';
+  toolsBtn.setAttribute('aria-label', inTools ? `More menu, showing ${TOOL_TABS[tab]}` : 'More menu');
 }
 
-/** Tools disclosure menu: the list is position:fixed so the scrolling nav on phones can't clip it. */
+/** The More menu (the "Tools" ids are its old name): the list is position:fixed so the scrolling nav on phones can't clip it. */
 function initToolsMenu() {
   const button = $('#toolsBtn'), list = $('#toolsList');
   const links = () => [...list.querySelectorAll('a, button:not([hidden])')];
@@ -158,6 +158,7 @@ function showTab() {
   if (tab === 'rules') showRules();
   if (tab === 'about') showAbout();
   $('#alertBell').toggleAttribute('aria-current', tab === 'alerts');
+  $('#settingsGear').toggleAttribute('aria-current', tab === 'settings');
   const titles = { gallery: 'Gallery', decks: 'Decks', sets: 'Sets', build: 'What can I build?', dashboard: 'Dashboard', radar: 'Reprint radar', alerts: 'Price alerts', deck: 'Deck check', extras: 'Trade binder', settings: 'Settings', binders: 'Binders', rules: 'Comprehensive Rules', about: 'About' };
   document.title = `${titles[tab]} · Cardclops`;
 }

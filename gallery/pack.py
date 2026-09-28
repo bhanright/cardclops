@@ -208,7 +208,7 @@ def _publish_rules(rules_dir, out_dir, log):
     """Copy the app's current rules file beside the pack; None if it has none."""
     files = sorted(Path(rules_dir).glob("MagicCompRules*.txt"))
     if not files:
-        log("No rules file to publish (open Tools → Rules once in the app to download it)")
+        log("No rules file to publish (open More → Rules once in the app to download it)")
         return None
     source = files[-1]
     target_dir = out_dir / "rules"
