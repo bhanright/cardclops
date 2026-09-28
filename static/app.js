@@ -16,12 +16,13 @@ import { openHandAdded } from './js/addcards.js';
 import { showSettings, applySettings } from './js/settings.js';
 import { showBinders } from './js/binders.js';
 import { showRules } from './js/rules.js';
+import { showAbout } from './js/about.js';
 import { runSetupIfNeeded, checkBackgroundJob, updateCollection, refreshNow, quitApp } from './js/setup.js';
 import { askShown } from './js/edition.js';
 import { remindIfDue } from './js/backup.js';
 
-const TABS = ['gallery', 'decks', 'sets', 'build', 'dashboard', 'radar', 'deck', 'extras', 'alerts', 'settings', 'binders', 'rules'];
-const TOOL_TABS = { radar: 'Radar', deck: 'Deck check', extras: 'Extras', alerts: 'Alerts', settings: 'Settings', binders: 'Binders', rules: 'Rules' };   // live under the Tools menu
+const TABS = ['gallery', 'decks', 'sets', 'build', 'dashboard', 'radar', 'deck', 'extras', 'alerts', 'settings', 'binders', 'rules', 'about'];
+const TOOL_TABS = { radar: 'Radar', deck: 'Deck check', extras: 'Extras', alerts: 'Alerts', settings: 'Settings', binders: 'Binders', rules: 'Rules', about: 'About' };   // live under the Tools menu
 const DEFAULTS = { q: '', sort: 'name', dir: 'asc', unique: 'prints', view: 'grid' };
 const VALID = {
   sort: ['name', 'usd', 'value', 'mv', 'added', 'set', 'rarity', 'qty', 'gain', 'change1', 'change7', 'change30', 'color', 'released'],
@@ -154,8 +155,9 @@ function showTab() {
   if (tab === 'settings') showSettings();
   if (tab === 'binders') showBinders();
   if (tab === 'rules') showRules();
+  if (tab === 'about') showAbout();
   $('#alertBell').toggleAttribute('aria-current', tab === 'alerts');
-  const titles = { gallery: 'Gallery', decks: 'Decks', sets: 'Sets', build: 'What can I build?', dashboard: 'Dashboard', radar: 'Reprint radar', alerts: 'Price alerts', deck: 'Deck check', extras: 'Trade binder', settings: 'Settings', binders: 'Binders', rules: 'Comprehensive Rules' };
+  const titles = { gallery: 'Gallery', decks: 'Decks', sets: 'Sets', build: 'What can I build?', dashboard: 'Dashboard', radar: 'Reprint radar', alerts: 'Price alerts', deck: 'Deck check', extras: 'Trade binder', settings: 'Settings', binders: 'Binders', rules: 'Comprehensive Rules', about: 'About' };
   document.title = `${titles[tab]} · Cardclops`;
 }
 

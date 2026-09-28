@@ -1731,7 +1731,7 @@ input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--lime); }
 @media (max-width: 800px) { .sh-body, .lightbox { grid-template-columns: 1fr; } .binder { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 12px 8px; } }
 
 /* ---------- setup wizard ---------- */
-body.in-setup > header, body.in-setup > main, body.in-setup > .job-banner { display: none !important; }
+body.in-setup > header, body.in-setup > main, body.in-setup > .job-banner, body.in-setup > .site-footer { display: none !important; }
 .setup { position: fixed; inset: 0; z-index: 80; overflow-y: auto; padding: 24px 16px; display: grid; place-items: start center; }
 .setup-card { width: min(760px, 100%); display: flex; flex-direction: column; gap: 16px; box-shadow: 10px 10px 0 var(--pink); border-width: 4px; }
 .setup-brand { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -1854,6 +1854,10 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .pref-facts dd { margin: 0; overflow-wrap: anywhere; }
 .pref-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .arch-note { margin-top: 14px; }
+.site-footer { margin: 28px var(--gutter) 22px; padding-top: 14px; border-top: 2px solid color-mix(in srgb, var(--muted) 35%, transparent); color: var(--muted); font-size: .78rem; line-height: 1.5; text-align: center; }
+.site-footer p { margin: 0 auto 4px; max-width: 70ch; }
+.site-footer a { color: inherit; }
+.fan-notice { padding: 10px 14px; background: var(--well); border: var(--line); border-radius: 12px; }
 .backup-reminder { background: var(--yellow, #ffe23d); color: #000; }
 .backup-reminder .link-btn { color: #000; font-weight: 700; }
 @media (max-width: 600px) { .pref-row { grid-template-columns: 1fr; } }
