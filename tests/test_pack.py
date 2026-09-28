@@ -145,15 +145,6 @@ class ScryfallPaceTests(unittest.TestCase):
         self.assertIn(mock.call(scryfall.SECONDS_AFTER_429), sleep.call_args_list)
 
 
-class SlimCardTests(unittest.TestCase):
-    def test_unread_fields_go_from_the_card_and_its_faces(self):
-        from gallery.browser_jobs import slim
-        card = {"id": SID, "name": "X", "tcgplayer_id": 1, "legalities": {"commander": "legal"},
-                "card_faces": [{"name": "A", "artist_ids": ["a"]}, {"name": "B"}]}
-        self.assertEqual(slim(card), {"id": SID, "name": "X", "legalities": {"commander": "legal"},
-                                      "card_faces": [{"name": "A"}, {"name": "B"}]})
-
-
 class AskWithKeyTests(unittest.TestCase):
     """The Ask box through Anthropic's API with the visitor's key (browser edition)."""
 

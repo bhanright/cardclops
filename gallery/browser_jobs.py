@@ -23,29 +23,12 @@ from .db import get_meta, merge_price_points, set_meta
 from .ingest import (PRICE_KEYS, _number, _record_prices, _store_card, decode_legalities, store_holdings,
                      tracked_printings)
 from .runtime import request_save
+from .collection import slim
 from .setup import STALE_AFTER, Jobs
 
 SCRYFALL_COLLECTION = scryfall.API + "/cards/collection"      # 2 calls a second at most (gallery/scryfall.py)
 PACK_MB_ESTIMATE = 26                     # shown before the manifest has been read
 REFRESH_BATCH = 1000                      # cards updated between pauses for the page's requests
-# Fields of Scryfall's card object nothing in Cardclops reads (checked against gallery/ and static/,
-# 2026-09-28): other sites' ids, API links, artist and illustration ids. The browser keeps every
-# card in memory, so it stores cards without them; the apps keep the whole object.
-UNREAD_CARD_FIELDS = ("uri", "rulings_uri", "prints_search_uri", "related_uris", "multiverse_ids", "mtgo_id",
-                      "mtgo_foil_id", "arena_id", "tcgplayer_id", "tcgplayer_etched_id", "cardmarket_id",
-                      "card_back_id", "artist_ids", "illustration_id", "image_status", "set_uri", "set_search_uri",
-                      "scryfall_set_uri", "set_id", "attraction_lights", "content_warning", "variation_of",
-                      "security_stamp", "penny_rank")
-
-
-def slim(card):
-    """The card object without UNREAD_CARD_FIELDS, on the card and on each face."""
-    card = {key: value for key, value in card.items() if key not in UNREAD_CARD_FIELDS}
-    if "card_faces" in card:
-        card["card_faces"] = [{k: v for k, v in face.items() if k not in UNREAD_CARD_FIELDS} for face in card["card_faces"]]
-    return card
-
-
 def data_url(path=""):
     return os.environ["CARDCLOPS_DATA_URL"] + path
 
@@ -164,6 +147,7 @@ class BrowserJobs(Jobs):
             answer = await self._collection_request(batch)
             with self.gallery.lock:
                 for card in answer.get("data", []):
+                    # Stored without the fields nothing reads: the browser keeps every card in memory.
                     _store_card(self.gallery.connection, slim(card))
                     _record_prices(self.gallery.connection, card, day)
                 self.gallery.connection.commit()

@@ -9,8 +9,6 @@
 // written can't tear it. OPFS replaces a file whole when its write closes, so what's stored is always
 // the old version or the new one.
 /* global loadPyodide */
-const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.28.3/full/';
-importScripts(PYODIDE + 'pyodide.js');
 
 let py = null;
 let engine = null;
@@ -20,14 +18,16 @@ const savedAs = new Map();          // path under /data -> "mtime:size" as last 
 const status = text => postMessage({ type: 'status', text });
 
 async function boot() {
-  status('Starting Python…');
-  py = await loadPyodide({ indexURL: PYODIDE });
-  await py.loadPackage(['sqlite3']);
-  try { await py.loadPackage(['certifi']); } catch { /* only used for downloads, which go through fetch here */ }
-
-  status('Loading Cardclops…');
   // Revalidate every time (a cheap 304 when unchanged), so a new release never runs next to stale files.
   const manifest = await (await fetch('manifest.json', { cache: 'no-cache' })).json();
+  status('Starting Python…');
+  // Pyodide is served with the site (scripts/fetch_pyodide.py), so the page runs only its own code.
+  const pyodideUrl = new URL(manifest.pyodide_url || '/pyodide/', location.origin).href;
+  importScripts(pyodideUrl + 'pyodide.js');
+  py = await loadPyodide({ indexURL: pyodideUrl });
+  await py.loadPackage(['sqlite3']);
+
+  status('Loading Cardclops…');
   py.FS.mkdirTree('/engine/gallery');
   await Promise.all(manifest.files.map(async name => {
     py.FS.writeFile(`/engine/gallery/${name}`, await (await fetch(`py/gallery/${name}`, { cache: 'no-cache' })).text());

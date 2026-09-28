@@ -12,3 +12,4 @@ android/.idea/
 *.jks
 *.keystore
 dist-static/
+vendor/
