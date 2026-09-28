@@ -1854,6 +1854,9 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .pref-facts dd { margin: 0; overflow-wrap: anywhere; }
 .pref-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .arch-note { margin-top: 14px; }
+.sort-label { display: inline-flex; align-items: center; gap: 6px; }
+.sort-caption { font-size: .85rem; color: var(--muted); font-weight: 700; }
+.clear-search { background: var(--pink); color: #000; }
 .site-footer { margin: 28px var(--gutter) 22px; padding-top: 14px; border-top: 2px solid color-mix(in srgb, var(--muted) 35%, transparent); color: var(--muted); font-size: .78rem; line-height: 1.5; text-align: center; }
 .site-footer p { margin: 0 auto 4px; max-width: 70ch; }
 .site-footer a { color: inherit; }

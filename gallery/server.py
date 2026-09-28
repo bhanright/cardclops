@@ -161,6 +161,13 @@ class Gallery:
                 return percent if percent is not None else -1e9
             return key
 
+        def change_usd(window):
+            """By dollars per copy rather than percent: a $40 card up 5% outranks a $0.20 card up 50%."""
+            def key(row):
+                moved = prices.change(row[0], window)                # (old, new, percent) or None
+                return moved[1] - moved[0] if moved else -1e9
+            return key
+
         keys = {
             "name": lambda r: r[0].name.lower(),
             "usd": lambda r: r[0].price_usd if r[0].price_usd is not None else -1,
@@ -171,6 +178,8 @@ class Gallery:
             "qty": lambda r: r[1],
             "gain": lambda r: ((r[0].price_usd or 0) - r[0].purchase_price) if r[0].purchase_price is not None else -1e9,
             "change1": change(1), "change7": change(7), "change30": change(30),
+            "change1usd": change_usd(1), "change7usd": change_usd(7), "change30usd": change_usd(30),
+            "paid": lambda r: r[0].purchase_price if r[0].purchase_price is not None else -1,
             "color": lambda r: (len(r[0].colors) or 9, tuple(sorted(COLOR_ORDER.index(c) for c in r[0].colors))),
             "added": lambda r: max(e.added_at for e in r[3]),
             "released": lambda r: r[0].released_at,

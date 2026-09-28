@@ -9,10 +9,15 @@ import { showQueryInfo, renderChips } from './search.js';
 import { openCard } from './detail.js';
 
 const PAGE = 120;
-const SORTS = [
-  ['name', 'Name'], ['usd', 'Price'], ['value', 'Value (price × qty)'], ['change1', 'Change 1d'], ['change7', 'Change 7d'],
-  ['change30', 'Change 30d'], ['gain', 'Gain vs paid'], ['qty', 'Quantity'], ['mv', 'Mana value'], ['color', 'Color'],
-  ['rarity', 'Rarity'], ['set', 'Set'], ['released', 'Release date'], ['added', 'Date added'],
+// The sort menu, in groups. Changes are per copy: % moves, or $ moves (which put a $40 card up 5%
+// ahead of a $0.20 card up 50%). The keys are gallery/server.py's _row_sort_key.
+const SORT_GROUPS = [
+  ['Price', [['usd', 'Price'], ['value', 'Value (price × qty)'], ['change1', 'Change 1d (%)'], ['change1usd', 'Change 1d ($)'],
+    ['change7', 'Change 7d (%)'], ['change7usd', 'Change 7d ($)'], ['change30', 'Change 30d (%)'], ['change30usd', 'Change 30d ($)'],
+    ['gain', 'Gain vs paid'], ['paid', 'Price paid']]],
+  ['Card', [['name', 'Name'], ['mv', 'Mana value'], ['color', 'Color'], ['rarity', 'Rarity'], ['power', 'Power'],
+    ['toughness', 'Toughness'], ['edhrec', 'EDHREC rank'], ['artist', 'Artist']]],
+  ['Collection', [['added', 'Date added'], ['qty', 'Quantity'], ['set', 'Set'], ['released', 'Release date']]],
 ];
 const LIST_COLUMNS = [
   ['Name', 'name'], ['Set', 'set'], ['Cost', 'mv'], ['Type', null], ['Qty', 'qty'], ['Finish', null],
@@ -53,13 +58,16 @@ export function updateGallery(state, { force = false } = {}) {
 function buildToolbar() {
   els.count = h('div.result-count', { 'aria-live': 'polite' });
   els.sort = h('select.select', { 'aria-label': 'Sort by', onchange: e => ctx.setState({ sort: e.target.value }) },
-    SORTS.map(([value, label]) => h('option', { value }, label)));
+    SORT_GROUPS.map(([group, sorts]) => h('optgroup', { label: group }, sorts.map(([value, label]) => h('option', { value }, label)))));
   els.dir = h('button.btn.small.dir', { type: 'button', onclick: () => ctx.setState({ dir: ctx.getState().dir === 'asc' ? 'desc' : 'asc' }) });
   els.unique = segmented('Group results', [['prints', 'Prints'], ['cards', 'Cards']], v => ctx.setState({ unique: v }));
   els.view = segmented('Layout', [['grid', 'Grid'], ['list', 'List']], v => ctx.setState({ view: v }));
   els.file = h('button.btn.small.ghost', { type: 'button', hidden: true, title: 'Put every copy these results have in a binder (or take them out)',
     onclick: () => fileDialog({ title: 'Binders: these results', q: ctx.getState().q.trim() }) }, '📒 Put these in a binder…');
-  els.toolbar.append(els.count, els.file, h('div.toolbar-controls', h('label.sort-label', h('span.sr-only', 'Sort'), els.sort), els.dir, els.unique, els.view));
+  // Back to the whole collection after a search (a new history step, so Back returns to the search).
+  els.clear = h('button.btn.small.clear-search', { type: 'button', hidden: true, title: 'Clear the search and show your whole collection',
+    onclick: () => ctx.setState({ q: '' }, { push: true }) }, '✕ Clear search');
+  els.toolbar.append(els.count, els.clear, els.file, h('div.toolbar-controls', h('label.sort-label', h('span.sort-caption', 'Sort'), els.sort), els.dir, els.unique, els.view));
 }
 
 function segmented(label, options, onPick) {
@@ -69,6 +77,7 @@ function segmented(label, options, onPick) {
 
 function syncToolbar(state) {
   els.sort.value = state.sort;
+  els.clear.hidden = !state.q.trim();
   els.dir.textContent = state.dir === 'asc' ? '↑ Asc' : '↓ Desc';
   els.dir.setAttribute('aria-label', `Sort direction: ${state.dir === 'asc' ? 'ascending' : 'descending'}`);
   for (const [group, value] of [[els.unique, state.unique], [els.view, state.view]]) {

@@ -25,7 +25,8 @@ const TABS = ['gallery', 'decks', 'sets', 'build', 'dashboard', 'radar', 'deck',
 const TOOL_TABS = { radar: 'Radar', deck: 'Deck check', extras: 'Extras', alerts: 'Alerts', settings: 'Settings', binders: 'Binders', rules: 'Rules', about: 'About' };   // live under the Tools menu
 const DEFAULTS = { q: '', sort: 'name', dir: 'asc', unique: 'prints', view: 'grid' };
 const VALID = {
-  sort: ['name', 'usd', 'value', 'mv', 'added', 'set', 'rarity', 'qty', 'gain', 'change1', 'change7', 'change30', 'color', 'released'],
+  sort: ['name', 'usd', 'value', 'mv', 'added', 'set', 'rarity', 'qty', 'gain', 'paid', 'change1', 'change7', 'change30',
+    'change1usd', 'change7usd', 'change30usd', 'color', 'released', 'power', 'toughness', 'edhrec', 'artist'],
   dir: ['asc', 'desc'], unique: ['prints', 'cards'], view: ['grid', 'list'],
 };
 
