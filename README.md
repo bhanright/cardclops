@@ -8,6 +8,9 @@ Everything runs on this computer. Card data comes from Scryfall's daily bulk fil
 prices from Scryfall and MTGJSON, images from Scryfall's image CDN the first time a
 card scrolls into view (then from the image cache).
 
+There's also a version that runs entirely in a web browser, with no install and no account:
+[cardclops.com](https://cardclops.com) (docs/PUBLIC_EDITION_PLAN.md explains how it works).
+
 ## Installing (for anyone)
 
 `installer\Output\Cardclops-Setup-<version>.exe` installs the gallery like any Windows
@@ -137,3 +140,13 @@ It also shows the card data's date and where your data lives, and gathers the ho
 Set `CARDCLOPS_HOME` or `CARDCLOPS_CACHE` to move either folder. Before
 September 2026 everything lived in this project's `data/` folder; the first run after the change
 moved it and renamed the old folder `data.migrated-<date>`.
+
+## License
+
+Cardclops is under the MIT License (`LICENSE`). The data and software it uses come under their own
+terms: card data and images from Scryfall, price history from MTGJSON (MIT), the fonts under the SIL
+Open Font License, and the browser edition's Python, Pyodide, under the Mozilla Public License 2.0.
+The app's About page (Tools → About & credits) lists them.
+
+Cardclops is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by
+Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
