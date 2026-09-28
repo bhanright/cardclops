@@ -515,9 +515,18 @@ class Gallery:
 
     # ---- decks (docs/DECKS.md) ---------------------------------------------
 
-    def decks_list(self):
+    def decks_list(self, query=""):
+        """Every deck's summary, or those matching `query` (gallery/decksearch.py); totals are for all."""
         book = self.deckbook
-        return {"decks": [book.summary(d["deck_id"]) for d in book.ordered_decks()], "totals": book.totals()}
+        summaries = [book.summary(d["deck_id"]) for d in book.ordered_decks()]
+        result = {"decks": summaries, "totals": book.totals()}
+        if query.strip():
+            from .decks import fold
+            from .decksearch import search
+            names = {deck_id: [fold(state.row["name"]) for state in states if state.row["section"] != "maybeboard"]
+                     for deck_id, states in book.lines.items()}
+            result.update(decks=search(summaries, names, query), query=query)
+        return result
 
     def deck_detail(self, deck_id):
         return self.deckbook.detail(deck_id, self.summarize)
@@ -948,7 +957,10 @@ class Handler(SimpleHTTPRequestHandler):
                     return self._json({"error": f"Archidekt answered {error.code}"}, HTTPStatus.BAD_GATEWAY)
             if route == "decks":
                 if len(parts) == 2:
-                    return self._json(gallery.decks_list())
+                    try:
+                        return self._json(gallery.decks_list(params.get("q", "")))
+                    except ValueError as error:
+                        return self._json({"error": str(error)}, HTTPStatus.BAD_REQUEST)
                 if parts[2] == "export":
                     with gallery.lock:
                         data = gallery.deckbook.export_all()

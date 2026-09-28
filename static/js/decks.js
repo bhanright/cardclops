@@ -1,5 +1,5 @@
 // Decks tab: the deck grid with totals, filters and sorting, plus the import panel (paste or files).
-import { h, $, clear, int, money, spinner, errorBox, store, symbol, formatLabel, toast } from './util.js';
+import { h, $, clear, int, money, spinner, errorBox, store, symbol, formatLabel, toast, debounce } from './util.js';
 import { api } from './api.js';
 import { lazyImg } from './cards.js';
 import { showDeckPage, hideDeckPage } from './deckpage.js';
@@ -10,9 +10,9 @@ export const DECK_FORMATS = ['commander', 'standard', 'pioneer', 'modern', 'lega
 export const deckFormatLabel = f => (f === 'casual' ? 'Casual' : f ? formatLabel(f) : 'No format');
 
 const PREFS_KEY = 'gallery.decks';
-const prefs = { filter: 'all', sort: 'name', ...store.get(PREFS_KEY, {}) };
+const prefs = { filter: 'all', sort: 'name', q: '', ...store.get(PREFS_KEY, {}) };
 let built = false;
-let home, page, grid, totalsBox, toolbar, importPanel;
+let home, page, grid, totalsBox, toolbar, importPanel, searchNote;
 let lastData = null;
 
 /** Show the deck grid (deckId null) or one deck's page. */
@@ -50,7 +50,8 @@ function buildHome() {
   home.append(
     h('section.panel.decks-head',
       h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, exportLink, importBtn)),
-      totalsBox),
+      totalsBox,
+      deckSearch()),
     importPanel,
     grid);
   home.importBtn = importBtn;
@@ -63,6 +64,32 @@ function toggleImport(force) {
   home.importBtn.setAttribute('aria-expanded', String(open));
   home.importBtn.textContent = open ? '× Close import' : '＋ Import decks';
   if (open) importPanel.querySelector('input, textarea')?.focus();
+}
+
+/** The deck search box (gallery/decksearch.py has the syntax) and its cheat sheet. */
+function deckSearch() {
+  const input = h('input.search-input.deck-search-input', { type: 'search', value: prefs.q, autocomplete: 'off', spellcheck: 'false',
+    placeholder: 'Search decks… try  c:simic  card:"sol ring"  is:active', 'aria-label': 'Search decks' });
+  const run = debounce(() => { prefs.q = input.value.trim(); store.set(PREFS_KEY, prefs); load(); }, 300);
+  input.addEventListener('input', run);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); run.cancel?.(); prefs.q = input.value.trim(); store.set(PREFS_KEY, prefs); load(); } });
+  const help = h('div.deck-search-help.small', { hidden: true },
+    h('table', h('tbody', [
+      ['atraxa', 'deck or commander name contains the words ("quotes" for a phrase)'],
+      ['c:g   c:simic   c:c', 'color identity includes these colors (c:c is colorless)'],
+      ['c=ug   c<=ug', 'exactly these colors; within these colors'],
+      ['card:"sol ring"', 'a card in the deck (not the maybeboard) has this in its name'],
+      ['cmd:tymna', 'a commander has this in its name'],
+      ['f:commander   f:modern', 'format'],
+      ['is:active   is:inactive   is:legal   is:illegal', 'status and legality'],
+      ['is:complete   is:incomplete   is:conflict', 'all copies owned; some missing; short because another deck holds them'],
+      ['cards>=100   missing>0   value>200   cost<50', 'numbers (also owned, priority)'],
+      ['-card:"sol ring"', 'a leading minus excludes'],
+    ].map(([q, what]) => h('tr', h('td', h('code', q)), h('td', what))))));
+  const helpBtn = h('button.icon-btn', { type: 'button', 'aria-label': 'Deck search syntax', 'aria-expanded': 'false', title: 'Search syntax',
+    onclick: () => { help.hidden = !help.hidden; helpBtn.setAttribute('aria-expanded', String(!help.hidden)); } }, '?');
+  searchNote = h('div.deck-search-note.small', { 'aria-live': 'polite' });
+  return h('div.deck-search', h('div.deck-search-row', input, helpBtn), searchNote, help);
 }
 
 function buildToolbar() {
@@ -78,9 +105,15 @@ function buildToolbar() {
 
 async function load() {
   if (!lastData) clear(grid).append(spinner('Shuffling decks…'));
+  const asked = prefs.q;
   try {
-    lastData = await api.decks.list();
+    const data = await api.decks.list(asked);
+    if (asked !== prefs.q) return;                  // a newer search is on its way
+    lastData = data;
+    searchNote?.classList.remove('bad');
   } catch (error) {
+    if (asked !== prefs.q) return;
+    if (asked && searchNote) { clear(searchNote).append(`⚠ ${error.message}`); searchNote.classList.add('bad'); return; }
     clear(grid).append(errorBox(error.message));
     return;
   }
@@ -108,13 +141,15 @@ function renderGrid() {
   };
   decks.sort(sorters[prefs.sort] || sorters.name);
   clear(grid);
-  if (!lastData.decks?.length) {
+  const deckCount = (lastData.totals?.active ?? 0) + (lastData.totals?.inactive ?? 0);   // all decks, whatever the search
+  if (!deckCount) {
     grid.append(h('div.empty', h('div.blob-eye', { 'aria-hidden': 'true' }),
       h('p', 'No decks yet. Paste a list or drop some deck files to get started.'),
       h('button.btn.go', { type: 'button', onclick: () => toggleImport(true) }, '＋ Import decks')));
     return;
   }
-  if (!decks.length) { grid.append(h('div.chart-empty', `No ${prefs.filter} decks.`)); return; }
+  if (searchNote) clear(searchNote).append(lastData.query ? `${int(decks.length)} ${decks.length === 1 ? 'deck matches' : 'decks match'}` : '');
+  if (!decks.length) { grid.append(h('div.chart-empty', lastData.query ? 'No decks match that search.' : `No ${prefs.filter} decks.`)); return; }
   grid.append(...decks.map(deckTile));
 }
 

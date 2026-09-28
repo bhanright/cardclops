@@ -1859,3 +1859,13 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .decks-file { margin-top: 18px; padding-top: 14px; border-top: 2px dashed var(--panel-3); }
 .decks-file h3 { margin-bottom: 4px; }
 .tools-list { overflow-y: auto; overscroll-behavior: contain; }
+/* Deck search (Decks page) */
+.deck-search { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; }
+.deck-search-row { display: flex; gap: 8px; align-items: center; }
+.deck-search-input { flex: 1; min-width: 0; }
+.deck-search-note { color: var(--muted); min-height: 1.2em; }
+.deck-search-note.bad { color: var(--pink-text); font-weight: 700; }
+.deck-search-help table { border-collapse: collapse; }
+.deck-search-help td { padding: 3px 12px 3px 0; vertical-align: top; }
+.deck-search-help code { white-space: nowrap; }
+@media (max-width: 600px) { .deck-search-help td:first-child code { white-space: normal; } }

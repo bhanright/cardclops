@@ -154,6 +154,15 @@ when the app starts.
 
 `POST /api/decks/<id>/sync` → re-reads a deck imported from Archidekt (pins survive) → DeckSummary + `warnings`.
 
+`GET /api/decks?q=…` → the same, keeping the decks that match a search (totals stay for all decks), plus
+`query`; 400 with `error` for a term it can't read. Terms are separated by spaces, all must match, and a
+leading `-` negates one: plain words (deck or commander name), `name:`, `cmd:`, `card:"sol ring"` (a card
+in the deck, not the maybeboard), `c:`/`id:` color identity (`c:g` includes, `c=ug` exactly, `c<=ug`
+within, also `>=`, `<`, `>`; letters, guild/shard names, `c:c` colorless), `f:`/`format:` (`edh` works),
+`is:active|inactive|legal|illegal|complete|incomplete|conflict`, and numbers `cards`, `missing`, `value`,
+`cost`, `owned`, `priority` with `= != < > <= >=`. Unknown keys are read as plain words
+(gallery/decksearch.py).
+
 `GET /api/decks/<id>` → `{"deck": DeckSummary + {"notes": "…"}, "lines": [DeckLine], "stats": DeckStats}`
 
 `PATCH /api/decks/<id>` body any of `{"name", "format", "status", "priority", "notes",

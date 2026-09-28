@@ -81,7 +81,7 @@ export const api = {
     draft: (commander, partner) => request('/api/build/draft?' + qs({ commander, partner })),
   },
   decks: {
-    list: () => request('/api/decks'),
+    list: q => request('/api/decks' + (q ? '?' + qs({ q }) : '')),
     import: decks => request('/api/decks/import', { method: 'POST', body: { decks } }),
     get: id => request(`/api/decks/${id}`),
     update: (id, fields) => request(`/api/decks/${id}`, { method: 'PATCH', body: fields }),
