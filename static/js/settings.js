@@ -19,6 +19,8 @@ const MORE_THEMES = [
   { id: 'lollipop', name: 'Lollipop', note: 'A candy shop: cherry, green apple and blue raspberry on bubblegum', swatch: ['#ffd9ec', '#ec1a78', '#459600', '#0b8fd0'], light: true },
   { id: 'astronaut', name: 'Astronaut', note: 'A spacesuit in deep space: safety orange, HUD cyan and visor gold', swatch: ['#070b17', '#ff6b2c', '#4fd3ff', '#f4c542'] },
   { id: 'necronomicon', name: 'Necronomicon', note: 'Bound in something it shouldn’t be: bone, blood and a sickly glow', swatch: ['#110807', '#e0314a', '#9ad14a', '#d8b25c'] },
+  { id: 'stovepipe', name: 'Stovepipe', note: 'A cast-iron wood stove: soot, ember, brass and copper', swatch: ['#12100e', '#f08a2b', '#d9aa4a', '#7fb3c9'] },
+  { id: 'gamma', name: 'Gamma', note: 'Gamma radiation: a green glow, hazard yellow and a purple lab-accident', swatch: ['#07110b', '#7dff3a', '#ffe23d', '#b077ff'] },
 ];
 const LIGHT_THEMES = new Set([...THEMES, ...MORE_THEMES].filter(t => t.light).map(t => t.id));
 const SIZES = [[90, 'Smaller'], [100, 'Normal'], [112.5, 'Larger'], [125, 'Largest']];

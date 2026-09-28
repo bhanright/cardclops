@@ -120,7 +120,7 @@ scripts/          notify.ps1, the Windows notification for price alerts
 ## Settings
 
 Tools → Settings chooses a theme (Neon, the original; Light; Dark, or Light/Dark following the
-device; and under More themes: Lollipop, Astronaut and Necronomicon), text size,
+device; and under More themes: Lollipop, Astronaut, Necronomicon, Stovepipe and Gamma), text size,
 reduced motion, the foil shimmer and hover previews. These are saved in the browser, per device.
 It also shows the card data's date and where your data lives, and gathers the housekeeping actions.
 
