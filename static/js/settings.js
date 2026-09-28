@@ -8,12 +8,19 @@ import { openHandAdded } from './addcards.js';
 
 export const SETTINGS_KEY = 'gallery.settings';     // index.html reads the same key
 const DEFAULTS = { theme: 'neon', textScale: 100, motion: 'system', foil: true, hoverPreview: true };
+// The top row is the default and the two plain themes; "More themes" holds every other palette
+// (future ones included). The palettes themselves are in styles.css, under :root[data-theme].
 const THEMES = [
   { id: 'neon', name: 'Neon', note: 'The original: saturated color on deep violet', swatch: ['#140a24', '#ff3fa4', '#b8ff3c', '#2ee6ff'] },
+  { id: 'light', name: 'Light', note: 'Warm paper and deeper inks', swatch: ['#f6f0e4', '#e0237f', '#5b9e00', '#0a8aab'], light: true },
   { id: 'dark', name: 'Dark', note: 'Softer colors on charcoal', swatch: ['#131317', '#f06aa6', '#b7e06e', '#72d0e6'] },
-  { id: 'light', name: 'Light', note: 'Warm paper and deeper inks', swatch: ['#f6f0e4', '#e0237f', '#5b9e00', '#0a8aab'] },
-  { id: 'auto', name: 'Match device', note: 'Light or Dark, following your device', swatch: ['#f6f0e4', '#131317', '#e0237f', '#f06aa6'] },
 ];
+const MORE_THEMES = [
+  { id: 'lollipop', name: 'Lollipop', note: 'A candy shop: cherry, green apple and blue raspberry on bubblegum', swatch: ['#ffd9ec', '#ec1a78', '#459600', '#0b8fd0'], light: true },
+  { id: 'astronaut', name: 'Astronaut', note: 'A spacesuit in deep space: safety orange, HUD cyan and visor gold', swatch: ['#070b17', '#ff6b2c', '#4fd3ff', '#f4c542'] },
+  { id: 'necronomicon', name: 'Necronomicon', note: 'Bound in something it shouldn’t be: bone, blood and a sickly glow', swatch: ['#110807', '#e0314a', '#9ad14a', '#d8b25c'] },
+];
+const LIGHT_THEMES = new Set([...THEMES, ...MORE_THEMES].filter(t => t.light).map(t => t.id));
 const SIZES = [[90, 'Smaller'], [100, 'Normal'], [112.5, 'Larger'], [125, 'Largest']];
 const lightQuery = matchMedia('(prefers-color-scheme: light)');
 
@@ -29,11 +36,12 @@ export function applySettings(s = settings()) {
   root.style.fontSize = s.textScale === 100 ? '' : `${s.textScale}%`;
   if (s.motion === 'reduce') root.dataset.motion = 'reduce'; else delete root.dataset.motion;
   if (s.foil === false) root.dataset.foil = 'off'; else delete root.dataset.foil;
-  document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', theme === 'light' ? 'light' : 'dark');
+  const light = LIGHT_THEMES.has(theme);
+  document.querySelector('meta[name="color-scheme"]')?.setAttribute('content', light ? 'light' : 'dark');
   const style = getComputedStyle(root);
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', style.getPropertyValue('--bg').trim());
   // The Android app colors the phone's status and navigation bars to match (MainActivity.ThemeBridge).
-  window.CardclopsAndroid?.setBars(style.getPropertyValue('--bg-deep').trim(), style.getPropertyValue('--bg').trim(), theme === 'light');
+  window.CardclopsAndroid?.setBars(style.getPropertyValue('--bg-deep').trim(), style.getPropertyValue('--bg').trim(), light);
 }
 lightQuery.addEventListener('change', () => { if (settings().theme === 'auto') applySettings(); });
 
@@ -61,15 +69,32 @@ function toggle(key, label, current) {
   return h('label.inline-label.check', box, ' ', label);
 }
 
-function themePicks(current) {
-  const box = h('div.theme-picks', { role: 'group', 'aria-label': 'Theme' });
-  const draw = value => clear(box).append(...THEMES.map(t => h('button.theme-pick', {
+/** Theme cards in two groups, plus the "match my device" switch between Light and Dark. */
+function themeChooser(current) {
+  const main = h('div.theme-picks', { role: 'group', 'aria-label': 'Themes' });
+  const more = h('div.theme-picks', { role: 'group', 'aria-label': 'More themes' });
+  const follow = h('input', { type: 'checkbox' });
+  const card = (t, value) => h('button.theme-pick', {
     type: 'button', 'aria-pressed': String(t.id === value), title: t.note,
     onclick: () => { change({ theme: t.id }); draw(t.id); } },
   h('span.theme-swatch', { 'aria-hidden': 'true' }, t.swatch.map(color => h('span', { style: { background: color } }))),
-  h('b', t.name), h('span.small.muted', t.note))));
+  h('b', t.name), h('span.small.muted', t.note));
+  const draw = theme => {
+    // With "match my device" on, the card for whichever of Light and Dark is showing is pressed.
+    const shown = theme === 'auto' ? (lightQuery.matches ? 'light' : 'dark') : theme;
+    clear(main).append(...THEMES.map(t => card(t, shown)));
+    clear(more).append(...MORE_THEMES.map(t => card(t, shown)));
+    follow.checked = theme === 'auto';
+  };
+  follow.addEventListener('change', () => {
+    const theme = follow.checked ? 'auto' : (lightQuery.matches ? 'light' : 'dark');
+    change({ theme });
+    draw(theme);
+  });
   draw(current);
-  return box;
+  return h('div.theme-chooser', main,
+    h('label.inline-label.check.follow-device', follow, ' Match my device: Light when it’s in light mode, Dark when it’s in dark mode'),
+    h('h3.more-themes', 'More themes'), more);
 }
 
 export async function showSettings() {
@@ -80,7 +105,7 @@ export async function showSettings() {
   clear(host).append(h('div.settings-page',
     h('section.panel',
       h('div.panel-head', h('h2', 'Appearance'), h('span.muted.small', 'Saved on this device')),
-      row('Theme', 'Colors for the whole app', themePicks(s.theme)),
+      row('Theme', 'Colors for the whole app', themeChooser(s.theme)),
       row('Text size', 'Scales text and most spacing', choices('textScale', SIZES, s.textScale)),
       row('Motion', 'Wobbling logo, ringing bell, sliding cards', choices('motion', [['system', 'Follow my device'], ['reduce', 'Reduce']], s.motion)),
       row('Foil shimmer', 'The rainbow sheen on foil cards', toggle('foil', 'Show it', s.foil !== false)),

@@ -117,6 +117,54 @@
 }
 :root[data-theme="light"] .dh-name h1 { text-shadow: 3px 3px 0 var(--lime); }
 
+/* ---- More themes (Settings → Appearance → More themes) ----
+   Lollipop: a candy shop on bubblegum paper (light).
+   Astronaut: a spacesuit in deep space.
+   Necronomicon: a book bound in something it shouldn't be: bone, blood and a sickly glow. */
+:root[data-theme="lollipop"] {
+  --bg: #ffd9ec; --bg-deep: #ffc4e0; --bg-blob: #ffe6f2;
+  --panel: #fff7fb; --panel-2: #ffeaf4; --panel-3: #ffd3e8; --well: #fffafd;
+  --text: #44092f; --muted: #7f3f68; --faint: #b07a9c;
+  --pink: #ec1a78; --lime: #459600; --cyan: #0b8fd0; --violet: #a05cec;
+  --orange: #f0650c; --yellow: #b98600; --mint: #00a383; --peach: #ec6f58;
+  --pink-text: #c4115f; --pink-soft: #a80f52; --flat: #f7cfe2;
+  --tile-uncommon: #e6f3ff; --tile-rare: #fff3d6; --tile-mythic: #ffe4d6;
+  --zebra: #fff0f7; --grid: #ffd1e6; --grid-2: #f5b6d4; --drop: #ffe1ef; --hatch: #f7c6de;
+  --tint-pink: #ffd0e5; --tint-magenta: #f8d2f0; --tint-green: #dcf5c4; --legend-miss: #ecc9da;
+  --glow-a: #fff1a8; --glow-b: #c9f3ff;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23ffc8e1' stroke-width='7' stroke-linecap='round'%3E%3Cpath d='M60 60m-26 0a26 26 0 1 0 52 0a18 18 0 1 0 -36 0a10 10 0 1 0 20 0'/%3E%3Cpath d='M190 170m-22 0a22 22 0 1 0 44 0a14 14 0 1 0 -28 0a7 7 0 1 0 14 0'/%3E%3C/g%3E%3Cg stroke='%23ffc0dd' stroke-width='6' stroke-linecap='round'%3E%3Cpath d='M150 40l14 8M40 190l6 14M220 90l-4 14M110 230l14-4'/%3E%3C/g%3E%3C/svg%3E");
+  --mana-W: #f3e27a; --mana-C: #d9c4d3; --mana-N: #e2cfdb;
+  --r-common: #e2c3d6; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+}
+:root[data-theme="astronaut"] {
+  --bg: #070b17; --bg-deep: #04060e; --bg-blob: #0c1326;
+  --panel: #121b33; --panel-2: #0e1529; --panel-3: #1c2847; --well: #0a1022;
+  --text: #eef3ff; --muted: #aab7d6; --faint: #6c7a9e;
+  --pink: #ff5f6d; --lime: #6fe28f; --cyan: #4fd3ff; --violet: #9d8cff;
+  --orange: #ff6b2c; --yellow: #f4c542; --mint: #5fe6d2; --peach: #ffab8a;
+  --pink-text: #ff8a95; --pink-soft: #ffb0b8; --flat: #26325a;
+  --tile-uncommon: #132444; --tile-rare: #221f33; --tile-mythic: #2a1a26;
+  --zebra: #101830; --grid: #1b2645; --grid-2: #28365e; --drop: #152040; --hatch: #060a15;
+  --tint-pink: #3a1622; --tint-magenta: #2c1a3e; --tint-green: #123024; --legend-miss: #39456a;
+  --glow-a: #101a38; --glow-b: #140f2e;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%2322305a'%3E%3Ccircle cx='20' cy='30' r='1.6'/%3E%3Ccircle cx='70' cy='140' r='1.2'/%3E%3Ccircle cx='130' cy='60' r='2'/%3E%3Ccircle cx='210' cy='20' r='1.3'/%3E%3Ccircle cx='240' cy='150' r='1.8'/%3E%3Ccircle cx='160' cy='230' r='1.4'/%3E%3Ccircle cx='40' cy='220' r='2.2'/%3E%3Ccircle cx='100' cy='200' r='1'/%3E%3Ccircle cx='190' cy='110' r='1.1'/%3E%3C/g%3E%3Cg fill='none' stroke='%231a2446' stroke-width='5'%3E%3Ccircle cx='205' cy='205' r='18'/%3E%3Cellipse cx='205' cy='205' rx='34' ry='9'/%3E%3C/g%3E%3C/svg%3E");
+}
+:root[data-theme="necronomicon"] {
+  --bg: #110807; --bg-deep: #0a0404; --bg-blob: #1a0d0b;
+  --panel: #23140f; --panel-2: #1c100c; --panel-3: #342019; --well: #140a08;
+  --text: #eadcbf; --muted: #b9a582; --faint: #7d6a50;
+  --pink: #e0314a; --lime: #9ad14a; --cyan: #56c2a8; --violet: #a274e0;
+  --orange: #e58a2c; --yellow: #d8b25c; --mint: #7fcf9e; --peach: #d99a7a;
+  --pink-text: #f06a7b; --pink-soft: #f59aa6; --flat: #3d2a22;
+  --tile-uncommon: #1e1c1a; --tile-rare: #2a1d12; --tile-mythic: #2e1414;
+  --zebra: #1d110d; --grid: #2e1c16; --grid-2: #44291f; --drop: #261611; --hatch: #0a0504;
+  --tint-pink: #3d1216; --tint-magenta: #33142a; --tint-green: #1d2a12; --legend-miss: #4a3a30;
+  --glow-a: #2a0b0b; --glow-b: #16100a;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23241410' stroke-width='5' stroke-linecap='round'%3E%3Ccircle cx='70' cy='70' r='42'/%3E%3Ccircle cx='70' cy='70' r='32'/%3E%3Cpath d='M70 40L98 86H42Z'/%3E%3Cpath d='M160 190q30-26 60 0q-30 26-60 0Z'/%3E%3Ccircle cx='190' cy='190' r='7'/%3E%3Cpath d='M190 40v36M178 52h24M40 190l18 30M58 190l-18 30'/%3E%3C/g%3E%3C/svg%3E");
+}
+:root[data-theme="lollipop"] .dh-name h1 { text-shadow: 3px 3px 0 var(--pink); color: var(--paper); }
+:root[data-theme="necronomicon"] .dh-name h1 { text-shadow: 3px 3px 0 #5a0d16; }
+
 /* Settings → Appearance: reduce motion (as the system setting does), no foil shimmer. */
 :root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
   animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;
@@ -1681,3 +1729,6 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .pref-facts dt { color: var(--muted); }
 .pref-facts dd { margin: 0; overflow-wrap: anywhere; }
 @media (max-width: 600px) { .pref-row { grid-template-columns: 1fr; } }
+.theme-chooser { display: flex; flex-direction: column; gap: 10px; }
+.follow-device { font-size: .9rem; }
+.more-themes { margin-top: 8px; font-size: 1rem; color: var(--muted); }
