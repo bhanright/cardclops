@@ -293,6 +293,18 @@ class EditingTests(AllocationTests):
         self.assertEqual([tuple(r) for r in rows], [(1, None)])
         self.assertEqual([s.row["quantity"] for s in self.book.lines[deck_id]], [1])
 
+    def test_quick_add_takes_decklist_lines(self):
+        deck_id = self.deck("Quick", "1 Sol Ring")
+        result = self.book.add_text(deck_id, "2 Sol Ring\n1 Sol Ring (C21) 263 *F*\nSideboard\n1 Sol Ring\n1 No Such Card", "main")
+        self.assertEqual([(a["quantity"], a["section"]) for a in result["added"]], [(2, "main"), (1, "main"), (1, "sideboard")])
+        self.assertEqual(len(result["warnings"]), 1)
+        rows = sorted((s.row["section"], s.row["quantity"], s.row["requested_set"], s.row["requested_finish"])
+                      for s in self.book.lines[deck_id])
+        # The plain line merged into the existing one; the printing asked for is a line of its own.
+        self.assertEqual(rows, [("main", 1, "c21", "foil"), ("main", 3, None, None), ("sideboard", 1, None, None)])
+        with self.assertRaises(ValueError):
+            self.book.add_text(deck_id, "1 No Such Card")
+
     def test_adding_editing_and_removing_a_line(self):
         deck_id = self.deck("Edit", "1 Sol Ring")
         self.book.add_line(deck_id, {"oracle_id": self.oracle})                  # same card, same section: merged

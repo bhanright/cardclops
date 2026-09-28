@@ -1869,3 +1869,5 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .deck-search-help td { padding: 3px 12px 3px 0; vertical-align: top; }
 .deck-search-help code { white-space: nowrap; }
 @media (max-width: 600px) { .deck-search-help td:first-child code { white-space: normal; } }
+.quick-add { width: 100%; resize: none; overflow: hidden; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: .9rem; }
+.add-to-deck { display: flex; flex-direction: column; gap: 10px; min-width: min(420px, 80vw); }

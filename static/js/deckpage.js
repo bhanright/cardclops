@@ -363,7 +363,28 @@ function addLineForm() {
   }, 300);
   input.addEventListener('input', search);
   input.addEventListener('keydown', e => { if (e.key === 'Enter' && !add.disabled) { e.preventDefault(); add.click(); } });
-  return h('div.add-line-form', input, names,
+  // Quick add: decklist lines, typed or pasted; Enter adds them (Shift+Enter starts another line).
+  const quick = h('textarea.text-input.quick-add', { rows: 1, spellcheck: 'false', 'aria-label': 'Quick add lines',
+    placeholder: 'Quick add: 2 Sol Ring  ·  1 Sol Ring (C21) 263 *F*  ·  or paste several lines' });
+  const grow = () => { quick.style.height = 'auto'; quick.style.height = `${quick.scrollHeight}px`; };
+  quick.addEventListener('input', grow);
+  quick.addEventListener('keydown', async e => {
+    if (e.key !== 'Enter' || e.shiftKey || !quick.value.trim()) return;
+    e.preventDefault();
+    quick.disabled = true;
+    try {
+      const r = await api.decks.addText(deckId, quick.value, section.value);
+      invalidateDecks();
+      const count = r.added.reduce((n, a) => n + a.quantity, 0);
+      toast(r.warning || `Added ${count} card${count === 1 ? '' : 's'}` + (r.warnings?.length ? ` · ${r.warnings.length} not understood` : ''));
+      if (r.warnings?.length) notices = { title: 'Quick add', warnings: r.warnings };
+      await load({ quiet: true });
+      document.querySelector('.add-line-form .quick-add')?.focus();
+    } catch (error) { toast('Could not add: ' + error.message); quick.disabled = false; }
+  });
+  return h('div.add-line-form', quick,
+    h('div.small.muted', 'Or search for a card and pick its printing:'),
+    input, names,
     h('div.form-row', h('label.inline-label', 'Printing ', printing), h('label.inline-label', 'Section ', section),
       h('label.inline-label', 'Quantity ', quantity), add));
 }

@@ -87,6 +87,7 @@ export const api = {
     update: (id, fields) => request(`/api/decks/${id}`, { method: 'PATCH', body: fields }),
     replaceList: (id, text) => request(`/api/decks/${id}/list`, { method: 'PUT', body: { text } }),
     remove: id => request(`/api/decks/${id}`, { method: 'DELETE' }),
+    addText: (id, text, section) => request(`/api/decks/${id}/lines`, { method: 'POST', body: { text, section } }),
     addLine: (id, fields) => request(`/api/decks/${id}/lines`, { method: 'POST', body: fields }),
     editLine: (id, lineId, fields) => request(`/api/decks/${id}/lines/${lineId}`, { method: 'PATCH', body: fields }),
     removeLine: (id, lineId) => request(`/api/decks/${id}/lines/${lineId}`, { method: 'DELETE' }),

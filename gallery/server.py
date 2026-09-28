@@ -664,6 +664,12 @@ class Gallery:
                     summary["warning"] = "This deck syncs from Archidekt; the next sync will replace these swaps."
                 return summary
             if action == "lines":
+                if method == "POST" and not rest and "text" in body:
+                    added = book.add_text(deck_id, body["text"], body.get("section") or None)
+                    summary = {**book.summary(deck_id), **added}
+                    if book.decks[deck_id]["source"] == "archidekt":
+                        summary["warning"] = "This deck syncs from Archidekt; the next sync will replace this change."
+                    return summary
                 if method == "POST" and not rest:
                     line_id = book.add_line(deck_id, body)
                 elif method in ("PATCH", "DELETE") and len(rest) == 1 and rest[0].isdigit():

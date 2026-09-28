@@ -1,6 +1,7 @@
 // Card detail modal: big image, rules text, price chart, holdings, tags, legality, other printings, similar.
-import { h, $, clear, money, signedMoney, signedClass, manaCost, rulesText, finishLabel, formatLabel, sortFormats, spinner, errorBox, int, titleCase } from './util.js';
+import { h, $, clear, money, signedMoney, signedClass, manaCost, rulesText, finishLabel, formatLabel, sortFormats, spinner, errorBox, int, titleCase, toast } from './util.js';
 import { openAddDialog, handMark } from './addcards.js';
+import { dialog as openDialog } from './setup.js';
 import { watchButton } from './alerts.js';
 import { api, resize } from './api.js';
 import { cardFace, thumb, rarityGem } from './cards.js';
@@ -140,7 +141,8 @@ function render({ card, tags = [], holdings = [], other_printings = [], similar 
       title: 'This card on EDHREC: the decks and commanders that play it' }, 'EDHREC ↗'));
   }
 
-  const left = h('div.d-left', h('div.d-image', face), h('div.price-badges', priceBadges), h('div.d-links', links), h('div.form-row.d-actions', h('button.btn.small.go', { type: 'button', onclick: () => openAddDialog({ oracleId: card.oracle_id, name: card.name, scryfallId: card.scryfall_id, quantity: 1 }) }, '＋ Add to collection')), watchButton(card, holdings));
+  const left = h('div.d-left', h('div.d-image', face), h('div.price-badges', priceBadges), h('div.d-links', links), h('div.form-row.d-actions', h('button.btn.small.go', { type: 'button', onclick: () => openAddDialog({ oracleId: card.oracle_id, name: card.name, scryfallId: card.scryfall_id, quantity: 1 }) }, '＋ Add to collection'),
+    h('button.btn.small', { type: 'button', onclick: () => addToDeckDialog(card) }, '＋ Add to a deck')), watchButton(card, holdings));
 
   const facesBlock = faces.map((f, i) => h('div.face-block',
     faces.length > 1 ? h('div.face-name', h('span', f.name), ' ', manaCost(f.mana_cost)) : null,
@@ -248,4 +250,40 @@ function edhrecCardUrl(card) {
   const slug = name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
     .replace(/[^a-z0-9 -]/g, '').replace(/[ -]+/g, '-').replace(/^-|-$/g, '');
   return `https://edhrec.com/cards/${slug}`;
+}
+
+/** "Add to a deck" from a card's detail: which deck, this printing or any, the section and how many. */
+async function addToDeckDialog(card) {
+  const body = h('div.add-to-deck', spinner('Finding your decks…'));
+  const close = openDialog(`Add ${card.name} to a deck`, body);
+  let decks;
+  try { decks = (await api.decks.list()).decks || []; } catch (error) { clear(body).append(errorBox(error.message)); return; }
+  if (!decks.length) { clear(body).append(h('p.muted', 'You have no decks yet. Import one on the Decks page first.')); return; }
+  decks.sort((a, b) => (a.status === b.status ? a.name.localeCompare(b.name) : a.status === 'active' ? -1 : 1));
+  const deck = h('select.select', { 'aria-label': 'Deck' },
+    decks.map(d => h('option', { value: d.deck_id }, `${d.name}${d.status === 'active' ? '' : ' (inactive)'}`)));
+  const printing = h('select.select', { 'aria-label': 'Printing' },
+    h('option', { value: '' }, 'Any printing'),
+    h('option', { value: card.scryfall_id }, `This printing: ${(card.set_code || '').toUpperCase()} #${card.collector_number}`));
+  const section = h('select.select', { 'aria-label': 'Section' },
+    [['main', 'Main deck'], ['commander', 'Commander'], ['companion', 'Companion'], ['sideboard', 'Sideboard'], ['maybeboard', 'Maybeboard']]
+      .map(([v, l]) => h('option', { value: v }, l)));
+  const quantity = h('input.num-input', { type: 'number', min: 1, step: 1, value: 1, 'aria-label': 'Quantity' });
+  const add = h('button.btn.go', { type: 'button', onclick: async () => {
+    add.disabled = true;
+    const chosen = decks.find(d => String(d.deck_id) === deck.value);
+    try {
+      const r = await api.decks.addLine(deck.value, { oracle_id: card.oracle_id, scryfall_id: printing.value || undefined,
+        section: section.value, quantity: Math.max(1, +quantity.value || 1) });
+      window.dispatchEvent(new CustomEvent('cardclops:decks-changed'));
+      close();
+      toast(r.warning || `Added to ${chosen?.name || 'the deck'}`);
+    } catch (error) { toast('Could not add: ' + error.message); add.disabled = false; }
+  } }, '＋ Add to deck');
+  clear(body).append(
+    h('div.form-row', h('label.inline-label', 'Deck ', deck)),
+    h('div.form-row', h('label.inline-label', 'Printing ', printing)),
+    h('div.form-row', h('label.inline-label', 'Section ', section), h('label.inline-label', 'Quantity ', quantity)),
+    h('div.form-row', add));
+  deck.focus();
 }

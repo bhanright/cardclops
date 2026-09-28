@@ -1135,6 +1135,51 @@ class DeckBook:
     # -- editing one line (docs/DECKS.md, "Endpoints") --
 
     @all_or_nothing
+    def add_text(self, deck_id, text, section=None):
+        """Quick add: decklist lines ("2 Sol Ring", "1 Sol Ring (C21) 263 *F*"), each added to the deck
+        or to the quantity of the same line already there. `section` applies to lines the text doesn't
+        put in a section of its own. Returns {"added": [{name, quantity, section}], "warnings"}."""
+        if section is not None and section not in SECTIONS:
+            raise ValueError(f"section must be one of {', '.join(SECTIONS)}")
+        parsed, _ = parse_decklist(text or "")
+        if not parsed:
+            raise ValueError("No cards in that: type lines like 2 Sol Ring")
+        connection = self.connection
+        name = self.decks[deck_id]["name"]
+        added, warnings, fetch = [], [], set()
+        position = max((s.row["position"] for s in self.lines[deck_id]), default=0)
+        for line in parsed:
+            target = line.section if line.section != "main" else (section or "main")
+            oracle_id, scryfall_id, card_name, warning = self.resolver.resolve(line)
+            if warning:
+                warnings.append({"deck": name, "line": line.raw or line.name, "message": warning})
+            if oracle_id is None:
+                continue
+            requested = scryfall_id if line.set_code else None
+            same = connection.execute(
+                "SELECT line_id FROM deck_lines WHERE deck_id = ? AND section = ? AND oracle_id = ? "
+                "AND (CASE WHEN requested_set IS NULL THEN NULL ELSE scryfall_id END) IS ? AND requested_finish IS ?",
+                (deck_id, target, oracle_id, requested, line.finish)).fetchone()
+            if same:
+                connection.execute("UPDATE deck_lines SET quantity = quantity + ? WHERE line_id = ?", (line.quantity, same[0]))
+            else:
+                position += 1
+                connection.execute(
+                    "INSERT INTO deck_lines (deck_id, position, section, quantity, name, oracle_id, scryfall_id, "
+                    "requested_set, requested_number, requested_finish) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (deck_id, position, target, line.quantity, card_name, oracle_id, scryfall_id,
+                     line.set_code if line.set_code else None, line.number if line.set_code else None, line.finish))
+                if scryfall_id and scryfall_id not in self.collection.by_scryfall_id:
+                    fetch.add(scryfall_id)
+            added.append({"name": card_name, "quantity": line.quantity, "section": target})
+        if not added:
+            connection.rollback()
+            raise ValueError(warnings[0]["message"] if warnings else "No cards in that")
+        self._fetch_missing_cards(fetch)
+        self._edited(deck_id)
+        return {"added": added, "warnings": warnings}
+
+    @all_or_nothing
     def add_line(self, deck_id, body):
         """Add a card by oracle_id (any printing), scryfall_id (that printing) or name. Adding a
         card already in that section raises its quantity. Returns the line_id."""

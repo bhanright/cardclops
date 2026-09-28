@@ -190,6 +190,11 @@ printing) or `{"name": "Sol Ring"}`, plus optional `"section"` (default `main`) 
 (default 1) → DeckSummary + `line_id`. A card already in that section, with no printing asked for,
 gets its quantity raised instead of a second line.
 
+`POST /api/decks/<id>/lines` body `{"text": "2 Sol Ring
+1 Sol Ring (C21) 263 *F*", "section": "main"}` is quick add:
+decklist lines, each added (or added to the same line already there); `section` applies to lines the text
+doesn't put in a section itself → DeckSummary + `added` [{name, quantity, section}] + `warnings`.
+
 `PATCH /api/decks/<id>/lines/<line_id>` body any of `{"quantity": 2, "section": "sideboard"}`
 (quantity 0 removes the line; pins shrink to fit) → DeckSummary + `line_id`.
 `DELETE /api/decks/<id>/lines/<line_id>` removes the line. These edits are versions with reason
