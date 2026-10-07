@@ -414,8 +414,10 @@ def _curve_key(value):
     return "7+" if bucket >= 7 else str(bucket)
 
 
-def compute_deck_stats(cards, deck_format, tag_index):
-    """DeckStats for a list of DeckCard (every section; only commander, companion and main play)."""
+def compute_deck_stats(cards, deck_format, tag_index, combo_book=None, owned=None):
+    """DeckStats for a list of DeckCard (every section; only commander, companion and main play).
+    `combo_book` (gallery/combos.py) finds a 100-card Commander deck's combos; `owned(oracle_id)` says
+    whether you have a card a combo is missing."""
     deck_format = (deck_format or "").lower() or None
     playing = [line for line in cards if line.section in PLAYING_SECTIONS and line.quantity > 0]
     sideboard = [line for line in cards if line.section == "sideboard" and line.quantity > 0]
@@ -604,6 +606,18 @@ def compute_deck_stats(cards, deck_format, tag_index):
             prices[name] = line.price_usd
     most_expensive = sorted(prices.items(), key=lambda item: (-item[1], item[0]))[:5]
 
+    signals = {
+        "game_changers": sorted(game_changers),
+        "extra_turns": sorted(extra_turns),
+        "mass_land_denial": sorted(mass_land_denial),
+        "tutors": sorted(functions["tutors"]),
+    }
+    combos = bracket = None
+    if COMMANDER_FORMAT_SIZES.get(deck_format) == 100 and combo_book is not None:
+        combos = deck_combos(combo_book, playing, commanders, identity, owned)
+    if deck_format == "commander":
+        bracket = estimate_bracket(signals, combos)
+
     shape = None
     if COMMANDER_FORMAT_SIZES.get(deck_format) == 100:
         land_names = sorted({facts[id(line.card)]["name"] for line in playing if facts[id(line.card)]["land"]})
@@ -611,6 +625,8 @@ def compute_deck_stats(cards, deck_format, tag_index):
 
     return {
         "shape": shape,
+        "bracket": bracket,
+        "combos": combos,
         "counts": {key: counts.get(key, 0) for key in count_keys},
         "types": {kind: types[kind] for kind in TYPE_ORDER + ("Other",) if types.get(kind)},
         "average_mv": {
@@ -628,12 +644,7 @@ def compute_deck_stats(cards, deck_format, tag_index):
         "castability": {"by_color": by_color, "hardest": hardest_list},
         "opening_hand": opening_hand,
         "functions": {key: sorted(names) for key, names in functions.items()},
-        "bracket_signals": {
-            "game_changers": sorted(game_changers),
-            "extra_turns": sorted(extra_turns),
-            "mass_land_denial": sorted(mass_land_denial),
-            "tutors": sorted(functions["tutors"]),
-        },
+        "bracket_signals": signals,
         "legality": check_legality(playing, sideboard, commanders, deck_format, facts),
         "rarity": dict(rarity.most_common()),
         "price": {
@@ -742,6 +753,86 @@ def _commander_problems(commanders, deck_format, facts):
             warnings.append({"name": " and ".join(names),
                              "reason": "no partner, background or companion pairing found between the two commanders"})
     return problems, warnings
+
+
+def deck_combos(combo_book, playing, commanders, identity, owned=None):
+    """The deck's combos from Commander Spellbook (gallery/combos.py) with TableCommander-style
+    counts, or None without combo data."""
+    found = combo_book.find({line.oracle_id for line in playing if line.oracle_id},
+                            {line.oracle_id for line in commanders if line.oracle_id}, identity,
+                            owned or (lambda oracle_id: False))
+    if found is None:
+        return None
+    included = found["included"]
+    found["counts"] = {
+        "combos": len(included),
+        "early": sum(1 for combo in included if combo["tag"] == "R"),
+        "two_card": sum(1 for combo in included if combo["size"] == 2),
+        "three_plus": sum(1 for combo in included if combo["size"] >= 3),
+        "game_ending": sum(1 for combo in included if combo["game_ending"]),
+    }
+    return found
+
+
+# The Commander Brackets (Wizards' beta, as updated October 2025). Bracket 5 is about building for
+# the competitive metagame, which a list can't show, so the estimate never goes past 4; Bracket 1 is
+# about a deck's intent, so it never goes below 2.
+BRACKET_NAMES = {1: "Exhibition", 2: "Core", 3: "Upgraded", 4: "Optimized", 5: "cEDH"}
+GAME_CHANGERS_IN_BRACKET_3 = 3
+EXTRA_TURNS_THAT_CHAIN = 3      # this many extra-turn cards reads as a deck built to chain them
+COMBO_REASONS = {
+    4: ("early combo", "Commander Spellbook rates these Ruthless: cheap enough to win in the first few turns, "
+                        "which puts a deck in Bracket 4."),
+    3: ("late-game combo", "Commander Spellbook rates these Spicy or Powerful: at home in Bracket 3, where "
+                            "two-card combos are fine late in the game."),
+    2: ("gentle combo", "Commander Spellbook rates these Core or Oddball: fine in Bracket 2."),
+}
+
+
+def estimate_bracket(signals, combos):
+    """{bracket, name, reasons: [{bracket, title, detail, cards}], notes, combos_checked}: the lowest
+    bracket whose rules the deck keeps, with the reasons that set it, highest first."""
+    reasons = []
+
+    def reason(bracket, title, detail, cards):
+        reasons.append({"bracket": bracket, "title": title, "detail": detail, "cards": cards})
+
+    changers = signals["game_changers"]
+    if len(changers) > GAME_CHANGERS_IN_BRACKET_3:
+        reason(4, f"{len(changers)} Game Changers", "Bracket 3 allows up to three; more is Bracket 4.", changers)
+    elif changers:
+        reason(3, f"{len(changers)} Game Changer{'s' if len(changers) != 1 else ''}",
+               "Brackets 1 and 2 run none; Bracket 3 allows up to three.", changers)
+    if signals["mass_land_denial"]:
+        reason(4, "Mass land denial", "Only Brackets 4 and 5 allow it.", signals["mass_land_denial"])
+    turns = signals["extra_turns"]
+    if len(turns) >= EXTRA_TURNS_THAT_CHAIN:
+        reason(4, f"{len(turns)} extra-turn cards", "Enough to chain extra turns, which Brackets 2 and 3 ask "
+                                                   "you not to do.", turns)
+    elif turns:
+        reason(2, f"{len(turns)} extra-turn card{'s' if len(turns) != 1 else ''}",
+               "Bracket 1 decks take no extra turns; Brackets 2 and 3 allow them, unchained.", turns)
+    for bracket, (title, detail) in COMBO_REASONS.items():
+        rated = [combo for combo in (combos or {}).get("included", []) if combo["bracket"] == bracket]
+        if rated:
+            reason(bracket, f"{len(rated)} {title}{'s' if len(rated) != 1 else ''}", detail,
+                   [" + ".join(combo["cards"]) for combo in rated])
+
+    estimate = max([2] + [r["bracket"] for r in reasons])
+    reasons.sort(key=lambda r: -r["bracket"])
+    notes = []
+    if estimate == 2:
+        notes.append("Nothing here goes past Bracket 2. Bracket 1 is for decks built around a theme rather "
+                     "than to win; only you can say.")
+    if estimate == 4:
+        notes.append("Bracket 5 is Bracket 4 built for the competitive metagame; a list can't show that.")
+    if signals["tutors"]:
+        notes.append(f"{len(signals['tutors'])} tutor{'s' if len(signals['tutors']) != 1 else ''}: tutors no "
+                     "longer set a bracket (October 2025), but many of them are a sign of a stronger deck.")
+    if combos is None:
+        notes.append("Combos aren't counted: the combo data hasn't downloaded yet (it comes with the daily refresh).")
+    return {"bracket": estimate, "name": BRACKET_NAMES[estimate], "reasons": reasons, "notes": notes,
+            "combos_checked": combos is not None}
 
 
 def deck_shape(land_count, land_names, functions):

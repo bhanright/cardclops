@@ -231,6 +231,9 @@ def refresh_scryfall(connection, log=print, progress=None):
     connection.commit()
     log(f"Stored {len(held_ids):,} printings, prices for {price_day}, {changes} legality changes")
 
+    from . import combos
+    combos.update(connection, log)          # Commander Spellbook's combos, for the bracket estimate
+
 
 LEGALITY_LETTERS = {"legal": "l", "not_legal": "n", "banned": "b", "restricted": "r"}
 LEGALITY_WORDS = {letter: word for word, letter in LEGALITY_LETTERS.items()}

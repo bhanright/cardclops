@@ -603,9 +603,11 @@ class DeckBook:
     def stats(self, deck_id):
         if deck_id in self.stats_cache:
             return self.stats_cache[deck_id]
+        from .combos import ComboBook
         from .deckstats import compute_deck_stats
         result = compute_deck_stats(self.deck_cards(deck_id), self.decks[deck_id]["format"],
-                                    self.collection.tag_index)
+                                    self.collection.tag_index, combo_book=ComboBook(self.collection.connection),
+                                    owned=lambda oracle_id: bool(self.collection.by_oracle_id.get(oracle_id)))
         self.stats_cache[deck_id] = result
         return result
 

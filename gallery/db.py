@@ -203,6 +203,41 @@ CREATE TABLE IF NOT EXISTS {schema}.rulings (
     fetched_at  TEXT NOT NULL,
     data        TEXT NOT NULL                       -- JSON [{date, source, text}]
 );
+
+-- Commander Spellbook's combos (gallery/combos.py), from the data host's slimmed copy. Cards and
+-- results are numbered once and combos list the numbers, which keeps this a few MB.
+CREATE TABLE IF NOT EXISTS {schema}.combo_pieces (
+    piece      INTEGER PRIMARY KEY,
+    oracle_id  TEXT NOT NULL,
+    name       TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS {schema}.combo_pieces_by_oracle ON combo_pieces(oracle_id);
+CREATE TABLE IF NOT EXISTS {schema}.combo_results (
+    result  INTEGER PRIMARY KEY,
+    name    TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS {schema}.combos (
+    combo             INTEGER PRIMARY KEY,
+    spellbook_id      TEXT NOT NULL,
+    bracket_tag       TEXT NOT NULL,                -- E, C, O, P, S or R (combos.py)
+    popularity        INTEGER NOT NULL,
+    identity          TEXT NOT NULL,
+    mana_value        INTEGER NOT NULL,             -- mana needed to start it, beyond casting the pieces
+    game_ending       INTEGER NOT NULL,
+    size              INTEGER NOT NULL,             -- named cards it needs
+    pieces            TEXT NOT NULL,                -- piece numbers, space-separated, in Spellbook's order
+    commander_pieces  TEXT NOT NULL,                -- those that must be the commander
+    results           TEXT NOT NULL                 -- result numbers, game-ending ones first
+);
+CREATE TABLE IF NOT EXISTS {schema}.combo_cards (  -- which combos each piece is in
+    piece  INTEGER NOT NULL,
+    combo  INTEGER NOT NULL,
+    PRIMARY KEY (piece, combo)
+) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS {schema}.combo_info (
+    key    TEXT PRIMARY KEY,
+    value  TEXT
+);
 """
 
 CATALOG_SCHEMA = """

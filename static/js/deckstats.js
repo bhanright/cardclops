@@ -31,7 +31,7 @@ export function statsPanels(stats, { onOpen = () => {}, colorAction = null } = {
     openingHandPanel(stats),
     landKindsPanel(stats),
     functionsPanel(stats, nameButton),
-    bracketPanel(stats, nameButton),
+    stats.bracket ? null : bracketPanel(stats, nameButton),   // the Bracket estimate section covers these
     legalityPanel(stats, nameButton),
     typesPanel(stats),
     pricePanel(stats, nameButton),
@@ -206,4 +206,55 @@ function pricePanel(stats, nameButton) {
     h('div.price-top', h('div', h('div.big-number', money(p.total_usd, { whole: p.total_usd >= 1000 })), h('div.muted.small', 'total')),
       h('div', h('div.mid-number', money(p.average_usd)), h('div.muted.small', 'average card'))),
     p.most_expensive?.length ? h('ol.top5', p.most_expensive.map(x => h('li', nameButton(x.name), h('span.t5-price', money(x.price_usd))))) : null);
+}
+
+// ---------- bracket estimate and combos (100-card Commander) ----------
+const SPELLBOOK = 'https://commanderspellbook.com';
+const COMBO_COUNTS = [['combos', 'Combos'], ['early', 'Early'], ['two_card', '2-card'], ['three_plus', '3+ card'], ['game_ending', 'Game-ending']];
+
+/** The deck page's "Bracket estimate" section: the estimate, why, and the deck's combos. */
+export function bracketSection(stats, { onOpen = () => {} } = {}) {
+  const b = stats?.bracket;
+  if (!b) return null;
+  const nameButton = name => h('button.name-btn', { type: 'button', onclick: () => onOpen(name) }, name);
+  const badge = (bracket, cls = '') => h('span', { class: `bracket-badge b${bracket} ${cls}`.trim() }, `B${bracket}`);
+  const reasons = b.reasons.length
+    ? h('ul.bracket-reasons', b.reasons.map(r => h('li',
+        h('div.br-head', badge(r.bracket, 'small'), h('b', r.title)),
+        h('p.small.muted', r.detail),
+        // combos come as "A + B"; other reasons are card names to open
+        h('p.br-cards', r.cards.flatMap((name, i) => [i ? ', ' : '', name.includes(' + ') ? name : nameButton(name)])))))
+    : null;
+  return h('section#dk-bracket.panel.bracket-panel',
+    h('div.bracket-top',
+      badge(b.bracket, 'big'),
+      h('div',
+        h('h2.shape-title', `Bracket ${b.bracket}: ${b.name}`),
+        h('p.small.muted', 'An estimate from the Commander Brackets (beta, October 2025 update): the lowest bracket whose rules the list keeps. ',
+          h('a', { href: 'https://magic.wizards.com/en/news/announcements/commander-brackets-beta-update-october-21-2025', target: '_blank', rel: 'noopener' }, 'The brackets ↗')))),
+    reasons ? h('h3.br-why', `Why Bracket ${b.bracket}?`) : null,
+    reasons,
+    b.notes.length ? h('ul.br-notes', b.notes.map(n => h('li.small.muted', n))) : null,
+    stats.combos ? combosBlock(stats.combos, nameButton) : null);
+}
+
+function combosBlock(c, nameButton) {
+  const row = (combo, extra = null) => h('li.combo-row',
+    h('div.combo-cards', extra, combo.cards.flatMap((name, i) => [i ? ' + ' : '', combo.missing === name ? h('span.combo-missing', name) : nameButton(name)])),
+    h('div.combo-meta',
+      h('span', { class: `combo-tag b${combo.bracket}`, title: `Commander Spellbook rates this ${combo.tag_name}: Bracket ${combo.bracket}` }, combo.tag_name),
+      h('span.small.muted', combo.results.join(', ')),
+      h('a.small', { href: combo.url, target: '_blank', rel: 'noopener' }, 'How it works ↗')));
+  const counts = c.counts || {};
+  return h('div.combos-block',
+    h('h3.br-why', 'Combos'),
+    h('div.combo-counts', COMBO_COUNTS.map(([key, label]) => h('div.combo-count', h('b', int(counts[key] || 0)), h('span', label)))),
+    c.included.length ? h('ul.combo-list', c.included.map(combo => row(combo))) : h('p.small.muted', 'No combos in the list.'),
+    c.near_miss_count ? h('details.combo-near',
+      h('summary', h('b', 'One card away'), ` · ${int(c.near_miss_count)}`,
+        h('span.small.muted', c.near_miss_count > c.near_misses.length ? ` (the ${c.near_misses.length} most popular in the deck's colors)` : ' (in the deck\'s colors)')),
+      h('ul.combo-list', c.near_misses.map(combo => row(combo,
+        h('span.combo-add', { title: combo.missing_owned ? 'You own a copy' : 'Not in your collection' }, '+ ', combo.missing, combo.missing_owned ? ' (you own one)' : '', ': '))))) : null,
+    h('p.small.muted.combo-credit', 'Combo data from ', h('a', { href: SPELLBOOK, target: '_blank', rel: 'noopener' }, 'Commander Spellbook'),
+      '. Its ratings say which bracket a combo is at home in: Ruthless combos are cheap enough to win in the first few turns.'));
 }

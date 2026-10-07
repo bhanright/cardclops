@@ -100,6 +100,18 @@ commander, companion and main; sideboard and maybeboard are excluded)
     {"key": "ramp", "label": "Ramp", "count": 6, "low": 8, "high": 12, "state": "close", "cards": […]},
     …                                                     // lands (copies), ramp, card_draw, removal, protection, board_wipes
   ],                                                      // state: ok in range; close within 2 (and not 0); under / over
+  "bracket": {                                            // "commander" decks only, else null (deckstats.estimate_bracket)
+    "bracket": 3, "name": "Upgraded",                     // never below 2 (Bracket 1 is intent) or above 4 (5 is the metagame)
+    "reasons": [{"bracket": 3, "title": "2 Game Changers", "detail": "…", "cards": […]}],   // highest first
+    "notes": ["…"], "combos_checked": true                // false until the combo data has downloaded
+  },
+  "combos": {                                             // 100-card Commander formats, from Commander Spellbook (gallery/combos.py)
+    "included": [{"id": "1-2", "url": "…", "tag": "R", "tag_name": "Ruthless", "bracket": 4, "popularity": 500,
+                  "size": 2, "cards": […], "results": […], "game_ending": true, "mana_value": 0}],
+    "near_misses": [{…, "missing": "Tainted Pact", "missing_owned": false}],   // the 10 most popular
+    "near_miss_count": 61,
+    "counts": {"combos": 4, "early": 2, "two_card": 4, "three_plus": 0, "game_ending": 1}
+  },
   "legality": {
     "format": "commander",
     "legal": false,

@@ -73,7 +73,8 @@ class PackTests(unittest.TestCase):
         browser = db.connect(self.folder / "b-user.sqlite", self.folder / "b-cache.sqlite",
                              pack_path=self.folder / "empty-pack.sqlite")
         tables = {row[0] for row in browser.execute("SELECT name FROM cache.sqlite_master WHERE type = 'table'")}
-        self.assertEqual(tables, {"cards", "rulings"})
+        self.assertEqual(tables, {"cards", "rulings", "combos", "combo_cards", "combo_pieces", "combo_results",
+                                  "combo_info"})
 
     def test_install_replaces_the_attached_pack(self):
         out = self.folder / "published"

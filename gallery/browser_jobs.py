@@ -18,7 +18,7 @@ import os
 import traceback
 from datetime import datetime
 
-from . import net, pack, scryfall
+from . import combos, net, pack, scryfall
 from .db import get_meta, merge_price_points, set_meta
 from .ingest import (PRICE_KEYS, _number, _record_prices, _store_card, decode_legalities, store_holdings,
                      tracked_printings)
@@ -136,6 +136,21 @@ class BrowserJobs(Jobs):
             set_meta(connection, "scryfall_updated_at", manifest.get("scryfall_updated_at") or latest)
             connection.commit()
         return True
+
+    async def _update_combos(self):
+        """Commander Spellbook's combos (gallery/combos.py), when the data host has a newer copy. A
+        failure only costs the bracket estimate its combos, so it doesn't stop the job."""
+        try:
+            with self.gallery.lock:
+                entry = combos.wanted(self.gallery.connection, self.manifest)
+            if entry:
+                self._update(stage="Downloading combo data", message="")
+                packed = await net.fetch_async(data_url(entry["file"]))
+                with self.gallery.lock:
+                    combos.install(self.gallery.connection, packed)
+        except Exception:
+            traceback.print_exc()
+            self.gallery.connection.rollback()
 
     async def _download(self, stage, published, low, high):
         """A published file's bytes, with the progress bar moving from `low` to `high`."""
@@ -263,6 +278,7 @@ class BrowserJobs(Jobs):
 
         async def work():
             await self._update_pack(0, 90)
+            await self._update_combos()
             self._update(stage="Loading", percent=96)
             self.gallery.load()
             return {"card_data_date": (get_meta(self.gallery.connection, "scryfall_updated_at") or "")[:10]}
@@ -304,6 +320,7 @@ class BrowserJobs(Jobs):
         """Daily: a newer pack if there is one, details for new cards, the day's prices."""
         async def work():
             await self._update_pack(0, 60)
+            await self._update_combos()
             await self._fetch_missing_cards(60, 80)
             await self._refresh_from_pack(80, 88)
             if get_meta(self.gallery.connection, "setup_price_history") == "yes":

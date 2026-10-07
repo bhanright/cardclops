@@ -23,6 +23,8 @@ export function showAbout() {
           '. Cardclops isn’t produced by or endorsed by Scryfall. Card images load from Scryfall’s image server, unaltered.'),
         h('li', h('b', 'Price history: '), link('https://mtgjson.com', 'MTGJSON'), ', under the MIT License (',
           h('a', { href: 'licenses/MTGJSON-LICENSE.txt', target: '_blank' }, 'its notice'), ').'),
+        h('li', h('b', 'Combos and their bracket ratings: '), link('https://commanderspellbook.com', 'Commander Spellbook'),
+          ', prepared about weekly from its published data and served by Cardclops. Cardclops isn’t affiliated with Commander Spellbook.'),
         h('li', h('b', 'Prices '), 'originally come from TCGplayer, Cardmarket, Card Kingdom and ManaPool, through Scryfall and MTGJSON. They’re estimates, a day old at best; no price here is an offer.'),
         h('li', h('b', 'The Comprehensive Rules and official rulings: '), 'Wizards of the Coast, from ', link('https://magic.wizards.com/en/rules', 'magic.wizards.com'), '.'),
         h('li', h('b', 'Links out '), 'to EDHREC, Archidekt, Moxfield and card shops are only links; Cardclops isn’t affiliated with them.'),
@@ -51,7 +53,7 @@ export function showAbout() {
         h('li', h('b', 'Clearing this site’s data in your browser deletes your collection here, '), 'so keep a backup (Settings → Backup).'))
         : h('ul.pref-list',
           h('li', h('b', 'Your collection, decks and settings stay on this device '), '(or on your own server). Nothing you import is uploaded anywhere.'),
-          h('li', h('b', 'What it downloads: '), 'card data and prices from Scryfall and MTGJSON, card details and rulings from Scryfall’s API, and card images as you look at them.'),
+          h('li', h('b', 'What it downloads: '), 'card data and prices from Scryfall and MTGJSON, card details and rulings from Scryfall’s API, card images as you look at them, and Commander Spellbook’s combos from cardclops.com.'),
           h('li', h('b', 'The Ask box '), 'sends your question and a list of card-function tags to Claude.')))));
   document.title = 'About · Cardclops';
 }

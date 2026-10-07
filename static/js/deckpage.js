@@ -6,7 +6,7 @@ import { api } from './api.js';
 import { attachHoverPreview, hideHoverPreview, cardFace, thumb } from './cards.js';
 import { openCard } from './detail.js';
 import { timeSeriesPanel } from './charts.js';
-import { statsPanels } from './deckstats.js';
+import { statsPanels, bracketSection } from './deckstats.js';
 import { manafixControls } from './manafix.js';
 import { copyPolicyControls, goldfishSection, historySection } from './deckextras.js';
 import { DECK_FORMATS, deckFormatLabel, colorPips, invalidateDecks } from './decks.js';
@@ -97,6 +97,7 @@ function render() {
     header(deck),
     commanderPicker(deck) || '',
     shapePanel(stats, deck) || '',
+    bracketSection(stats, { onOpen: openByName }) || '',
     h('nav.page-nav', { 'aria-label': 'Deck sections' },
       [['dk-list', 'List'], ['dk-stats', 'Stats'], ['dk-value', 'Value'], ['dk-sugg', 'Suggestions'], ['dk-hand', 'Sample hand'], ['dk-goldfish', 'Goldfish'], ['dk-history', 'History']]
         .map(([id, label]) => h('a.page-chip', { href: `#${id}`, onclick: e => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, label))),

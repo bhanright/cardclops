@@ -14,6 +14,7 @@ A published pack folder holds:
     delta-<stamp>.json.gz   the day's changes since that base (prices, mostly): a few MB, so a browser
                             that already has the base doesn't download it again every day
     rules/<name>.txt        the Comprehensive Rules (Wizards' site doesn't answer web pages)
+    combos-<stamp>.json.gz  Commander Spellbook's combos, slimmed (gallery/combos.py; scripts/publish_data.py)
 """
 import gzip
 import hashlib
@@ -115,7 +116,8 @@ def build(cache_path, out_dir, rules_dir=None, work_dir=None, log=print):
 
     manifest.update(format=PACK_FORMAT, built_at=stamp, scryfall_updated_at=info.get("scryfall_updated_at"),
                     credits="Card data from Scryfall (scryfall.com). Price history from MTGJSON (mtgjson.com), "
-                            "MIT licensed. Magic: The Gathering is (c) Wizards of the Coast.")
+                            "MIT licensed. Combos from Commander Spellbook (commanderspellbook.com). "
+                            "Magic: The Gathering is (c) Wizards of the Coast.")
     rules = _publish_rules(rules_dir, out_dir, log) if rules_dir else None
     if rules:
         manifest["rules"] = rules
