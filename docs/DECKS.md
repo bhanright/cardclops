@@ -96,6 +96,10 @@ commander, companion and main; sideboard and maybeboard are excluded)
     "tutors": […], "protection": […], "recursion": […]
   },
   "bracket_signals": {"game_changers": […], "extra_turns": […], "mass_land_denial": […], "tutors": […]},
+  "shape": [                                              // 100-card Commander formats only, else null
+    {"key": "ramp", "label": "Ramp", "count": 6, "low": 8, "high": 12, "state": "close", "cards": […]},
+    …                                                     // lands (copies), ramp, card_draw, removal, protection, board_wipes
+  ],                                                      // state: ok in range; close within 2 (and not 0); under / over
   "legality": {
     "format": "commander",
     "legal": false,

@@ -1933,3 +1933,25 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
   .rules-index { position: static; max-height: none; }
   .rule.glossary { grid-template-columns: 1fr; }
 }
+
+/* Deck shape: each role's count against the suggested range (deckpage.js shapePanel) */
+.shape-panel { display: flex; flex-direction: column; gap: 12px; }
+.shape-title { color: var(--lime); font-size: 1.3rem; margin: 0; }
+.shape-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.shape-tile { --state: var(--lime); display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 4px 8px; text-align: left;
+  padding: 9px 11px 8px; background: var(--panel-2, var(--panel)); color: inherit; font: inherit; cursor: pointer;
+  border: var(--line); border-top: 6px solid var(--state); border-radius: 12px; box-shadow: var(--shadow-sm); }
+.shape-tile.close { --state: var(--yellow); }
+.shape-tile.under, .shape-tile.over { --state: var(--pink); }
+.shape-tile:hover, .shape-tile.open { outline: 3px solid var(--state); outline-offset: 1px; }
+.shape-label { font-weight: 700; }
+.shape-count { justify-self: end; font-size: 1.5rem; font-weight: 800; color: var(--state); line-height: 1; }
+.shape-track { grid-column: 1 / -1; position: relative; height: 10px; margin: 4px 0 2px; border-radius: 6px; background: var(--well, #0003); border: 2px solid var(--ink); }
+.shape-band { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--lime) 55%, transparent); }
+.shape-mark { position: absolute; top: -5px; width: 6px; height: 16px; margin-left: -3px; border-radius: 3px; background: var(--state); border: 2px solid var(--ink); }
+.shape-range { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+.shape-state { font-size: .8rem; color: var(--state); text-align: right; }
+.shape-detail { padding: 10px 12px; background: var(--well, transparent); border: 2px dashed var(--muted); border-radius: 12px; }
+.shape-detail-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.shape-detail-head .btn { margin-left: auto; }
+.shape-cards { margin: 8px 0 0; line-height: 1.7; }

@@ -96,6 +96,7 @@ function render() {
     h('a.back-link', { href: '#/decks' }, '← All decks'),
     header(deck),
     commanderPicker(deck) || '',
+    shapePanel(stats, deck) || '',
     h('nav.page-nav', { 'aria-label': 'Deck sections' },
       [['dk-list', 'List'], ['dk-stats', 'Stats'], ['dk-value', 'Value'], ['dk-sugg', 'Suggestions'], ['dk-hand', 'Sample hand'], ['dk-goldfish', 'Goldfish'], ['dk-history', 'History']]
         .map(([id, label]) => h('a.page-chip', { href: `#${id}`, onclick: e => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, label))),
@@ -117,6 +118,67 @@ function statsArea(stats) {
     h('div.area-head', h('h2.area-title', 'Statistics'), fix.button),
     fix.panel,
     h('div.stats-grid', statsPanels(stats, { onOpen: openByName, colorAction })));
+}
+
+// ---------- deck shape (100-card Commander) ----------
+// The gallery search behind each tile's "Find more": the same Tagger tags the counts use.
+const SHAPE_SEARCHES = {
+  lands: 't:land -t:basic',
+  ramp: 'otag:ramp -t:land',
+  card_draw: '(otag:draw or otag:card-advantage)',
+  removal: 'otag:removal',
+  protection: 'otag:protection',
+  board_wipes: 'otag:sweeper',
+};
+const SHAPE_WORDS = { ok: 'On target', close: 'Close', under: 'Too few', over: 'Too many' };
+let shapeOpen = null;          // the open tile's key; kept across re-renders of the page
+
+function shapePanel(stats, deck) {
+  const shape = stats?.shape;
+  if (!shape?.length) return null;
+  const detail = h('div.shape-detail');
+  const tiles = shape.map(role => {
+    // A track from 0 to a little past the range (or the count), with the range as a band.
+    const end = Math.max(role.high + Math.ceil((role.high - role.low) / 2) + 2, role.count);
+    const at = value => `${(Math.min(value, end) / end) * 100}%`;
+    const tile = h('button.shape-tile', { type: 'button', class: role.state, 'aria-expanded': String(shapeOpen === role.key),
+      dataset: { focus: 'shape-' + role.key }, title: `${role.label}: ${role.count} (suggested ${role.low}–${role.high})`,
+      onclick: () => { shapeOpen = shapeOpen === role.key ? null : role.key; showDetail(); } },
+      h('span.shape-label', role.label),
+      h('span.shape-count', String(role.count)),
+      h('span.shape-track', { 'aria-hidden': 'true' },
+        h('span.shape-band', { style: { left: at(role.low), width: `calc(${at(role.high)} - ${at(role.low)})` } }),
+        h('span.shape-mark', { style: { left: at(role.count) } })),
+      h('span.shape-range', `${role.low}–${role.high}`),
+      h('span.shape-state', SHAPE_WORDS[role.state] || ''));
+    return { role, tile };
+  });
+
+  const showDetail = () => {
+    for (const { role, tile } of tiles) { tile.setAttribute('aria-expanded', String(shapeOpen === role.key)); tile.classList.toggle('open', shapeOpen === role.key); }
+    const role = shape.find(r => r.key === shapeOpen);
+    detail.hidden = !role;
+    if (!role) return clear(detail);
+    const identity = (deck.color_identity || []).join('').toLowerCase() || 'c';
+    const query = `${SHAPE_SEARCHES[role.key]} id<=${identity} is:spare`;
+    const advice = role.state === 'ok' ? 'Within the suggested range.'
+      : role.count < role.low ? `${role.low - role.count} short of the suggested ${role.low}–${role.high}.`
+      : `${role.count - role.high} over the suggested ${role.low}–${role.high}.`;
+    clear(detail).append(
+      h('div.shape-detail-head',
+        h('b', `${role.label}: ${role.count}`), h('span.muted.small', advice),
+        h('a.btn.small', { href: '#/gallery?q=' + encodeURIComponent(query), title: query }, 'Find more in my spare cards')),
+      role.cards.length
+        ? h('p.shape-cards', role.cards.flatMap((name, i) => [i ? ', ' : '', h('button.link-btn', { type: 'button', onclick: () => openByName(name) }, name)]))
+        : h('p.muted.small', 'None in the deck yet.'));
+  };
+  showDetail();
+
+  return h('section#dk-shape.panel.shape-panel',
+    h('div.area-head', h('h2.shape-title', 'Deck shape'),
+      h('span.muted.small', 'Suggested counts for 100-card Commander. Roles come from Scryfall Tagger, and a card can fill more than one.')),
+    h('div.shape-tiles', tiles.map(t => t.tile)),
+    detail);
 }
 
 function reloadAfterChange() { invalidateDecks(); return load({ quiet: true }); }

@@ -51,6 +51,12 @@ COMMANDER_FORMAT_SIZES = {"commander": 100, "duel": 100, "paupercommander": 100,
 # Constructed formats (60-card minimum, 15-card sideboard, four copies).
 CONSTRUCTED_FORMATS = {"standard", "pioneer", "modern", "legacy", "vintage", "pauper", "historic", "timeless",
                        "alchemy", "explorer", "penny", "premodern", "oldschool", "future", "redux"}
+# A 100-card Commander deck's shape: each role's count against the usual ranges (the ones
+# TableCommander shows; EDHREC's templates are close). Keys are those of "functions", plus lands.
+SHAPE_TARGETS = (("lands", "Lands", 35, 38), ("ramp", "Ramp", 8, 12), ("card_draw", "Draw", 8, 12),
+                 ("removal", "Removal", 5, 10), ("protection", "Protection", 2, 6), ("board_wipes", "Wipes", 2, 5))
+SHAPE_NEAR = 2                # within this many of the range: close (amber); further, or none at all: off (red)
+
 OTHER_FORMATS = ("standard", "pioneer", "modern", "legacy", "vintage", "pauper", "commander", "brawl",
                  "historic", "timeless", "redux")
 
@@ -598,7 +604,13 @@ def compute_deck_stats(cards, deck_format, tag_index):
             prices[name] = line.price_usd
     most_expensive = sorted(prices.items(), key=lambda item: (-item[1], item[0]))[:5]
 
+    shape = None
+    if COMMANDER_FORMAT_SIZES.get(deck_format) == 100:
+        land_names = sorted({facts[id(line.card)]["name"] for line in playing if facts[id(line.card)]["land"]})
+        shape = deck_shape(counts.get("lands", 0), land_names, functions)
+
     return {
+        "shape": shape,
         "counts": {key: counts.get(key, 0) for key in count_keys},
         "types": {kind: types[kind] for kind in TYPE_ORDER + ("Other",) if types.get(kind)},
         "average_mv": {
@@ -730,6 +742,23 @@ def _commander_problems(commanders, deck_format, facts):
             warnings.append({"name": " and ".join(names),
                              "reason": "no partner, background or companion pairing found between the two commanders"})
     return problems, warnings
+
+
+def deck_shape(land_count, land_names, functions):
+    """[{key, label, count, low, high, state: under|close|ok|over, cards}] for SHAPE_TARGETS. Lands
+    count copies (a deck runs many of one basic); the other roles count different cards."""
+    shape = []
+    for key, label, low, high in SHAPE_TARGETS:
+        cards = land_names if key == "lands" else sorted(functions.get(key, ()))
+        count = land_count if key == "lands" else len(cards)
+        if low <= count <= high:
+            state = "ok"
+        else:
+            off = low - count if count < low else count - high
+            state = "close" if off <= SHAPE_NEAR and count else ("under" if count < low else "over")
+        shape.append({"key": key, "label": label, "count": count, "low": low, "high": high, "state": state,
+                      "cards": cards})
+    return shape
 
 
 def check_legality(playing, sideboard, commanders, deck_format, facts):

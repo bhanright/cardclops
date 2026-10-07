@@ -368,6 +368,29 @@ class FunctionTests(unittest.TestCase):
         self.assertEqual(stats["rarity"], {"common": 5, "mythic": 2})
 
 
+class ShapeTests(unittest.TestCase):
+    def test_commander_deck_shape(self):
+        forest = make_card("Forest", "Basic Land — Forest")
+        wrath = make_card("Wrath of God", "Sorcery", "{2}{W}{W}", 4, ["W"])
+        cultivate = make_card("Cultivate", "Sorcery", "{2}{G}", 3, ["G"])
+        deck = [line(forest, 36), line(wrath, tags={"sweeper"}), line(cultivate, tags={"ramp"})]
+        shape = {role["key"]: role for role in compute_deck_stats(deck, "commander", TAGS)["shape"]}
+        self.assertEqual([key for key, *_ in deckstats.SHAPE_TARGETS], list(shape))
+        self.assertEqual((shape["lands"]["count"], shape["lands"]["state"], shape["lands"]["cards"]), (36, "ok", ["Forest"]))
+        self.assertEqual((shape["ramp"]["count"], shape["ramp"]["state"]), (1, "under"))     # 7 short of 8
+        self.assertEqual((shape["board_wipes"]["count"], shape["board_wipes"]["state"]), (1, "close"))  # 1 short of 2
+        self.assertEqual(shape["board_wipes"]["cards"], ["Wrath of God"])
+
+    def test_states_at_the_edges(self):
+        roles = {role["key"]: role for role in deckstats.deck_shape(40, ["Forest"], {"removal": set("abcdefghijkl")})}
+        self.assertEqual(roles["lands"]["state"], "close")      # 2 over 38
+        self.assertEqual(roles["removal"]["state"], "close")    # 12, 2 over 10
+        self.assertEqual(roles["protection"]["state"], "under")  # none at all, though only 2 short
+
+    def test_only_for_100_card_decks(self):
+        self.assertIsNone(compute_deck_stats([line(GRIZZLY, 4)], "modern", TAGS)["shape"])
+
+
 if __name__ == "__main__":
     unittest.main()
 
