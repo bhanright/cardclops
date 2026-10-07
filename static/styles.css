@@ -1987,3 +1987,8 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .combo-near summary { cursor: pointer; padding: 4px 0; }
 .combo-near[open] summary { margin-bottom: 6px; }
 .combo-credit { margin: 0; }
+.br-details summary { cursor: pointer; list-style: none; width: fit-content; }
+.br-details summary::-webkit-details-marker { display: none; }
+.br-details summary::before { content: '▸ '; display: inline-block; transition: transform .15s; }
+.br-details[open] summary::before { transform: rotate(90deg); }
+.br-body { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }

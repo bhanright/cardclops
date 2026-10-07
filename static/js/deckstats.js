@@ -232,11 +232,15 @@ export function bracketSection(stats, { onOpen = () => {} } = {}) {
         h('h2.shape-title', `Bracket ${b.bracket}: ${b.name}`),
         h('p.small.muted', 'An estimate from the Commander Brackets (beta, October 2025 update): the lowest bracket whose rules the list keeps. ',
           h('a', { href: 'https://magic.wizards.com/en/news/announcements/commander-brackets-beta-update-october-21-2025', target: '_blank', rel: 'noopener' }, 'The brackets ↗')))),
-    reasons ? h('h3.br-why', `Why Bracket ${b.bracket}?`) : null,
-    reasons,
-    b.notes.length ? h('ul.br-notes', b.notes.map(n => h('li.small.muted', n))) : null,
-    stats.combos ? combosBlock(stats.combos, nameButton) : null);
+    // The reasons, notes and combos fold away under "Why Bracket N?"; kept open across re-renders.
+    h('details.br-details', { open: bracketOpen, ontoggle: e => { bracketOpen = e.target.open; } },
+      h('summary.br-why', `Why Bracket ${b.bracket}?`),
+      h('div.br-body',
+        reasons,
+        b.notes.length ? h('ul.br-notes', b.notes.map(n => h('li.small.muted', n))) : null,
+        stats.combos ? combosBlock(stats.combos, nameButton) : null)));
 }
+let bracketOpen = false;
 
 function combosBlock(c, nameButton) {
   const row = (combo, extra = null) => h('li.combo-row',
