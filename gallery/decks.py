@@ -594,6 +594,7 @@ class DeckBook:
             "missing_not_owned": missing_not_owned, "missing_used_elsewhere": missing_elsewhere,
             "cost_to_complete_usd": round(cost, 2), "value_usd": round(value, 2),
             "legal": (stats or {}).get("legality", {}).get("legal"),
+            "bracket": ((stats or {}).get("bracket") or {}).get("bracket"),        # Commander decks only
             "source": deck["source"], "source_url": deck["source_url"],
             "created_at": deck["created_at"], "updated_at": deck["updated_at"], "cover": cover,
             "folder_id": deck.get("folder_id"),

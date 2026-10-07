@@ -12,7 +12,7 @@ A query is terms separated by spaces; a deck must match all of them, and a leadi
   f:commander       format
   folder:cube       the deck's folder name contains (folder:none: in no folder)
   is:active  is:inactive  is:legal  is:illegal  is:complete  is:incomplete  is:conflict
-  cards>=100  missing>0  value>200  cost<50  owned>90  priority=1
+  cards>=100  missing>0  value>200  cost<50  owned>90  priority=1  bracket>=3
 """
 import re
 
@@ -24,7 +24,7 @@ COLOR_KEYS = {"c", "color", "colors", "id", "identity", "ci"}
 TEXT_KEYS = {"name": "name", "cmd": "commander", "commander": "commander", "card": "card", "has": "card",
              "folder": "folder"}
 NUMBER_KEYS = {"cards": "card_count", "missing": "missing", "value": "value_usd", "cost": "cost_to_complete_usd",
-               "owned": "owned", "priority": "priority"}
+               "owned": "owned", "priority": "priority", "bracket": "bracket"}
 FORMAT_ALIASES = {"edh": "commander", "cmdr": "commander", "pdh": "paupercommander", "pauperedh": "paupercommander"}
 IS_WORDS = {
     "active": lambda d: d["status"] == "active",
@@ -98,6 +98,8 @@ def _test(key, op, value):
     except ValueError:
         raise ValueError(f"{key}{op}{value}: {key} needs a number") from None
     compare = COMPARE[op]
+    if field == "bracket":          # only Commander decks have one; the others match no bracket search
+        return lambda d, cards: d.get(field) is not None and compare(float(d[field]), number)
     return lambda d, cards: compare(float(d.get(field) or 0), number)
 
 

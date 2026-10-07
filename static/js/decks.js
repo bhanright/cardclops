@@ -152,6 +152,7 @@ function deckSearch() {
       ['is:active   is:inactive   is:legal   is:illegal', 'status and legality'],
       ['is:complete   is:incomplete   is:conflict', 'all copies owned; some missing; short because another deck holds them'],
       ['cards>=100   missing>0   value>200   cost<50', 'numbers (also owned, priority)'],
+      ['bracket>=3   bracket=2', 'estimated Commander bracket'],
       ['-card:"sol ring"', 'a leading minus excludes'],
     ].map(([q, what]) => h('tr', h('td', h('code', q)), h('td', what))))));
   const helpBtn = h('button.icon-btn', { type: 'button', 'aria-label': 'Deck search syntax', 'aria-expanded': 'false', title: 'Search syntax',
@@ -172,6 +173,7 @@ const DECK_SORTS = [
   ['format', 'Format', 'asc', (a, b) => deckFormatLabel(a.format).localeCompare(deckFormatLabel(b.format))],
   ['colors', 'Colors', 'asc', (a, b) => colorRank(a) - colorRank(b)],
   ['priority', 'Priority', 'asc', (a, b) => (a.priority || 0) - (b.priority || 0)],
+  ['bracket', 'Bracket', 'desc', (a, b) => (a.bracket || 0) - (b.bracket || 0)],
 ];
 const colorRank = d => (d.color_identity || []).reduce((n, c) => n * 6 + 1 + 'WUBRG'.indexOf(c), d.color_identity?.length || 0);
 
@@ -327,6 +329,7 @@ function deckTile(d) {
     h('div.dt-body',
       h('div.dt-name', d.name),
       h('div.dt-meta', h('span.fmt', deckFormatLabel(d.format)), colorPips(d.color_identity), h('span.muted', `${int(d.card_count)} cards`),
+        d.bracket ? h('span', { class: `bracket-badge small b${d.bracket}`, title: `Estimated Bracket ${d.bracket}` }, `B${d.bracket}`) : null,
         d.copy_policy && d.copy_policy !== 'default' ? h('span', { class: 'policy-mark ' + d.copy_policy, title: d.copy_policy === 'budget' ? 'Uses your cheapest copies' : 'Uses your fanciest copies' }, d.copy_policy === 'budget' ? '$ budget' : '✦ bling') : null),
       h('div.progress', { role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': 100, 'aria-valuenow': pct, 'aria-label': 'Copies owned' },
         h('span.progress-fill', { class: pct >= 100 ? 'full' : null, style: { width: pct + '%' } })),

@@ -407,3 +407,9 @@ class BuilderAndFolderTests(AllocationTests):
         summaries = [self.book.summary(d) for d in self.book.decks]
         self.assertEqual([d["name"] for d in search(summaries, {}, "folder:cube")], ["In the cube"])
         self.assertEqual([d["name"] for d in search(summaries, {}, "folder:none")], ["Loose"])
+
+    def test_deck_search_by_bracket(self):
+        from gallery.decksearch import search
+        summaries = [{"deck_id": 1, "name": "Commander", "bracket": 3}, {"deck_id": 2, "name": "Modern", "bracket": None}]
+        self.assertEqual([d["name"] for d in search(summaries, {}, "bracket>=3")], ["Commander"])
+        self.assertEqual(search(summaries, {}, "bracket<3"), [])        # a deck without a bracket never matches
