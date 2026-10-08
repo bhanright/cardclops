@@ -408,6 +408,18 @@ class BuilderAndFolderTests(AllocationTests):
         self.assertEqual([d["name"] for d in search(summaries, {}, "folder:cube")], ["In the cube"])
         self.assertEqual([d["name"] for d in search(summaries, {}, "folder:none")], ["Loose"])
 
+    def test_move_several_decks_to_a_folder(self):
+        cube = self.book.create_folder("Cube")
+        first, second, third = (self.book.create(name, "casual") for name in ("One", "Two", "Three"))
+        self.assertEqual(self.book.move_to_folder([first, second], cube), 2)
+        self.assertEqual([self.book.summary(d)["folder"] for d in (first, second, third)], ["Cube", "Cube", None])
+        self.book.move_to_folder([first], None)
+        self.assertIsNone(self.book.summary(first)["folder_id"])
+        with self.assertRaises(KeyError):
+            self.book.move_to_folder([first], 999)
+        with self.assertRaises(KeyError):
+            self.book.move_to_folder([999], cube)
+
     def test_deck_search_by_bracket(self):
         from gallery.decksearch import search
         summaries = [{"deck_id": 1, "name": "Commander", "bracket": 3}, {"deck_id": 2, "name": "Modern", "bracket": None}]

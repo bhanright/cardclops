@@ -703,6 +703,11 @@ class Gallery:
                 elif method == "DELETE":
                     book.delete_folder(folder_id)
                 return {"folders": book.folder_list()}
+            if method == "POST" and deck_id is None and action == "move-to-folder":   # Decks → Select
+                folder_id = body.get("folder_id")
+                moved = book.move_to_folder([int(d) for d in body.get("deck_ids") or []],
+                                            int(folder_id) if folder_id else None)
+                return {"moved": moved, "folders": book.folder_list()}
             if method == "POST" and deck_id is None and action == "import":
                 imported, warnings = book.import_decks(body.get("decks") or [])
                 return {"imported": [book.summary(d) for d in imported], "warnings": warnings}

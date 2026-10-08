@@ -18,6 +18,10 @@ const prefs = { filter: 'all', sort: 'name', dir: 'asc', format: '', folder: 'al
 let built = false;
 let home, page, grid, totalsBox, toolbar, folderBar, importPanel, searchNote;
 let lastData = null;
+// Select mode: tiles become checkboxes and a bar moves the chosen decks to a folder.
+let selecting = false;
+const selected = new Set();
+let selectBtn, selectBar;
 
 /** Show the deck grid (deckId null) or one deck's page. */
 export function showDecks(deckId) {
@@ -47,6 +51,9 @@ function buildHome() {
   const newBtn = h('button.btn.go', { type: 'button', onclick: newDeckDialog }, '＋ New deck');
   // Every deck in one file, to move them to another copy of Cardclops (the phone, cardclops.com).
   const exportLink = h('a.btn.ghost', { href: api.decks.exportUrl, download: '', title: 'Save every deck in one file, to import into another copy of Cardclops' }, '⇩ Export all decks');
+  selectBtn = h('button.btn.ghost', { type: 'button', 'aria-pressed': 'false', title: 'Choose several decks to move to a folder',
+    onclick: () => setSelecting(!selecting) }, '☑ Select');
+  selectBar = h('div.select-bar', { hidden: true, role: 'region', 'aria-label': 'Selected decks' });
   toolbar = h('div.panel-tools');
   folderBar = h('div.folder-bar', { role: 'group', 'aria-label': 'Folders' });
   totalsBox = h('div.deck-totals');
@@ -55,11 +62,12 @@ function buildHome() {
   grid = h('div.deck-grid', { 'aria-live': 'polite' });
   home.append(
     h('section.panel.decks-head',
-      h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, exportLink, importBtn, newBtn)),
+      h('div.panel-head', h('h2', 'Decks'), h('div.panel-tools', toolbar, selectBtn, exportLink, importBtn, newBtn)),
       totalsBox,
       folderBar,
       deckSearch()),
     importPanel,
+    selectBar,
     grid);
   home.importBtn = importBtn;
   buildToolbar();
@@ -306,7 +314,78 @@ function renderGrid() {
   }
   if (searchNote) clear(searchNote).append(lastData.query ? `${int(decks.length)} ${decks.length === 1 ? 'deck matches' : 'decks match'}` : '');
   if (!decks.length) { grid.append(h('div.chart-empty', lastData.query ? 'No decks match that search.' : 'No decks match these filters.')); return; }
-  grid.append(...decks.map(deckTile));
+  grid.append(...decks.map(d => selecting ? selectableTile(d) : deckTile(d)));
+  renderSelectBar(decks);
+}
+
+// ---------- select mode ----------
+function setSelecting(on) {
+  selecting = on;
+  if (!on) selected.clear();
+  selectBtn.setAttribute('aria-pressed', String(on));
+  selectBtn.classList.toggle('on', on);
+  renderGrid();
+}
+
+/** A deck tile that toggles its selection instead of opening the deck. */
+function selectableTile(d) {
+  const tile = deckTile(d);
+  const mark = () => {
+    tile.classList.toggle('chosen', selected.has(d.deck_id));
+    tile.setAttribute('aria-pressed', String(selected.has(d.deck_id)));
+  };
+  tile.classList.add('selectable');
+  tile.setAttribute('role', 'button');
+  tile.querySelector('.dt-cover').append(h('span.select-mark', { 'aria-hidden': 'true' }));
+  tile.addEventListener('click', e => {
+    e.preventDefault();
+    if (selected.has(d.deck_id)) selected.delete(d.deck_id); else selected.add(d.deck_id);
+    mark();
+    renderSelectBar();
+  });
+  mark();
+  return tile;
+}
+
+let shownDecks = [];
+function renderSelectBar(decks = shownDecks) {
+  shownDecks = decks;
+  selectBar.hidden = !selecting;
+  if (!selecting) return;
+  const count = selected.size;
+  const folders = lastData?.folders || [];
+  const target = h('select.select', { 'aria-label': 'Move the selected decks to', disabled: !count },
+    h('option', { value: '' }, count ? `Move ${count} to…` : 'Move to…'),
+    folders.map(f => h('option', { value: String(f.folder_id) }, `📁 ${f.name}`)),
+    h('option', { value: 'none' }, 'No folder'),
+    h('option', { value: 'new' }, '＋ New folder…'));
+  target.addEventListener('change', async () => {
+    const choice = target.value;
+    target.value = '';
+    if (!choice) return;
+    let folderId = choice === 'none' ? null : Number(choice), name = folders.find(f => f.folder_id === folderId)?.name;
+    if (choice === 'new') {
+      name = await askName('New folder', 'Make folder and move');
+      if (!name) return;
+      try { folderId = (await api.decks.folders.create(name)).folder_id; }
+      catch (error) { toast('Could not make it: ' + error.message); return; }
+    }
+    try {
+      const r = await api.decks.folders.move([...selected], folderId);
+      toast(`Moved ${r.moved} deck${r.moved === 1 ? '' : 's'} ${folderId == null ? 'out of their folders' : 'to ' + name}`);
+      setSelecting(false);
+      load();
+    } catch (error) { toast('Could not move them: ' + error.message); }
+  });
+  const allShown = decks.length && decks.every(d => selected.has(d.deck_id));
+  clear(selectBar).append(
+    h('b', count ? `${int(count)} selected` : 'Tap decks to select them'),
+    h('button.btn.small.ghost', { type: 'button', disabled: !decks.length, onclick: () => {
+      for (const d of decks) { if (allShown) selected.delete(d.deck_id); else selected.add(d.deck_id); }
+      renderGrid();
+    } }, allShown ? 'Clear shown' : `Select all ${int(decks.length)} shown`),
+    target,
+    h('button.btn.small', { type: 'button', onclick: () => setSelecting(false) }, 'Done'));
 }
 
 export function colorPips(identity) {

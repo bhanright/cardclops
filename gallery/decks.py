@@ -976,6 +976,19 @@ class DeckBook:
         self.connection.commit()
         self.reload()
 
+    def move_to_folder(self, deck_ids, folder_id):
+        """Put several decks in one folder, or in none (folder_id None). Returns how many moved."""
+        if folder_id is not None and folder_id not in self.folders:
+            raise KeyError(f"no folder {folder_id}")
+        missing = [deck_id for deck_id in deck_ids if deck_id not in self.decks]
+        if missing:
+            raise KeyError(f"no deck {missing[0]}")
+        self.connection.executemany("UPDATE decks SET folder_id = ? WHERE deck_id = ?",
+                                    [(folder_id, deck_id) for deck_id in deck_ids])
+        self.connection.commit()
+        self.reload()
+        return len(deck_ids)
+
     def _folder_named(self, name):
         """The folder of that name, made if there's none (importing a decks file). Doesn't commit:
         the import it's part of commits or rolls back as a whole."""

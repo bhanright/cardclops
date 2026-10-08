@@ -1992,3 +1992,16 @@ kbd { font: 700 .85em ui-monospace, Consolas, monospace; background: var(--paper
 .br-details summary::before { content: '▸ '; display: inline-block; transition: transform .15s; }
 .br-details[open] summary::before { transform: rotate(90deg); }
 .br-body { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+
+/* Decks → Select: choose several decks and move them to a folder (decks.js) */
+.select-bar { position: sticky; top: calc(var(--header-h, 64px) + 8px); z-index: 6; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  margin: 10px 0; padding: 8px 14px; background: var(--bg-deep); border: var(--line); border-radius: var(--pill); box-shadow: var(--shadow-sm); }
+.select-bar .select { min-width: 12em; }
+.deck-tile.selectable { cursor: pointer; }
+.deck-tile.selectable .dt-cover { position: relative; }
+.select-mark { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 44px; height: 44px; border-radius: 12px;
+  border: 3px solid var(--ink); background: color-mix(in srgb, var(--panel) 80%, transparent); box-shadow: var(--shadow-sm); }
+.deck-tile.chosen { outline: 4px solid var(--lime); outline-offset: 2px; }
+.deck-tile.chosen .select-mark { background: var(--lime); }
+.deck-tile.chosen .select-mark::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; color: var(--paper-ink); font-size: 1.6rem; font-weight: 900; }
+.btn.on { outline: 3px solid var(--lime); }

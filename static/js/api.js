@@ -108,6 +108,7 @@ export const api = {
     create: fields => request('/api/decks', { method: 'POST', body: fields }),
     folders: {
       create: name => request('/api/decks/folders', { method: 'POST', body: { name } }),
+      move: (deckIds, folderId) => request('/api/decks/move-to-folder', { method: 'POST', body: { deck_ids: deckIds, folder_id: folderId } }),
       rename: (folderId, name) => request('/api/decks/folders', { method: 'PATCH', body: { folder_id: folderId, name } }),
       remove: folderId => request('/api/decks/folders', { method: 'DELETE', body: { folder_id: folderId } }),
     },
