@@ -78,6 +78,31 @@ class ManualTests(unittest.TestCase):
         self.assertEqual(self.rows(), [("spider", "foil", 1, "import"), ("spider", "normal", 4, "import"),
                                        ("spider", "normal", 1, "manual")])
 
+    def test_adding_a_binder_keeps_the_rest_of_the_collection(self):
+        ingest.store_holdings(self.connection, [imported("ring")], "collection.csv")
+        trade = [dict(imported("spider", quantity=2), binder="Trade")]
+        ingest.store_holdings(self.connection, trade, "trade.csv", mode="add")
+        self.assertEqual(self.rows(), [("spider", "normal", 2, "added:Trade"), ("ring", "normal", 1, "import")])
+        # The same binder again updates it rather than counting it twice; other binders stay.
+        ingest.store_holdings(self.connection, [dict(imported("spider", quantity=3), binder="Trade")], "trade.csv", mode="add")
+        ingest.store_holdings(self.connection, [dict(imported("ring"), binder="Deck box")], "box.csv", mode="add")
+        self.assertEqual(self.rows(), [("ring", "normal", 1, "added:Deck box"), ("spider", "normal", 3, "added:Trade"),
+                                       ("ring", "normal", 1, "import")])
+        # A file without binder names is filed under its name.
+        ingest.store_holdings(self.connection, [imported("spider", "foil")], "loose.csv", mode="add")
+        self.assertIn(("spider", "foil", 1, "added:loose.csv"), self.rows())
+        # A whole-collection import replaces the added copies too: it already has them.
+        ingest.store_holdings(self.connection, [imported("ring", quantity=2)], "collection.csv")
+        self.assertEqual(self.rows(), [("ring", "normal", 2, "import")])
+
+    def test_an_added_binder_takes_over_cards_added_by_hand(self):
+        manual.add(self.connection, {"scryfall_id": "spider", "quantity": 2})
+        reconciled = ingest.store_holdings(self.connection, [dict(imported("spider", name="Giant Spider"), binder="Trade")],
+                                           "trade.csv", mode="add")
+        self.assertEqual(reconciled, [{"name": "Giant Spider", "finish": "normal", "removed": 1}])
+        ingest.store_holdings(self.connection, [dict(imported("spider"), binder="Trade")], "trade.csv", mode="add")
+        self.assertEqual(self.rows(), [("spider", "normal", 1, "added:Trade"), ("spider", "normal", 1, "manual")])
+
     def test_imported_rows_cannot_be_edited_here(self):
         ingest.store_holdings(self.connection, [imported("ring")], "x.csv")
         row_id = self.connection.execute("SELECT row_id FROM holdings").fetchone()[0]

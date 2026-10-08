@@ -61,26 +61,45 @@ HOLDING_COLUMNS = ("scryfall_id", "name", "set_code", "collector_number", "finis
                    "condition", "language", "added_at")
 
 
-def store_holdings(connection, rows, source):
-    """Replace the imported part of the collection with `rows` (dicts keyed by HOLDING_COLUMNS).
+ADDED_PREFIX = "added:"           # holdings.source of copies added by an "add to my collection" import
 
-    Cards added by hand in Cardclops (source 'manual') stay. Where the import now holds more of
-    the same printing and finish than the previous import did, those new copies take over: the
-    manual quantity drops by the increase, so a card added by hand and later entered in ManaBox
-    isn't counted twice, and importing an unchanged file changes nothing. Returns those
-    adjustments as [{"name", "finish", "removed"}]."""
-    previous = {}
-    for row in connection.execute("SELECT scryfall_id, finish, quantity FROM holdings WHERE source != 'manual'"):
-        key = (row["scryfall_id"], row["finish"] or "normal")
-        previous[key] = previous.get(key, 0) + (row["quantity"] or 0)
-    connection.execute("DELETE FROM holdings WHERE source != 'manual'")
+
+def added_as(row, source):
+    """What an added copy is filed under: its ManaBox binder, or the file's name when it has none."""
+    return (row.get("binder") or "").strip() or str(source)
+
+
+def store_holdings(connection, rows, source, mode="replace"):
+    """Store an imported file's `rows` (dicts keyed by HOLDING_COLUMNS) in the collection.
+
+    mode "replace" (a whole-collection export): the file replaces everything imported before.
+    mode "add" (a ManaBox binder export, or any partial list): the file's copies join the
+    collection. Each copy is tagged with its ManaBox binder, or the file name when it has none,
+    so importing the same binder again updates it instead of counting its cards twice. A later
+    "replace" import drops added copies too, since a whole-collection export already has them.
+
+    Cards added by hand in Cardclops (source 'manual') stay either way. Where the import holds
+    more of the same printing and finish than before, those new copies take over: the manual
+    quantity drops by the increase, so a card added by hand and later entered in ManaBox isn't
+    counted twice, and importing an unchanged file changes nothing. Returns those adjustments as
+    [{"name", "finish", "removed"}]."""
+    if mode == "add":
+        tag_of = lambda row: ADDED_PREFIX + added_as(row, source)
+        replaced = sorted({tag_of(row) for row in rows})
+        where = f"source IN ({', '.join('?' * len(replaced))})"
+    else:
+        tag_of = lambda row: "import"
+        replaced = []
+        where = "source != 'manual'"
+    previous = _copies_by_printing(connection.execute(
+        f"SELECT scryfall_id, finish, quantity FROM holdings WHERE {where}", replaced))
+    connection.execute(f"DELETE FROM holdings WHERE {where}", replaced)
+    columns = HOLDING_COLUMNS + ("source",)
     connection.executemany(
-        f"INSERT INTO holdings ({', '.join(HOLDING_COLUMNS)}) VALUES ({', '.join('?' * len(HOLDING_COLUMNS))})",
-        [tuple(row.get(column) for column in HOLDING_COLUMNS) for row in rows])
-    imported = {}
-    for row in rows:
-        key = (row.get("scryfall_id"), row.get("finish") or "normal")
-        imported[key] = imported.get(key, 0) + int(row.get("quantity") or 0)
+        f"INSERT INTO holdings ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
+        [tuple(row.get(column) for column in HOLDING_COLUMNS) + (tag_of(row),) for row in rows])
+    imported = _copies_by_printing({"scryfall_id": row.get("scryfall_id"), "finish": row.get("finish"),
+                                    "quantity": row.get("quantity")} for row in rows)
     added = {key: quantity - previous.get(key, 0) for key, quantity in imported.items() if quantity > previous.get(key, 0)}
     reconciled = []
     for manual in connection.execute(
@@ -95,10 +114,22 @@ def store_holdings(connection, rows, source):
         else:
             connection.execute("UPDATE holdings SET quantity = quantity - ? WHERE row_id = ?", (removed, manual["row_id"]))
         reconciled.append({"name": manual["name"], "finish": manual["finish"], "removed": removed})
-    set_meta(connection, "manabox_file", str(source))
-    set_meta(connection, "manabox_imported_at", date.today().isoformat())
+    if mode == "add":
+        set_meta(connection, "last_added_file", str(source))
+    else:
+        set_meta(connection, "manabox_file", str(source))
+        set_meta(connection, "manabox_imported_at", date.today().isoformat())
     connection.commit()
     return reconciled
+
+
+def _copies_by_printing(rows):
+    """{(scryfall_id, finish): copies} over holdings rows or import rows."""
+    copies = {}
+    for row in rows:
+        key = (row["scryfall_id"], row["finish"] or "normal")
+        copies[key] = copies.get(key, 0) + int(row["quantity"] or 0)
+    return copies
 
 
 def oracle_id_of(card):

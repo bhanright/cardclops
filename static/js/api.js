@@ -63,7 +63,7 @@ export const api = {
     status: () => request('/api/setup/status'),
     progress: () => request('/api/setup/progress'),
     download: priceHistory => request('/api/setup/download', { method: 'POST', body: { price_history: priceHistory } }),
-    import: (filename, text) => request('/api/setup/import', { method: 'POST', body: { filename, text } }),
+    import: (filename, text, mode = 'replace') => request('/api/setup/import', { method: 'POST', body: { filename, text, mode } }),
     options: fields => request('/api/setup/options', { method: 'POST', body: fields }),
     complete: () => request('/api/setup/complete', { method: 'POST', body: {} }),
   },

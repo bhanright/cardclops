@@ -20,7 +20,7 @@ from datetime import datetime
 
 from . import combos, net, pack, scryfall
 from .db import get_meta, merge_price_points, set_meta
-from .ingest import (PRICE_KEYS, _number, _record_prices, _store_card, decode_legalities, store_holdings,
+from .ingest import (PRICE_KEYS, _number, _record_prices, _store_card, added_as, decode_legalities, store_holdings,
                      tracked_printings)
 from .runtime import request_save
 from .collection import slim
@@ -284,8 +284,9 @@ class BrowserJobs(Jobs):
             return {"card_data_date": (get_meta(self.gallery.connection, "scryfall_updated_at") or "")[:10]}
         return self.start("download", work)
 
-    def import_collection(self, filename, text):
-        """Replace the collection with an uploaded CSV, then fetch its cards' details."""
+    def import_collection(self, filename, text, mode="replace"):
+        """Replace the collection with an uploaded CSV, or add its copies (mode "add"), then fetch
+        its cards' details."""
         async def work():
             from . import importers
             from .binders import BinderBook
@@ -300,7 +301,7 @@ class BrowserJobs(Jobs):
                 if not parsed["rows"]:
                     raise RuntimeError("No cards in that file matched. Is it a collection export?")
                 self._update(stage="Saving your collection", percent=40)
-                reconciled = store_holdings(connection, parsed["rows"], filename)
+                reconciled = store_holdings(connection, parsed["rows"], filename, mode)
                 binders_filled = BinderBook(connection).from_import(parsed["rows"])
                 connection.commit()
             await self._fetch_missing_cards(45, 80)
@@ -310,10 +311,11 @@ class BrowserJobs(Jobs):
                 await load_history(self, 86, 94)
             await self._finish()
             copies = sum(r["quantity"] for r in parsed["rows"])
-            return {"format": parsed.get("format"), "rows": len(parsed["rows"]), "copies": copies,
+            return {"format": parsed.get("format"), "mode": mode, "rows": len(parsed["rows"]), "copies": copies,
                     "matched": len(parsed["rows"]), "approximate": parsed.get("approximate", [])[:200],
                     "unmatched": parsed.get("unmatched", [])[:200], "total_rows": parsed.get("total_rows"),
-                    "manual_reconciled": reconciled, "binders_filled": binders_filled}
+                    "manual_reconciled": reconciled, "binders_filled": binders_filled,
+                    "added_as": sorted({added_as(row, filename) for row in parsed["rows"]}) if mode == "add" else []}
         return self.start("import", work)
 
     def refresh(self):

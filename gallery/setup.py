@@ -125,8 +125,9 @@ class Jobs:
             return {"card_data_date": date}
         return self.start("download", work)
 
-    def import_collection(self, filename, text):
-        """Replace the collection with an uploaded CSV, then fill in its cards and prices."""
+    def import_collection(self, filename, text, mode="replace"):
+        """Replace the collection with an uploaded CSV (mode "replace"), or add the file's copies to
+        it (mode "add": a binder export; ingest.store_holdings), then fill in its cards and prices."""
         def work():
             from . import history, importers, ingest
             connection = db.connect()
@@ -141,7 +142,7 @@ class Jobs:
                 if not parsed["rows"]:
                     raise RuntimeError("No cards in that file matched. Is it a collection export?")
                 self._update(stage="Saving your collection", percent=48)
-                reconciled = ingest.store_holdings(connection, parsed["rows"], filename)
+                reconciled = ingest.store_holdings(connection, parsed["rows"], filename, mode)
                 from .binders import BinderBook
                 binders_filled = BinderBook(connection).from_import(parsed["rows"])    # ManaBox's Binder Name
                 log, progress = self._logger(50, 75)
@@ -158,10 +159,11 @@ class Jobs:
             self._update(stage="Loading", percent=96)
             self.gallery.load()
             copies = sum(r["quantity"] for r in parsed["rows"])
-            return {"format": parsed.get("format"), "rows": len(parsed["rows"]), "copies": copies,
+            return {"format": parsed.get("format"), "mode": mode, "rows": len(parsed["rows"]), "copies": copies,
                     "matched": len(parsed["rows"]), "approximate": parsed.get("approximate", [])[:200],
                     "unmatched": parsed.get("unmatched", [])[:200], "total_rows": parsed.get("total_rows"),
-                    "manual_reconciled": reconciled, "binders_filled": binders_filled}
+                    "manual_reconciled": reconciled, "binders_filled": binders_filled,
+                    "added_as": sorted({ingest.added_as(row, filename) for row in parsed["rows"]}) if mode == "add" else []}
         return self.start("import", work)
 
     def refresh(self):

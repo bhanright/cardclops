@@ -11,7 +11,7 @@ const SUPPORTED = ['ManaBox', 'Moxfield', 'Archidekt', 'Deckbox', 'TCGplayer', '
 const FORMAT_NAMES = { manabox: 'ManaBox', moxfield: 'Moxfield', deckbox: 'Deckbox', archidekt: 'Archidekt', dragonshield: 'Dragon Shield',
   tcgplayer: 'TCGplayer', tcgplayer_inventory: 'TCGplayer inventory', delverlens: 'Delver Lens', helvault: 'Helvault', generic: 'a generic CSV' };
 const HOW_TO = [
-  ['ManaBox', 'Collection → ⋯ menu → Export → CSV. Send the file to this PC.'],
+  ['ManaBox', 'Collection → ⋯ menu → Export → CSV. Send the file to this PC. To add one binder, export just that binder the same way and choose "Add to my collection".'],
   ['Moxfield', 'Collection → More → Export → CSV.'],
   ['Archidekt', 'Collection → Export → CSV (keep the default columns).'],
   ['Deckbox', 'Inventory → Tools → Export → CSV.'],
@@ -75,9 +75,30 @@ export function startBanner() {
 }
 
 // ---------- import flow (wizard step 3 and "Update my collection") ----------
-/** File picker → POST /api/setup/import → progress → result. onDone(result) after a successful import. */
-export function importFlow({ onDone, intro } = {}) {
+// What each import mode does, for the choice in "Update my collection".
+const IMPORT_MODES = [
+  ['replace', 'Replace my collection', 'A full export of your collection. It replaces everything imported before; decks, the watchlist and price history stay, and deck copies are re-allocated.'],
+  ['add', 'Add to my collection', 'A ManaBox binder export, or any list of cards. Its cards join your collection. Importing the same binder again updates it rather than counting its cards twice.'],
+];
+
+/** File picker → POST /api/setup/import → progress → result. onDone(result) after a successful import.
+ *  With chooseMode, the picker offers replacing the collection or adding the file's cards to it. */
+export function importFlow({ onDone, intro, chooseMode = false } = {}) {
   const box = h('div.import-flow');
+  let mode = 'replace';
+  const modeChoice = () => {
+    const note = h('p.small.muted');
+    const buttons = IMPORT_MODES.map(([value, label]) => h('button.seg-btn', { type: 'button', 'aria-pressed': String(mode === value),
+      class: mode === value ? 'on' : null, onclick: () => { mode = value; show(); } }, label));
+    const show = () => {
+      IMPORT_MODES.forEach(([value, , explain], i) => {
+        buttons[i].classList.toggle('on', mode === value); buttons[i].setAttribute('aria-pressed', String(mode === value));
+        if (mode === value) note.textContent = explain;
+      });
+    };
+    show();
+    return h('div.import-mode', h('div.seg', { role: 'group', 'aria-label': 'What the file is' }, buttons), note);
+  };
   const pick = () => {
     const input = h('input', { type: 'file', accept: '.csv,text/csv,.txt', hidden: true });
     const drop = h('div.dropzone', { tabindex: '0', role: 'button', 'aria-label': 'Choose your collection CSV or drop it here',
@@ -89,7 +110,7 @@ export function importFlow({ onDone, intro } = {}) {
     drop.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if (f) start(f); });
     input.addEventListener('change', () => { if (input.files[0]) start(input.files[0]); });
     clear(box).append(
-      intro || null,
+      ...[intro, chooseMode ? modeChoice() : null].filter(Boolean),     // append() would print null
       drop, input,
       h('p.small', h('b', 'Works with: '), SUPPORTED.join(' · ')),
       h('details.howto', h('summary', 'How do I export my collection?'), h('ul', HOW_TO.map(([app, how]) => h('li', h('b', app + ': '), how)))));
@@ -99,7 +120,7 @@ export function importFlow({ onDone, intro } = {}) {
     clear(box).append(spinner(`Reading ${file.name}…`));
     reader.onerror = () => { clear(box).append(errorBox('Could not read that file.')); addRetry(); };
     reader.onload = async () => {
-      try { await api.setup.import(file.name, String(reader.result || '')); } catch (error) { clear(box).append(errorBox(error.message)); addRetry(); return; }
+      try { await api.setup.import(file.name, String(reader.result || ''), mode); } catch (error) { clear(box).append(errorBox(error.message)); addRetry(); return; }
       const view = h('div');
       clear(box).append(h('p', 'Importing ', h('b', file.name), '…'), view);
       watchJob(p => {
@@ -119,7 +140,9 @@ export function importFlow({ onDone, intro } = {}) {
       h('ol', items.map(u => h('li', u.line != null ? h('span.muted', `line ${u.line}: `) : null, h('code', u.text ?? u.name ?? ''), u.reason ? [' — ', u.reason] : null)))) : null;
     clear(box).append(
       h('div.import-summary',
-        h('h3', '✓ Imported ', name),
+        h('h3', r.mode === 'add' ? '✓ Added ' : '✓ Imported ', name),
+        r.added_as?.length ? h('p.small', 'Filed under ', r.added_as.map((tag, i) => [i ? ', ' : '', h('b', tag)]),
+          '. Importing that again updates those cards instead of adding them twice.') : null,
         r.format ? h('p.small.muted', `Read as ${FORMAT_NAMES[r.format] || r.format} export.`) : null,
         h('div.bignums',
           h('div.bignum.c-cyan', h('div.bn-value', int(r.rows)), h('div.bn-label', 'Rows')),
@@ -153,10 +176,7 @@ export function dialog(title, content, { onClose } = {}) {
 
 // ---------- housekeeping (Tools menu) ----------
 export function updateCollection() {
-  dialog('Update my collection', importFlow({
-    intro: h('p.muted', 'Import a fresh export to replace your collection. Decks, watchlist and price history stay; deck copies are re-allocated.'),
-    onDone: () => startBanner(),
-  }));
+  dialog('Update my collection', importFlow({ chooseMode: true, onDone: () => startBanner() }));
 }
 
 export async function refreshNow() {

@@ -280,7 +280,8 @@ class Api:
             if path == "/api/setup/import":
                 if not body.get("text"):
                     return _error("Choose a CSV file first.", HTTPStatus.BAD_REQUEST)
-                return Response(jobs.import_collection(body.get("filename", "collection.csv"), body["text"]))
+                mode = "add" if body.get("mode") == "add" else "replace"
+                return Response(jobs.import_collection(body.get("filename", "collection.csv"), body["text"], mode))
             if path == "/api/setup/options":
                 scheduled = setup_module.set_daily_refresh(bool(body.get("daily_refresh")))
                 return Response({"daily_refresh_scheduled": scheduled})
