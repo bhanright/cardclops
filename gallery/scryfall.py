@@ -11,6 +11,7 @@ and must not be ignored.
 """
 import gzip
 import json
+import threading
 import time
 
 from . import net
@@ -21,7 +22,11 @@ SECONDS_BETWEEN_API_CALLS = 0.12
 SECONDS_BETWEEN_SLOW_CALLS = 0.55               # the 2-a-second endpoints, with a margin
 SLOW_ENDPOINTS = ("/cards/search", "/cards/named", "/cards/random", "/cards/collection")
 SECONDS_AFTER_429 = 31
+# One pace for the whole process: the app's request threads and its refresh job all call Scryfall,
+# and the limits are per caller, not per thread.
+_pace = threading.Lock()
 _last_api_call = 0.0
+_blocked_until = 0.0              # after a 429, nobody calls until Scryfall's block has passed
 
 
 def seconds_between(url):
@@ -33,18 +38,20 @@ def seconds_between(url):
 def api_get(url, data=None):
     """One polite API call: waits out the rate limit, returns parsed JSON. After a 429 it waits
     out Scryfall's 30-second block and tries once more."""
-    global _last_api_call
+    global _last_api_call, _blocked_until
     for attempt in (1, 2):
-        wait = seconds_between(url) - (time.monotonic() - _last_api_call)
-        if wait > 0:
-            time.sleep(wait)
-        _last_api_call = time.monotonic()
+        with _pace:                 # threads take turns: each waits its gap after the previous call
+            now = time.monotonic()
+            wait = max(seconds_between(url) - (now - _last_api_call), _blocked_until - now)
+            if wait > 0:
+                time.sleep(wait)
+            _last_api_call = time.monotonic()
         try:
             return net.get_json(url, data)
         except net.NetError as error:
             if error.status != 429 or attempt == 2:
                 raise
-            time.sleep(SECONDS_AFTER_429)
+            _blocked_until = time.monotonic() + SECONDS_AFTER_429
 
 
 def bulk_file(kind, log=print, progress=None):

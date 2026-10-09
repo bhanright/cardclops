@@ -14,6 +14,7 @@ import io
 import json
 import re
 import unicodedata
+import urllib.parse
 from collections import defaultdict
 from dataclasses import dataclass, field
 from types import SimpleNamespace
@@ -277,6 +278,46 @@ class Resolver:
 # ---- allocation ------------------------------------------------------------------------------
 
 COPY_POLICIES = ("default", "budget", "bling")
+# The formats a deck can have (the deck page's list, static/js/decks.js DECK_FORMATS); "auto" means
+# "guess it from the list". Anything else from an imported file becomes "auto".
+DECK_FORMATS = frozenset({
+    "commander", "standard", "pioneer", "modern", "legacy", "vintage", "pauper", "paupercommander", "oathbreaker",
+    "brawl", "standardbrawl", "historic", "timeless", "alchemy", "explorer", "penny", "premodern", "oldschool",
+    "redux", "predh", "duel", "gladiator", "casual", "future", "auto"})
+
+
+def file_lines(spec):
+    """A deck's lines from a Cardclops decks file (export_all), as ParsedLines."""
+    return [ParsedLine(section=line.get("section") if line.get("section") in SECTIONS else "main",
+                       quantity=max(1, int(line.get("quantity") or 1)), name=str(line.get("name") or ""),
+                       set_code=line.get("set_code"), number=line.get("number"), finish=line.get("finish"),
+                       raw=str(line.get("name") or ""), scryfall_id=line.get("scryfall_id"))
+            for line in spec.get("lines") or [] if isinstance(line, dict) and line.get("name")]
+
+
+def clean_format(value):
+    """A deck format from outside (an imported file, a request): a known one, else "auto"."""
+    value = str(value or "").strip().lower()
+    return value if value in DECK_FORMATS else "auto"
+
+
+def clean_source_url(value):
+    """Where an imported deck came from, kept only when it is a web address. The deck page links to
+    it, and a javascript: address in a shared decks file would otherwise run in the app."""
+    value = str(value or "").strip()
+    if not value:
+        return None
+    try:
+        scheme = urllib.parse.urlsplit(value).scheme.lower()
+    except ValueError:
+        return None
+    return value[:500] if scheme in ("http", "https") else None
+
+
+def clean_source(value, default):
+    """The importer a deck came from: a short plain word (paste, file, archidekt, builder...)."""
+    value = str(value or "").strip().lower()
+    return value if re.fullmatch(r"[a-z]{1,20}", value) else default
 
 
 def treatments(card):
@@ -846,18 +887,52 @@ class DeckBook:
                 unknown_printings.add(scryfall_id)
         return unknown_printings
 
-    def _fetch_missing_cards(self, scryfall_ids):
-        from .ingest import _record_prices, _store_card
-        have = {row[0] for row in self.connection.execute(
-            f"SELECT scryfall_id FROM cards WHERE scryfall_id IN ({','.join('?' * len(scryfall_ids))})",
-            list(scryfall_ids))} if scryfall_ids else set()
-        wanted = set(scryfall_ids) - have
+    # The server fetches a write's card data before taking its lock (printings_to_fetch), then turns
+    # this off so the write itself never waits on Scryfall while every other request waits on it.
+    # Anything still missing is fetched by the next refresh, which covers every deck's printings.
+    fetch_cards_during_writes = True
+
+    def _uncached(self, scryfall_ids):
+        """The printings among `scryfall_ids` with no card data here yet."""
+        wanted = {scryfall_id for scryfall_id in scryfall_ids if scryfall_id} - set(self.collection.by_scryfall_id)
         if not wanted:
+            return set()
+        have = {row[0] for row in self.connection.execute(
+            f"SELECT scryfall_id FROM cards WHERE scryfall_id IN ({','.join('?' * len(wanted))})", list(wanted))}
+        return wanted - have
+
+    def _fetch_missing_cards(self, scryfall_ids):
+        if not self.fetch_cards_during_writes:
             return
+        wanted = self._uncached(scryfall_ids)
+        if wanted:
+            self.store_fetched_cards(scryfall.fetch_cards_by_id(wanted), commit=False)
+
+    def printings_to_fetch(self, parsed_lines=(), card_requests=()):
+        """The printings a deck write will want card data for that isn't here yet: for decklist
+        lines (ParsedLine) and single-card requests (add_line's body; a commander's {"name"})."""
+        wanted = set()
+        for line in parsed_lines:
+            wanted.add(self.resolver.resolve(line)[1])
+        for body in card_requests:
+            scryfall_id, name = body.get("scryfall_id") or None, str(body.get("name") or "").strip()
+            if body.get("oracle_id") and not scryfall_id:
+                name = (self.resolver.representative.get(body["oracle_id"]) or (None, ""))[1]
+            if scryfall_id or name:
+                wanted.add(self.resolver.resolve(
+                    SimpleNamespace(name=name, scryfall_id=scryfall_id, set_code=None, number=None))[1])
+        return self._uncached(wanted)
+
+    def store_fetched_cards(self, cards, commit=True):
+        """Keep Scryfall card objects (with today's prices) in the card cache."""
+        from .ingest import _record_prices, _store_card
         day = datetime.now().date().isoformat()
-        for card in scryfall.fetch_cards_by_id(wanted):
+        for card in cards:
             _store_card(self.connection, card)
             _record_prices(self.connection, card, day)
+            self.card_cache.pop(card["id"], None)
+        if commit:
+            self.connection.commit()
 
     def guess_format(self, deck_id):
         states = self.lines[deck_id]
@@ -867,7 +942,7 @@ class DeckBook:
         singleton = all(s.row["quantity"] == 1 for s in counted
                         if s.row["oracle_id"] and "Basic Land" not in (self._type_line(s) or ""))
         if has_commander:
-            return "commander" if total >= 90 else "brawl"
+            return "commander" if total >= 90 else "standardbrawl"     # Brawl (Historic) is 100 cards too
         if total in (99, 100) and singleton:
             return "commander"
         if total >= 40:
@@ -918,8 +993,10 @@ class DeckBook:
             cursor = connection.execute(
                 "INSERT INTO decks (name, format, status, priority, notes, source, source_url, raw_text, created_at, updated_at) "
                 "VALUES (?, ?, ?, 0, '', ?, ?, ?, ?, ?)",
-                (name, spec.get("format") or "auto", spec.get("status") or "active", spec.get("source") or "paste",
-                 spec.get("source_url"), spec.get("text", ""), now, now))
+                (name, clean_format(spec.get("format")),
+                 spec.get("status") if spec.get("status") in ("active", "inactive") else "active",
+                 clean_source(spec.get("source"), "paste"), clean_source_url(spec.get("source_url")),
+                 spec.get("text", ""), now, now))
             deck_id = cursor.lastrowid
             fetch |= self._store_lines(deck_id, parsed, warnings, name)
             imported.append(deck_id)
@@ -1017,7 +1094,7 @@ class DeckBook:
         deck_id = connection.execute(
             "INSERT INTO decks (name, format, status, priority, notes, source, source_url, raw_text, created_at, updated_at, "
             "folder_id) VALUES (?, ?, ?, 0, '', 'builder', NULL, '', ?, ?, ?)",
-            (name, (deck_format or "casual").strip().lower(), status, now, now,
+            (name, clean_format(deck_format) if deck_format else "casual", status, now, now,
              folder_id if folder_id in self.folders else None)).lastrowid
         fetch = set()
         for position, oracle_id in enumerate(commanders, 1):
@@ -1081,17 +1158,13 @@ class DeckBook:
         touched, fetch, pin_specs = [], set(), {}
         for spec in data.get("decks") or []:
             name = (spec.get("name") or "Untitled deck").strip()
-            parsed = [ParsedLine(section=line.get("section") if line.get("section") in SECTIONS else "main",
-                                 quantity=max(1, int(line.get("quantity") or 1)), name=str(line.get("name") or ""),
-                                 set_code=line.get("set_code"), number=line.get("number"), finish=line.get("finish"),
-                                 raw=str(line.get("name") or ""), scryfall_id=line.get("scryfall_id"))
-                      for line in spec.get("lines") or [] if line.get("name")]
-            fields = {"format": spec.get("format") or "auto",
+            parsed = file_lines(spec)
+            fields = {"format": clean_format(spec.get("format")),
                       "status": spec.get("status") if spec.get("status") in ("active", "inactive") else "inactive",
                       "priority": int(spec.get("priority") or 0),
                       "copy_policy": spec.get("copy_policy") if spec.get("copy_policy") in COPY_POLICIES else "default",
-                      "notes": spec.get("notes") or "", "source": spec.get("source") or "file",
-                      "source_url": spec.get("source_url")}
+                      "notes": str(spec.get("notes") or ""), "source": clean_source(spec.get("source"), "file"),
+                      "source_url": clean_source_url(spec.get("source_url"))}
             existing = here.get(name.casefold())
             if existing and on_conflict == "skip":
                 result["skipped"].append(name)
@@ -1231,6 +1304,8 @@ class DeckBook:
             raise ValueError("status must be active or inactive")
         if "copy_policy" in fields and fields["copy_policy"] not in COPY_POLICIES:
             raise ValueError("copy_policy must be default, budget or bling")
+        if fields.get("format") is not None and fields["format"] not in DECK_FORMATS:
+            raise ValueError(f"unknown format {fields['format']}")
         if fields:
             assignments = ", ".join(f"{k} = ?" for k in fields)
             connection.execute(f"UPDATE decks SET {assignments}, updated_at = ? WHERE deck_id = ?",

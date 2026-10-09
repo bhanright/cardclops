@@ -63,6 +63,10 @@ class BrowserJobs(Jobs):
             stale = datetime.now().astimezone() - datetime.fromisoformat(updated) > STALE_AFTER
         except (TypeError, ValueError):
             stale = True
+        if not stale:
+            from .backups import missing_cards
+            with self.gallery.lock:
+                stale = missing_cards(self.gallery.connection) > 0     # an import or restore that didn't finish
         if stale:
             self.refresh()
         return stale
@@ -135,6 +139,7 @@ class BrowserJobs(Jobs):
         with self.gallery.lock:
             set_meta(connection, "scryfall_updated_at", manifest.get("scryfall_updated_at") or latest)
             connection.commit()
+        request_save()
         return True
 
     async def _update_combos(self):
@@ -184,6 +189,7 @@ class BrowserJobs(Jobs):
                     _store_card(self.gallery.connection, slim(card))
                     _record_prices(self.gallery.connection, card, day)
                 self.gallery.connection.commit()
+            request_save()              # kept as it goes: a tab closed mid-import loses only this batch
             await asyncio.sleep(scryfall.SECONDS_BETWEEN_SLOW_CALLS)
         return len(missing)
 
@@ -220,6 +226,7 @@ class BrowserJobs(Jobs):
             with self.gallery.lock:
                 self._refresh_batch(ids[start:start + REFRESH_BATCH], day, formats)
                 connection.commit()
+            request_save()
             await asyncio.sleep(0)
 
     def _refresh_batch(self, ids, day, formats):
@@ -304,7 +311,12 @@ class BrowserJobs(Jobs):
                 reconciled = store_holdings(connection, parsed["rows"], filename, mode)
                 binders_filled = BinderBook(connection).from_import(parsed["rows"])
                 connection.commit()
-            await self._fetch_missing_cards(45, 80)
+            request_save()
+            try:
+                await self._fetch_missing_cards(45, 80)
+            except Exception:
+                self.gallery.load()             # the collection is saved: show what we have; the next start finishes it
+                raise
             await self._refresh_from_pack(80, 85)
             if get_meta(connection, "setup_price_history") == "yes":
                 from .price_files import load_history

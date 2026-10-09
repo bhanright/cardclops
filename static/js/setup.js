@@ -78,7 +78,7 @@ export function startBanner() {
 // What each import mode does, for the choice in "Update my collection".
 const IMPORT_MODES = [
   ['replace', 'Replace my collection', 'A full export of your collection. It replaces everything imported before; decks, the watchlist and price history stay, and deck copies are re-allocated.'],
-  ['add', 'Add to my collection', 'A ManaBox binder export, or any list of cards. Its cards join your collection. Importing the same binder again updates it rather than counting its cards twice.'],
+  ['add', 'Add to my collection', 'A ManaBox binder export, or any list of cards. Its cards join your collection. Importing a binder you’ve imported before, on its own or as part of a full export, updates it rather than counting its cards twice.'],
 ];
 
 /** File picker → POST /api/setup/import → progress → result. onDone(result) after a successful import.

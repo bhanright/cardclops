@@ -143,7 +143,7 @@ export function rulesText(text) {
   const box = h('div.rules');
   for (const line of String(text || '').split('\n')) {
     const p = h('p');
-    // italicise reminder text in parentheses
+    // italicize reminder text in parentheses
     for (const piece of line.split(/(\([^)]*\))/g)) {
       if (!piece) continue;
       if (/^\(.*\)$/.test(piece)) p.append(h('i.reminder', manaNodes(piece)));

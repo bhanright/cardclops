@@ -151,6 +151,25 @@ class DeltaTests(unittest.TestCase):
         self.assertEqual(pack.installed(browser)["pack_built_at"], second["delta"]["built_at"])
         self.assertEqual(pack.installed(browser)["pack_base"], self.first["pack"]["built_at"])
 
+    def test_a_row_an_earlier_day_added_goes_when_it_goes_from_scryfall(self):
+        def build_on(day):
+            with mock.patch("gallery.pack.datetime") as clock:
+                clock.now.return_value = _later(self.first, day)
+                clock.strptime.side_effect = datetime.strptime
+                return pack.build(self.cache, self.out, log=lambda message: None)
+        self.change_the_cache()                                      # day 1 adds 'new-card'
+        second = build_on(1)
+        browser = self.installed_browser()
+        pack.apply_delta(browser, (self.out / second["delta"]["file"]).read_bytes())
+        cache = sqlite3.connect(self.cache)
+        cache.execute("DELETE FROM set_cards WHERE scryfall_id = 'new-card'")      # day 2: renumbered away
+        cache.commit()
+        cache.close()
+        third = build_on(2)
+        self.assertNotIn("added_since_base", third["delta"])
+        pack.apply_delta(browser, (self.out / third["delta"]["file"]).read_bytes())
+        self.assertEqual(browser.execute("SELECT COUNT(*) FROM pack.set_cards WHERE scryfall_id = 'new-card'").fetchone()[0], 0)
+
     def test_changes_for_another_base_are_refused(self):
         self.change_the_cache()
         with mock.patch("gallery.pack.datetime") as clock:
@@ -224,7 +243,9 @@ class ScryfallPaceTests(unittest.TestCase):
             return answer
         with mock.patch("gallery.net.get_json", side_effect=fake), mock.patch("time.sleep") as sleep:
             self.assertEqual(scryfall.api_get(scryfall.API + "/sets"), {"data": []})
-        self.assertIn(mock.call(scryfall.SECONDS_AFTER_429), sleep.call_args_list)
+        # The retry waits until the block has passed (31 s from the 429, less the moment since).
+        self.assertGreater(max(call.args[0] for call in sleep.call_args_list), scryfall.SECONDS_AFTER_429 - 1)
+        scryfall._blocked_until = 0.0           # the next test isn't blocked by this one's 429
 
 
 class AskWithKeyTests(unittest.TestCase):

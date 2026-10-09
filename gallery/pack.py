@@ -95,8 +95,14 @@ def build(cache_path, out_dir, rules_dir=None, work_dir=None, log=print):
     base_path = work_dir / "base.sqlite"
     base = manifest.get("pack")
     delta = None
+    # Keys each table has gained since the base. A browser that applied an earlier day's changes holds
+    # those rows; if one has gone again since (a preview card Scryfall renumbered), only a delete in
+    # today's changes removes it, so today's deletes cover every key added since the base.
+    added_path = work_dir / "added-since-base.json"
+    added_before = json.loads(added_path.read_text(encoding="utf-8")) if added_path.exists() else {}
     if base and base_path.exists() and _age(base["built_at"]) < BASE_MAX_AGE:
-        delta = _delta(base_path, catalog, base["built_at"], stamp)
+        delta = _delta(base_path, catalog, base["built_at"], stamp, added_before)
+    added_since_base = delta.pop("added_since_base") if delta is not None else None      # the server's own record
     if delta is not None:
         packed = gzip.compress(json.dumps(delta, separators=(",", ":")).encode(), compresslevel=9, mtime=0)
         if len(packed) > DELTA_MAX_SHARE * base["bytes"]:
@@ -110,9 +116,11 @@ def build(cache_path, out_dir, rules_dir=None, work_dir=None, log=print):
         log(f"Changes {name}: {rows:,} rows since pack {base['built_at']}, {len(packed) / 1e6:.1f} MB compressed")
         manifest["delta"] = {"file": name, "built_at": stamp, "base": base["built_at"], "bytes": len(packed),
                              "sha256": hashlib.sha256(packed).hexdigest()}
+        _write_json(added_path, added_since_base)
     else:
         manifest.pop("delta", None)
         manifest["pack"] = _publish_base(catalog, base_path, out_dir, stamp, log)
+        added_path.unlink(missing_ok=True)          # a new base: nothing has been added to it yet
 
     manifest.update(format=PACK_FORMAT, built_at=stamp, scryfall_updated_at=info.get("scryfall_updated_at"),
                     credits="Card data from Scryfall (scryfall.com). Price history from MTGJSON (mtgjson.com), "
@@ -172,9 +180,13 @@ def _age(stamp):
     return datetime.now(timezone.utc) - datetime.strptime(stamp, "%Y%m%d%H%M").replace(tzinfo=timezone.utc)
 
 
-def _delta(base_path, catalog, base_stamp, stamp):
-    """{base, built_at, tables: {name: {columns, key, upsert: [rows], delete: [keys]}}}: what turns the
-    base pack into `catalog`. None when a table's columns differ (a new base is needed then)."""
+def _delta(base_path, catalog, base_stamp, stamp, added_before=None):
+    """{base, built_at, tables: {name: {columns, key, upsert: [rows], delete: [keys]}}, added_since_base}:
+    what turns the base pack, or the base with any earlier day's changes applied, into `catalog`.
+    `added_before` ({table: [key]}) is every key earlier changes added; those no longer in the
+    catalog are deleted too. None when a table's columns differ (a new base is needed then)."""
+    added_before = added_before or {}
+    added_since_base = {}
     new = sqlite3.connect(catalog)
     new.execute("INSERT OR REPLACE INTO catalog_info VALUES ('pack_base', ?)", (base_stamp,))
     new.commit()
@@ -191,12 +203,18 @@ def _delta(base_path, catalog, base_stamp, stamp):
         listed = ", ".join(columns)
         keys = ", ".join(key)
         upsert = new.execute(f"SELECT {listed} FROM main.{table} EXCEPT SELECT {listed} FROM base.{table}").fetchall()
-        delete = new.execute(f"SELECT {keys} FROM base.{table} EXCEPT SELECT {keys} FROM main.{table}").fetchall()
+        delete = [list(r) for r in new.execute(f"SELECT {keys} FROM base.{table} EXCEPT SELECT {keys} FROM main.{table}")]
+        added_now = [list(r) for r in new.execute(f"SELECT {keys} FROM main.{table} EXCEPT SELECT {keys} FROM base.{table}")]
+        present = {tuple(r) for r in added_now}
+        gone_again = [k for k in added_before.get(table, []) if tuple(k) not in present]
+        # Still listed after it's gone, so a browser that skipped some days deletes it too.
+        added_since_base[table] = sorted({tuple(k) for k in added_before.get(table, [])} | present)
+        delete += gone_again
         if upsert or delete:
-            tables[table] = {"columns": columns, "key": key, "upsert": [list(r) for r in upsert],
-                             "delete": [list(r) for r in delete]}
+            tables[table] = {"columns": columns, "key": key, "upsert": [list(r) for r in upsert], "delete": delete}
     new.close()
-    return {"base": base_stamp, "built_at": stamp, "tables": tables}
+    return {"base": base_stamp, "built_at": stamp, "tables": tables,
+            "added_since_base": {table: [list(k) for k in keys] for table, keys in added_since_base.items() if keys}}
 
 
 def _primary_key(connection, table):

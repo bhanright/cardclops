@@ -12,7 +12,7 @@ from datetime import date, datetime, timedelta
 
 from . import scryfall
 from .db import get_meta, set_meta, unpack_points
-from .paths import SCRIPTS_DIR
+from .paths import SCRIPTS_DIR, app_port
 from .pricebook import TRACKED_SOURCES, _rank
 
 # Every automatic alert and notifications start OFF: nobody should get alerts
@@ -21,7 +21,7 @@ from .pricebook import TRACKED_SOURCES, _rank
 DEFAULT_SETTINGS = {"move_alerts": False, "held_move_pct": 20, "held_move_window": 7, "held_min_value_usd": 10,
                     "reprint_alerts": False, "legality_alerts": False, "windows_notifications": False}
 NOTIFY_SCRIPT = SCRIPTS_DIR / "notify.ps1"
-GALLERY_URL = "http://localhost:8765/#/alerts"
+HISTORY_KEPT = timedelta(days=365)        # alerts you've seen, and legality changes, older than this go
 
 
 class Alerts:
@@ -204,6 +204,9 @@ class Alerts:
         settings = self.settings()
         day = date.today().isoformat()
         before = self.connection.execute("SELECT COALESCE(MAX(alert_id), 0) FROM alerts").fetchone()[0]
+        cutoff = (date.today() - HISTORY_KEPT).isoformat()
+        self.connection.execute("DELETE FROM alerts WHERE seen = 1 AND day < ?", (cutoff,))
+        self.connection.execute("DELETE FROM legality_changes WHERE day < ?", (cutoff,))
 
         # Targets on the watchlist fire once per crossing.
         for row in self.connection.execute("SELECT * FROM watchlist").fetchall():
@@ -219,12 +222,8 @@ class Alerts:
 
         # Big moves on cards you hold.
         window = int(settings["held_move_window"])
-        if not settings["move_alerts"]:
-            held = {}
-        else:
-            held = None
-        if held is None:
-            held = defaultdict(int)
+        held = defaultdict(int)
+        if settings["move_alerts"]:
             for entry in collection.entries:
                 held[(entry.scryfall_id, entry.finish)] += entry.quantity
         names = {(e.scryfall_id, e.finish): e for e in collection.entries}
@@ -294,7 +293,8 @@ def show_notification(title, body):
     """Windows PowerShell 5.1 can reach the WinRT toast API without any module; PowerShell 7 cannot."""
     try:
         subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-                        "-WindowStyle", "Hidden", "-File", str(NOTIFY_SCRIPT), title, body, GALLERY_URL],
+                        "-WindowStyle", "Hidden", "-File", str(NOTIFY_SCRIPT), title, body,
+                        f"http://localhost:{app_port()}/#/alerts"],
                        check=True, timeout=30, capture_output=True,
                        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         return True

@@ -128,7 +128,7 @@ instead; the key is used for that call only.
 `{"day", "name", "oracle_id", "format", "old_status", "new_status", "copies"}`.
 
 `GET /img/<scryfall_id>/<front|back>/<small|normal|large|art_crop|png>` → the image, fetched from
-Scryfall the first time and served from `data/images/` afterwards. Use `loading="lazy"` or an
+Scryfall the first time and served from the card cache's `images` folder (`%LOCALAPPDATA%\\Cardclops\\images` on Windows) afterwards. Use `loading="lazy"` or an
 IntersectionObserver; do not preload off-screen images.
 
 ## Adding cards by hand

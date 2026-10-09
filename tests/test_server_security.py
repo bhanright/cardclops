@@ -3,7 +3,6 @@
 Run with: python -m unittest tests.test_server_security
 """
 import http.client
-import json
 import threading
 import unittest
 from unittest import mock
@@ -111,6 +110,16 @@ class SecurityTests(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
+    def test_the_page_runs_only_its_own_scripts(self):
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        connection.request("GET", "/", headers={"Host": f"localhost:{self.port}"})
+        response = connection.getresponse()
+        policy = response.getheader("Content-Security-Policy") or ""
+        response.read()
+        connection.close()
+        self.assertIn("script-src 'self' 'sha256-", policy)          # the theme script, by its hash
+        self.assertNotIn("unsafe-inline", policy.split("script-src")[1].split(";")[0])   # so no javascript: links
+
 
 class TokenTests(unittest.TestCase):
     """With an access token (the Android app), requests without it are refused."""
@@ -142,3 +151,25 @@ class TokenTests(unittest.TestCase):
             self.assertEqual(self.status({"Cookie": "other=1; cardclops_token=s3cret"}), 200)
             self.assertEqual(self.status({"X-Cardclops-Token": "s3cret"}), 200)
         self.assertEqual(self.status({}), 200)                  # no token configured: as before
+
+
+class PortTests(unittest.TestCase):
+    def test_the_saved_port_and_the_environment(self):
+        import os
+        import tempfile
+        from pathlib import Path
+        from gallery import paths
+        settings = Path(tempfile.mkdtemp()) / "app.json"
+        with mock.patch.object(paths, "APP_SETTINGS_PATH", settings), mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("CARDCLOPS_PORT", None)
+            self.assertEqual(paths.app_port(), 8765)
+            paths.save_port(8790)
+            self.assertEqual(paths.app_port(), 8790)
+            os.environ["CARDCLOPS_PORT"] = "8800"
+            self.assertEqual(paths.app_port(), 8800)
+            os.environ.pop("CARDCLOPS_PORT")
+            paths.save_port(None)
+            self.assertEqual(paths.app_port(), 8765)
+        self.assertIsNone(paths.valid_port("80"))           # below 1024 needs administrator rights
+        self.assertIsNone(paths.valid_port("seventy"))
+

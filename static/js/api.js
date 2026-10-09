@@ -103,6 +103,10 @@ export const api = {
     take: (id, body) => request(`/api/binders/${id}/take`, { method: 'POST', body }),
     exportUrl: id => `/api/binders/${id}/export`,
   },
+  app: {
+    port: () => request('/api/app/port'),
+    setPort: port => request('/api/app/port', { method: 'POST', body: { port } }),
+  },
   decks: {
     list: q => request('/api/decks' + (q ? '?' + qs({ q }) : '')),
     create: fields => request('/api/decks', { method: 'POST', body: fields }),

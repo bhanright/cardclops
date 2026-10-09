@@ -209,7 +209,7 @@ function buildToolbar() {
 }
 
 /** Ask for a name in the app's own dialog (the browser's prompt() isn't shown in every edition's
- *  web view). Resolves to the trimmed name, or null when cancelled. */
+ *  web view). Resolves to the trimmed name, or null when canceled. */
 function askName(title, action, initial = '') {
   return new Promise(resolve => {
     let answered = false;

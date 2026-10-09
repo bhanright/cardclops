@@ -14,9 +14,12 @@ live under Program Files. Set CARDCLOPS_HOME or CARDCLOPS_CACHE
 to put either folder somewhere else. On macOS and Linux the same split uses
 ~/Documents and ~/Library/Caches or $XDG_CACHE_HOME.
 """
+import json
 import os
 import sys
 from pathlib import Path
+
+from . import __version__
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 STATIC_DIR = Path(os.environ.get("CARDCLOPS_STATIC_DIR") or PROJECT_ROOT / "static")   # the Android app unpacks it elsewhere
@@ -60,7 +63,7 @@ LEGACY_USER_DIR = _documents_folder() / "Collection Gallery"
 LEGACY_CACHE_DIR = _cache_folder().with_name("CollectionGallery")
 
 # Scryfall asks every client to identify itself.
-USER_AGENT = "Cardclops/0.1 (personal collection viewer)"
+USER_AGENT = f"Cardclops/{__version__} (personal collection viewer)"
 
 README_TEXT = """Cardclops keeps your own data here:
 
@@ -73,6 +76,58 @@ Card data, images and downloads are cache and live in
   {cache}
 Deleting that folder is safe; the next refresh rebuilds it.
 """
+
+
+# The port the Windows app serves on (Settings → App): CARDCLOPS_PORT wins, then the saved choice.
+DEFAULT_PORT = 8765
+APP_SETTINGS_PATH = USER_DIR / "app.json"
+
+
+def valid_port(value):
+    """A port the app may use: a whole number from 1024 (below needs administrator rights) to 65535."""
+    try:
+        port = int(value)
+    except (TypeError, ValueError):
+        return None
+    return port if 1024 <= port <= 65535 else None
+
+
+def saved_port():
+    """The port chosen in Settings, or None."""
+    try:
+        return valid_port(json.loads(APP_SETTINGS_PATH.read_text(encoding="utf-8")).get("port"))
+    except (OSError, ValueError, AttributeError):
+        return None
+
+
+def app_port():
+    """The port the app uses: CARDCLOPS_PORT if set, else the one saved in Settings, else 8765."""
+    return valid_port(os.environ.get("CARDCLOPS_PORT")) or saved_port() or DEFAULT_PORT
+
+
+def save_port(port):
+    """Remember the port for the next start; None goes back to the default."""
+    try:
+        settings = json.loads(APP_SETTINGS_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        settings = {}
+    settings["port"] = port
+    APP_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    partial = APP_SETTINGS_PATH.with_suffix(".part")
+    partial.write_text(json.dumps(settings, indent=1), encoding="utf-8")
+    partial.replace(APP_SETTINGS_PATH)
+
+
+LOG_MAX_BYTES = 5_000_000
+
+
+def open_log(path):
+    """A log file to append to. Past LOG_MAX_BYTES it starts afresh, keeping the last one as .old.log."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists() and path.stat().st_size > LOG_MAX_BYTES:
+        path.replace(path.with_suffix(".old.log"))
+    return open(path, "a", encoding="utf-8", buffering=1)
 
 
 def ensure_dirs():

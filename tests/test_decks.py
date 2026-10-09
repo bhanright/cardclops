@@ -6,6 +6,7 @@ import json
 import sqlite3
 import unittest
 import uuid
+from unittest import mock
 
 from gallery import db
 from gallery.collection import Collection
@@ -355,8 +356,6 @@ class DecksFileTests(AllocationTests):
         with self.assertRaises(ValueError):
             self.book.import_file({"decks": []})
 
-if __name__ == "__main__":
-    unittest.main()
 
 
 class BuilderAndFolderTests(AllocationTests):
@@ -425,3 +424,51 @@ class BuilderAndFolderTests(AllocationTests):
         summaries = [{"deck_id": 1, "name": "Commander", "bracket": 3}, {"deck_id": 2, "name": "Modern", "bracket": None}]
         self.assertEqual([d["name"] for d in search(summaries, {}, "bracket>=3")], ["Commander"])
         self.assertEqual(search(summaries, {}, "bracket<3"), [])        # a deck without a bracket never matches
+
+
+class AuditFixTests(AllocationTests):
+    """Fixes from the October 2026 audit."""
+
+    def test_a_shared_decks_file_cannot_carry_a_script_link_or_an_unknown_format(self):
+        deck_id = self.deck("Shared", "1 Sol Ring")
+        data = json.loads(json.dumps(self.book.export_all()))
+        data["decks"][0].update(source_url="javascript:fetch('/api/backup')", format="no-such-format", name="Hostile")
+        self.book.import_file(data)
+        hostile = next(d for d in self.book.decks.values() if d["name"] == "Hostile")
+        self.assertIsNone(hostile["source_url"])
+        self.assertNotEqual(hostile["format"], "no-such-format")
+        data["decks"][0].update(source_url="https://archidekt.com/decks/1", name="Friendly")
+        self.book.import_file(data)
+        friendly = next(d for d in self.book.decks.values() if d["name"] == "Friendly")
+        self.assertEqual(friendly["source_url"], "https://archidekt.com/decks/1")
+        with self.assertRaises(ValueError):
+            self.book.update(deck_id, {"format": "no-such-format"})
+
+    def test_a_sixty_card_deck_with_a_commander_is_standard_brawl(self):
+        imported, _ = self.book.import_decks([{"name": "Brawl", "text": "Commander\n1 Sol Ring\nDeck\n59 Sol Ring"}])
+        self.assertEqual(self.book.decks[imported[0]]["format"], "standardbrawl")
+        imported, _ = self.book.import_decks([{"name": "EDH", "text": "Commander\n1 Sol Ring\nDeck\n99 Sol Ring"}])
+        self.assertEqual(self.book.decks[imported[0]]["format"], "commander")
+
+    def test_a_burst_of_edits_makes_one_version(self):
+        deck_id = self.deck("Edited", "1 Sol Ring")
+        before = self.connection.execute("SELECT COUNT(*) FROM deck_versions WHERE deck_id = ?", (deck_id,)).fetchone()[0]
+        line_id = self.line(deck_id).row["line_id"]
+        for quantity in (2, 3, 2):
+            self.book.edit_line(line_id, {"quantity": quantity})
+        after = self.connection.execute("SELECT COUNT(*) FROM deck_versions WHERE deck_id = ?", (deck_id,)).fetchone()[0]
+        self.assertEqual(after, before + 1)
+
+    def test_writes_can_leave_card_fetching_to_the_caller(self):
+        deck_id = self.deck("Offline", "1 Sol Ring")
+        self.book.fetch_cards_during_writes = False
+        try:
+            with mock.patch("gallery.scryfall.fetch_cards_by_id", side_effect=AssertionError("no network in a write")):
+                self.book.replace_list(deck_id, "1 Sol Ring\n1 Unknown Card")
+        finally:
+            self.book.fetch_cards_during_writes = True
+        self.assertEqual(self.book.printings_to_fetch(), set())
+
+
+if __name__ == "__main__":
+    unittest.main()

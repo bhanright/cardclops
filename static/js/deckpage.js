@@ -297,7 +297,7 @@ function header(deck) {
         delBox),
       replaceBox,
       h('details.notes-box', { open: !!deck.notes }, h('summary', 'Notes ', noteState), notes),
-      deck.source_url ? h('p.small.muted', 'Imported from ', h('a', { href: deck.source_url, target: '_blank', rel: 'noopener' }, deck.source_url), ' ↗') : null,
+      /^https?:\/\//i.test(deck.source_url || '') ? h('p.small.muted', 'Imported from ', h('a', { href: deck.source_url, target: '_blank', rel: 'noopener' }, deck.source_url), ' ↗') : null,
       noticeBox()));
 }
 

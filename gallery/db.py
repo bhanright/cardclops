@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS holdings (
     condition         TEXT,
     language          TEXT,
     added_at          TEXT,               -- ISO timestamp from ManaBox, or when added by hand
-    source            TEXT NOT NULL DEFAULT 'import'   -- import (a collection CSV) | manual (added in Cardclops)
+    source            TEXT NOT NULL DEFAULT 'import',  -- import (a whole collection) | added:<binder or file> | manual
+    binder            TEXT                -- the ManaBox binder the import put it in, when the file says
 );
 CREATE INDEX IF NOT EXISTS holdings_by_card ON holdings(scryfall_id);
 
@@ -126,7 +127,7 @@ CREATE TABLE IF NOT EXISTS deck_versions (
     version_id  INTEGER PRIMARY KEY,
     deck_id     INTEGER NOT NULL REFERENCES decks(deck_id) ON DELETE CASCADE,
     created_at  TEXT NOT NULL,
-    reason      TEXT NOT NULL,                      -- import | replace | sync | manafix | commander | restore
+    reason      TEXT NOT NULL,                      -- import | replace | sync | manafix | commander | restore | edit
     lines       TEXT NOT NULL,                      -- JSON list of line records
     stats       TEXT                                -- JSON headline statistics
 );
@@ -379,7 +380,7 @@ def connect(path=DATABASE_PATH, cache_path=CACHE_DATABASE_PATH, pack_path=None):
     elif pack_path is None:
         connection.execute("ATTACH DATABASE ? AS cache", (str(cache_path),))
         connection.execute(f"PRAGMA cache.journal_mode={journal}")
-        _add_missing_columns(connection, cache_schema="cache", only_cache=True)   # before indexes that use them
+        _add_missing_columns(connection, cache_schema="cache", only_cache=True)   # first, so the schema may index a later column
         connection.executescript(CACHE_SCHEMA.replace("{schema}", "cache"))
         _add_missing_columns(connection, cache_schema="cache")
     else:
@@ -466,6 +467,7 @@ def migrate_legacy():
 # the owner's own work and cannot be rebuilt from a download.
 LATE_COLUMNS = [("user", "decks", "copy_policy", "TEXT NOT NULL DEFAULT 'default'"),
                 ("user", "holdings", "source", "TEXT NOT NULL DEFAULT 'import'"),
+                ("user", "holdings", "binder", "TEXT"),
                 ("user", "decks", "folder_id", "INTEGER"),
                 ("cache", "sets", "printed_size", "INTEGER"),
                 ("cache", "sets", "digital", "INTEGER"),

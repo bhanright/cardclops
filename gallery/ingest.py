@@ -75,8 +75,10 @@ def store_holdings(connection, rows, source, mode="replace"):
     mode "replace" (a whole-collection export): the file replaces everything imported before.
     mode "add" (a ManaBox binder export, or any partial list): the file's copies join the
     collection. Each copy is tagged with its ManaBox binder, or the file name when it has none,
-    so importing the same binder again updates it instead of counting its cards twice. A later
-    "replace" import drops added copies too, since a whole-collection export already has them.
+    so importing the same binder again updates it instead of counting its cards twice. The same
+    goes for a binder a whole-collection import already brought in: adding it replaces that
+    binder's copies. A later "replace" import drops added copies too, since a whole-collection
+    export already has them.
 
     Cards added by hand in Cardclops (source 'manual') stay either way. Where the import holds
     more of the same printing and finish than before, those new copies take over: the manual
@@ -85,8 +87,11 @@ def store_holdings(connection, rows, source, mode="replace"):
     [{"name", "finish", "removed"}]."""
     if mode == "add":
         tag_of = lambda row: ADDED_PREFIX + added_as(row, source)
-        replaced = sorted({tag_of(row) for row in rows})
-        where = f"source IN ({', '.join('?' * len(replaced))})"
+        tags = sorted({tag_of(row) for row in rows})
+        binders = sorted({(row.get("binder") or "").strip() for row in rows} - {""})
+        replaced = tags + binders
+        where = (f"(source IN ({', '.join('?' * len(tags))}) OR "
+                 f"(source = 'import' AND binder IN ({', '.join('?' * len(binders)) or 'NULL'})))")
     else:
         tag_of = lambda row: "import"
         replaced = []
@@ -94,10 +99,11 @@ def store_holdings(connection, rows, source, mode="replace"):
     previous = _copies_by_printing(connection.execute(
         f"SELECT scryfall_id, finish, quantity FROM holdings WHERE {where}", replaced))
     connection.execute(f"DELETE FROM holdings WHERE {where}", replaced)
-    columns = HOLDING_COLUMNS + ("source",)
+    columns = HOLDING_COLUMNS + ("binder", "source")
     connection.executemany(
         f"INSERT INTO holdings ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
-        [tuple(row.get(column) for column in HOLDING_COLUMNS) + (tag_of(row),) for row in rows])
+        [tuple(row.get(column) for column in HOLDING_COLUMNS) + ((row.get("binder") or "").strip() or None, tag_of(row))
+         for row in rows])
     imported = _copies_by_printing({"scryfall_id": row.get("scryfall_id"), "finish": row.get("finish"),
                                     "quantity": row.get("quantity")} for row in rows)
     added = {key: quantity - previous.get(key, 0) for key, quantity in imported.items() if quantity > previous.get(key, 0)}

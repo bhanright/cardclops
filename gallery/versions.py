@@ -7,10 +7,13 @@ changelog shows the deck's history rather than today's view of old lists.
 """
 import json
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 LINE_FIELDS = ("section", "quantity", "name", "oracle_id", "scryfall_id",
                "requested_set", "requested_number", "requested_finish")
+# Building a deck card by card is dozens of edits a minute apart; they make one version, not dozens.
+EDITS_MERGE_WITHIN = timedelta(minutes=10)
+VERSIONS_KEPT = 100              # per deck; older ones go
 FUNCTIONS = ("ramp", "card_draw", "removal", "board_wipes", "counterspells", "tutors", "protection", "recursion")
 
 
@@ -40,10 +43,23 @@ def record(book, deck_id, reason):
         identity = set(book.summary(deck_id, stats)["color_identity"])
         castability = suggest_swaps(cards, [], book.decks[deck_id]["format"], identity, max_swaps=0,
                                     tag_index=book.collection.tag_index)["before"]["score"]
-    book.connection.execute(
-        "INSERT INTO deck_versions (deck_id, created_at, reason, lines, stats) VALUES (?, ?, ?, ?, ?)",
-        (deck_id, datetime.now().isoformat(timespec="seconds"), reason, json.dumps(lines),
-         json.dumps(headline(stats, castability))))
+    now = datetime.now()
+    snapshot = (now.isoformat(timespec="seconds"), reason, json.dumps(lines), json.dumps(headline(stats, castability)))
+    latest = book.connection.execute(
+        "SELECT version_id, created_at, reason FROM deck_versions WHERE deck_id = ? ORDER BY version_id DESC LIMIT 1",
+        (deck_id,)).fetchone()
+    if (reason == "edit" and latest and latest["reason"] == "edit"
+            and now - datetime.fromisoformat(latest["created_at"]) < EDITS_MERGE_WITHIN):
+        book.connection.execute("UPDATE deck_versions SET created_at = ?, reason = ?, lines = ?, stats = ? "
+                                "WHERE version_id = ?", (*snapshot, latest["version_id"]))
+    else:
+        book.connection.execute(
+            "INSERT INTO deck_versions (deck_id, created_at, reason, lines, stats) VALUES (?, ?, ?, ?, ?)",
+            (deck_id, *snapshot))
+        book.connection.execute(
+            "DELETE FROM deck_versions WHERE deck_id = ? AND version_id NOT IN "
+            "(SELECT version_id FROM deck_versions WHERE deck_id = ? ORDER BY version_id DESC LIMIT ?)",
+            (deck_id, deck_id, VERSIONS_KEPT))
     book.connection.commit()
 
 

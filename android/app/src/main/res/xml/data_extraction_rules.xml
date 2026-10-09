@@ -5,6 +5,8 @@
 <data-extraction-rules>
     <cloud-backup>
         <include domain="file" path="cardclops/cardclops.sqlite" />
+        <!-- Writes since SQLite last folded its journal in live here; without it a backup misses them. -->
+        <include domain="file" path="cardclops/cardclops.sqlite-wal" />
     </cloud-backup>
     <device-transfer>
         <include domain="file" path="cardclops/" />

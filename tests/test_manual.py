@@ -95,6 +95,13 @@ class ManualTests(unittest.TestCase):
         ingest.store_holdings(self.connection, [imported("ring", quantity=2)], "collection.csv")
         self.assertEqual(self.rows(), [("ring", "normal", 2, "import")])
 
+    def test_adding_a_binder_the_whole_collection_already_had_replaces_it(self):
+        ingest.store_holdings(self.connection, [dict(imported("spider", quantity=2), binder="Trade"),
+                                                dict(imported("ring"), binder="Deck box")], "collection.csv")
+        # The Trade binder, exported again after a change: 3 spiders now, not 2 + 3.
+        ingest.store_holdings(self.connection, [dict(imported("spider", quantity=3), binder="Trade")], "trade.csv", mode="add")
+        self.assertEqual(self.rows(), [("spider", "normal", 3, "added:Trade"), ("ring", "normal", 1, "import")])
+
     def test_an_added_binder_takes_over_cards_added_by_hand(self):
         manual.add(self.connection, {"scryfall_id": "spider", "quantity": 2})
         reconciled = ingest.store_holdings(self.connection, [dict(imported("spider", name="Giant Spider"), binder="Trade")],

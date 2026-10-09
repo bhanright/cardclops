@@ -18,7 +18,7 @@ from . import net
 MODEL = "sonnet"
 TIMEOUT_SECONDS = 90
 API_URL = "https://api.anthropic.com/v1/messages"
-API_MODEL = "claude-sonnet-5"
+API_MODEL = "claude-sonnet-5-5"
 API_VERSION = "2023-06-01"
 
 SYSTEM_PROMPT = """You translate questions about a Magic: The Gathering collection into Scryfall search syntax,
@@ -104,7 +104,9 @@ API_ERRORS = {401: "Anthropic didn't accept that API key. Check it in Settings â
 def _run_api(prompt, api_key):
     """One call to Anthropic's Messages API with the visitor's key. Browsers may call it directly
     once they say so (the anthropic-dangerous-direct-browser-access header)."""
-    body = {"model": API_MODEL, "max_tokens": 400, "system": SYSTEM_PROMPT,
+    # A short translation, not a puzzle: thinking off (between_tools is how Sonnet 5.5 says so; it
+    # would otherwise think first, and thinking counts against max_tokens), with room to spare.
+    body = {"model": API_MODEL, "max_tokens": 1024, "thinking": {"type": "between_tools"}, "system": SYSTEM_PROMPT,
             "messages": [{"role": "user", "content": prompt}]}
     headers = {"x-api-key": api_key, "anthropic-version": API_VERSION, "content-type": "application/json",
                "anthropic-dangerous-direct-browser-access": "true"}
@@ -112,6 +114,8 @@ def _run_api(prompt, api_key):
         reply = json.loads(net.get(API_URL, json.dumps(body).encode(), headers, timeout=TIMEOUT_SECONDS))
     except net.NetError as error:
         raise AskError(API_ERRORS.get(error.status, f"Couldn't reach Anthropic ({error})")) from None
+    if reply.get("stop_reason") == "refusal":
+        raise AskError("Claude declined that question; try wording it as a card search.")
     return _parse_answer("".join(part.get("text", "") for part in reply.get("content", [])))
 
 

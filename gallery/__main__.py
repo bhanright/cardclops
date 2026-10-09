@@ -48,7 +48,8 @@ def main(argv=None):
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         args.log_file = str(LOG_DIR / "refresh.log")
     if getattr(args, "log_file", None):
-        log = open(args.log_file, "a", encoding="utf-8", buffering=1)
+        from .paths import open_log
+        log = open_log(args.log_file)
         sys.stdout = sys.stderr = log
         print(f"===== {datetime.now():%Y-%m-%d %H:%M:%S}")
 

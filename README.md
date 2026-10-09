@@ -108,18 +108,42 @@ those are legal in Pauper and every other format.
 ## Layout
 
 ```
-gallery/          Python package (stdlib only, plus certifi)
-  ingest.py       ManaBox import, Scryfall refresh
-  history.py      MTGJSON price history
-  collection.py   the collection in memory
-  query.py        Scryfall-syntax search engine
-  pricebook.py    price changes, portfolio, chart series
-  similar.py      "similar cards you own" (TF-IDF over rules text and function tags)
-  deckcheck.py    decklist vs collection
-  ask.py          English → query via the claude CLI
-  server.py       HTTP server and JSON API (docs/API.md)
-static/           the web page
-scripts/          notify.ps1, the Windows notification for price alerts
+gallery/            the engine: one Python package (stdlib, plus certifi) every edition runs
+  api.py            the JSON API, the same in every edition (docs/API.md)
+  server.py         the local HTTP server and what the handlers share
+  app.py            the Windows app: its window (pywebview), port and logs
+  android.py        the Android app's engine side (a token-protected local server)
+  browser.py        the browser edition's engine, in Pyodide (web/engine/worker.js runs it)
+  browser_jobs.py   setup, import and refresh in the browser edition
+  setup.py          setup, import and refresh in the apps; the daily task
+  db.py, paths.py   the databases and where files live
+  ingest.py         imports and the Scryfall refresh
+  importers.py      reading collection CSVs (ManaBox, Moxfield, Archidekt, Deckbox...)
+  scryfall.py       Scryfall's bulk files and API, paced to its limits
+  net.py, runtime.py  the network and the browser's differences
+  collection.py     the collection in memory
+  query.py          Scryfall-syntax card search
+  pricebook.py      price changes, portfolio, chart series
+  history.py, price_files.py  MTGJSON price history (apps; the browser edition's files)
+  pack.py           the card pack the server publishes for the browser edition
+  decks.py          decks, folders, copy allocation (docs/DECKS.md)
+  deckstats.py      deck statistics, shape and bracket estimate
+  combos.py         Commander Spellbook's combos
+  decksearch.py     the Decks page's search
+  deckcheck.py      a pasted list against the collection
+  builder.py, manafix.py, goldfish.py, versions.py  Build, mana fixing, goldfish, deck history
+  binders.py, manual.py  binders, and cards added by hand
+  alerts.py, radar.py  price alerts, the reprint radar
+  sets.py, rules.py, redux.py, similar.py  sets, the rules and rulings, the Redux format, similar cards
+  ask.py            English → search, with Claude
+  backups.py        backups and restore
+  page_policy.py    the page's Content-Security-Policy
+static/             the page: index.html, app.js, js/, styles.css
+web/                the browser edition's engine worker and service worker
+scripts/            builds (installer, Android, static site, card pack), the server's publish job,
+                    notify.ps1 (Windows notifications for price alerts)
+android/            the Android app's Kotlin shell
+docs/               design notes: API, decks, setup, the public edition plan
 ```
 
 ## Settings
@@ -129,6 +153,8 @@ device; and under More themes: Lollipop, Astronaut, Necronomicon, Stovepipe, Gam
 Lemonhead, Olympic, SPQR and Sasquatch), text size,
 reduced motion, the foil shimmer and hover previews. These are saved in the browser, per device.
 It also shows the card data's date and where your data lives, and gathers the housekeeping actions.
+In the Windows app, Settings → App sets the port it serves on (8765 unless another program needs it;
+if one already has it when Cardclops starts, Cardclops moves to a free port and says so).
 
 ## Where your data lives
 

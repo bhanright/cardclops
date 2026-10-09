@@ -147,7 +147,13 @@ class Jobs:
                 binders_filled = BinderBook(connection).from_import(parsed["rows"])    # ManaBox's Binder Name
                 log, progress = self._logger(50, 75)
                 self._update(stage="Card details and today's prices")
-                ingest.refresh_scryfall(connection, log=log, progress=progress)
+                try:
+                    ingest.refresh_scryfall(connection, log=log, progress=progress)
+                except Exception:
+                    # The collection is saved; show what we can, and the next start's refresh (it
+                    # runs while any held card lacks details) fills in the rest.
+                    self.gallery.load()
+                    raise
                 if get_meta(connection, "setup_price_history") == "yes":
                     self._update(stage="Price history for your cards", percent=78)
                     history.load(connection, log=self._logger(78, 95)[0], reuse_downloads=True)
@@ -202,6 +208,10 @@ class Jobs:
             stale = datetime.now().astimezone() - datetime.fromisoformat(updated) > STALE_AFTER
         except (TypeError, ValueError):
             stale = True
+        if not stale:
+            from .backups import missing_cards
+            with self.gallery.lock:
+                stale = missing_cards(self.gallery.connection) > 0     # an import or restore that didn't finish
         if stale:
             self.refresh()
         return stale
@@ -229,11 +239,19 @@ def _powershell(script):
                           creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
 
-def task_exists():
+_task_known = None               # whether the task exists, once asked: asking runs PowerShell (about a second)
+
+
+def task_exists(fresh=False):
+    """Is the daily-refresh task set up? Asked of Windows once per run (set_daily_refresh keeps it
+    current); `fresh` asks again."""
+    global _task_known
     if sys.platform != "win32":
         return False
-    result = _powershell(f"if (Get-ScheduledTask -TaskName '{TASK_NAME}' -ErrorAction SilentlyContinue) {{ 'yes' }}")
-    return result.stdout.strip() == "yes"
+    if _task_known is None or fresh:
+        result = _powershell(f"if (Get-ScheduledTask -TaskName '{TASK_NAME}' -ErrorAction SilentlyContinue) {{ 'yes' }}")
+        _task_known = result.stdout.strip() == "yes"
+    return _task_known
 
 
 def _task_program():
@@ -250,9 +268,9 @@ def set_daily_refresh(enabled, only_if_ours=False):
         raise RuntimeError("Scheduled refresh is only available on Windows; the gallery refreshes when it starts.")
     if not enabled:
         if only_if_ours and os.path.normcase(_task_program()) != os.path.normcase(_task_command()[0]):
-            return task_exists()
+            return task_exists(fresh=True)
         _powershell(f"Unregister-ScheduledTask -TaskName '{TASK_NAME}' -Confirm:$false -ErrorAction SilentlyContinue")
-        return False
+        return task_exists(fresh=True)
     executable, arguments, folder = _task_command()
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     script = f"""
@@ -265,4 +283,4 @@ Unregister-ScheduledTask -TaskName '{LEGACY_TASK_NAME}' -Confirm:$false -ErrorAc
     result = _powershell(script)
     if result.returncode != 0:
         raise RuntimeError(f"Couldn't create the scheduled task: {result.stderr.strip()[:300]}")
-    return True
+    return task_exists(fresh=True)

@@ -10,8 +10,6 @@ pack and price files (scripts/build_pack.py, build_prices.py) are published sepa
 --data-url; for testing, --pack copies a pack folder into the site at /pack/.
 """
 import argparse
-import base64
-import hashlib
 import json
 import re
 import shutil
@@ -71,22 +69,12 @@ def build(devdata=None, pack=None, data_url="/pack/"):
 def headers(html, data_url):
     """Cloudflare Pages' _headers file: the security policy for every file, and revalidation for the
     files a release replaces."""
-    inline = re.findall(r"<script>(.*?)</script>", html, re.S)
-    hashes = " ".join(f"'sha256-{base64.b64encode(hashlib.sha256(s.encode()).digest()).decode()}'" for s in inline)
+    from gallery.page_policy import content_security_policy
     data_origin = "{0.scheme}://{0.netloc}".format(urllib.parse.urlsplit(data_url)) if "://" in data_url else ""
     # Only the site's own scripts run (a visitor's Anthropic API key can be in the page), and it talks
-    # only to itself, the card data, Scryfall's API and Anthropic's. Card images come from Scryfall's
-    # image server and set symbols from its SVG server. Pyodide compiles WebAssembly ('wasm-unsafe-eval').
-    policy = "; ".join([
-        "default-src 'self'",
-        f"script-src 'self' 'wasm-unsafe-eval' {hashes}".strip(),
-        "style-src 'self' 'unsafe-inline'",
-        "img-src 'self' data: blob: https://cards.scryfall.io https://svgs.scryfall.io",
-        "font-src 'self'",
-        f"connect-src 'self' {data_origin} https://api.scryfall.com https://api.anthropic.com".replace("  ", " "),
-        "worker-src 'self'",
-        "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'",
-    ])
+    # only to itself, the card data, Scryfall's API and Anthropic's. Pyodide compiles WebAssembly.
+    policy = content_security_policy(html, connect=(data_origin, "https://api.scryfall.com", "https://api.anthropic.com"),
+                                     webassembly=True)
     lines = ["/*", f"  Content-Security-Policy: {policy}", "  X-Content-Type-Options: nosniff",
              "  Referrer-Policy: strict-origin-when-cross-origin"]
     # The service worker, the engine and the page's own scripts are always revalidated, so a release

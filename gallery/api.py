@@ -6,6 +6,7 @@ nothing here may touch sockets, headers or the HTTP handler: the security checks
 card images stay with the server.
 """
 import base64
+import os
 import re
 import threading
 import traceback
@@ -68,6 +69,8 @@ class Api:
     def _get(self, parts, params):
         gallery = self.gallery
         route = parts[1] if len(parts) > 1 else ""
+        if parts[1:] == ["app", "port"]:
+            return Response(self._port_settings())
         if route == "summary":
             return Response(gallery.summary())
         if route == "backup" and len(parts) == 2:
@@ -82,8 +85,7 @@ class Api:
             if not oracle_id:
                 return _error("no such card", HTTPStatus.NOT_FOUND)
             try:
-                with gallery.lock:
-                    return Response({"rulings": card_rulings(gallery.connection, parts[2], oracle_id)})
+                return Response({"rulings": card_rulings(gallery.connection, parts[2], oracle_id, gallery.lock)})
             except Exception as error:
                 return Response({"rulings": [], "error": f"Couldn't reach Scryfall for rulings ({error})"})
         if route == "rules":
@@ -216,6 +218,8 @@ class Api:
                 return Response(gallery.rulebook.download())
             except Exception as error:
                 return _error(f"Couldn't download the rules: {error}", HTTPStatus.BAD_GATEWAY)
+        if path == "/api/app/port":
+            return self._save_port(body)
         if path.startswith("/api/setup/") or path in ("/api/refresh", "/api/quit", "/api/app/show"):
             return self._setup(path, body)
         if path.startswith("/api/collection/"):
@@ -304,6 +308,27 @@ class Api:
         except RuntimeError as error:
             return _error(str(error), HTTPStatus.CONFLICT)
         return _error("unknown endpoint", HTTPStatus.NOT_FOUND)
+
+    # ---- the Windows app's port (Settings → App) ----
+
+    def _port_settings(self):
+        from .paths import DEFAULT_PORT, saved_port
+        return {"port": getattr(self.gallery, "port", None), "saved": saved_port() or DEFAULT_PORT,
+                "default": DEFAULT_PORT, "from_environment": bool(os.environ.get("CARDCLOPS_PORT")),
+                # Only the Windows app picks its own port: the phone app takes a free one, a server
+                # its service's, and the browser edition has none.
+                "available": bool(self.app_window) or setup_module.installed()}
+
+    def _save_port(self, body):
+        from .paths import DEFAULT_PORT, save_port, valid_port
+        if not self._port_settings()["available"]:
+            return _error("Only the Windows app chooses its port.", HTTPStatus.BAD_REQUEST)
+        wanted = body.get("port")
+        port = valid_port(wanted) if wanted not in (None, "") else DEFAULT_PORT
+        if port is None:
+            return _error("Choose a port from 1024 to 65535.", HTTPStatus.BAD_REQUEST)
+        save_port(None if port == DEFAULT_PORT else port)
+        return Response({**self._port_settings(), "restart_needed": port != getattr(self.gallery, "port", None)})
 
     def _collection(self, method, path, body):
         try:

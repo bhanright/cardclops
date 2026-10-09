@@ -9,8 +9,9 @@
   Cardclops.exe --remove-task   remove the daily-refresh task (the uninstaller uses this)
 
 The exe has no console window, so output goes to logs in the cache folder.
-Set CARDCLOPS_PORT to use a port other than 8765, and CARDCLOPS_NO_BROWSER=1 to
-start without opening a browser (for testing).
+It serves on port 8765 unless Settings → App names another (saved in app.json beside your
+data); CARDCLOPS_PORT overrides both, and CARDCLOPS_NO_BROWSER=1 starts it without opening
+a browser (for testing).
 """
 import json
 import os
@@ -19,18 +20,16 @@ import threading
 import urllib.request
 import webbrowser
 
-PORT = int(os.environ.get("CARDCLOPS_PORT", "8765"))
+from .paths import app_port
+
+PORT = app_port()
 BASE = f"http://127.0.0.1:{PORT}"
 
 
 def _log_to_file(name):
     """A windowed exe has no stdout or stderr; the HTTP server writes to stderr, so give it a file."""
-    from .paths import LOG_DIR
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    path = LOG_DIR / name
-    if path.exists() and path.stat().st_size > 5_000_000:      # keep the log from growing forever
-        path.replace(path.with_suffix(".old.log"))
-    log = open(path, "a", encoding="utf-8", buffering=1)
+    from .paths import LOG_DIR, open_log
+    log = open_log(LOG_DIR / name)
     sys.stdout = sys.stderr = log
 
 
@@ -84,19 +83,34 @@ def main(argv=None):
     _log_to_file("app.log")
     from . import db
     from .server import serve
-    if "--browser" not in argv and not os.environ.get("CARDCLOPS_NO_BROWSER"):
+    for attempt in (1, 2):
         try:
-            if _run_in_window(db):
-                return 0
+            if "--browser" not in argv and not os.environ.get("CARDCLOPS_NO_BROWSER"):
+                if _run_in_window(db):
+                    return 0
+            serve(db.connect(), PORT, open_browser=not os.environ.get("CARDCLOPS_NO_BROWSER"))
+            return 0
         except OSError as error:
-            _message(f"Cardclops couldn't start: port {PORT} is in use by another program.\n\n{error}")
-            return 1
-    try:
-        serve(db.connect(), PORT, open_browser=not os.environ.get("CARDCLOPS_NO_BROWSER"))
-    except OSError as error:
-        _message(f"Cardclops couldn't start: port {PORT} is in use by another program.\n\n{error}")
-        return 1
+            if attempt == 2 or os.environ.get("CARDCLOPS_PORT"):
+                _message(f"Cardclops couldn't start: port {PORT} is in use by another program.\n\n{error}")
+                return 1
+            _move_to_free_port()
     return 0
+
+
+def _move_to_free_port():
+    """Another program has our port: take a free one, keep it for next time, and say so."""
+    import socket
+    from .paths import save_port
+    global PORT, BASE
+    taken = PORT
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.bind(("127.0.0.1", 0))
+        PORT = probe.getsockname()[1]
+    BASE = f"http://127.0.0.1:{PORT}"
+    save_port(PORT)
+    _message(f"Another program is using port {taken}, so Cardclops will use port {PORT} from now on. "
+             "You can choose a different one in Settings → App.")
 
 
 class _Window:

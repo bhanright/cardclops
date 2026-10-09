@@ -50,9 +50,12 @@ async function api(event, url) {
   if (!client) return json(503, { error: 'Cardclops isn’t running: open it in a tab first.' });
   const request = event.request;
   const body = request.method === 'GET' || request.method === 'HEAD' ? '' : await request.text();
+  // A tab that isn't running the engine (another tab holds it) never answers: give up rather than
+  // leave the page waiting forever. Card lookups can take a while on a slow network, hence a minute and a half.
   const reply = await new Promise(resolve => {
     const channel = new MessageChannel();
-    channel.port1.onmessage = message => resolve(message.data);
+    const timer = setTimeout(() => resolve({ status: 504, body: JSON.stringify({ error: 'Cardclops didn’t answer. Is it open in another tab?' }) }), 90000);
+    channel.port1.onmessage = message => { clearTimeout(timer); resolve(message.data); };
     client.postMessage({ type: 'api', method: request.method, path: url.pathname,
       params: Object.fromEntries(url.searchParams), body }, [channel.port2]);
   });

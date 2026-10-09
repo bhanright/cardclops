@@ -113,6 +113,7 @@ export async function showSettings() {
   const canHover = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const dataBox = h('div', spinner('Reading the app’s data…'));
   const backupHost = h('div');
+  const portHost = h('div');
   clear(host).append(h('div.settings-page',
     h('section.panel',
       h('div.panel-head', h('h2', 'Appearance'), h('span.muted.small', 'Saved on this device')),
@@ -123,6 +124,7 @@ export async function showSettings() {
       canHover ? row('Card previews', 'A large image when the pointer rests on a card name', toggle('hoverPreview', 'Show them', s.hoverPreview !== false)) : null),
     h('section.panel', h('div.panel-head', h('h2', 'Data and updates')), dataBox),
     backupHost,
+    portHost,
     browserEdition ? askPanel() : null,
     browserEdition ? editionPanel() : null));
   document.title = 'Settings · Cardclops';
@@ -131,6 +133,7 @@ export async function showSettings() {
   try { [status, summary] = await Promise.all([api.setup.status(), api.summary()]); }
   catch (error) { clear(dataBox).append(errorBox(error.message)); return; }
   backupHost.replaceWith(backupPanel(summary));
+  if (!browserEdition) api.app.port().then(p => { if (p.available) portHost.replaceWith(portPanel(p)); }).catch(() => {});
   const daily = status.platform === 'win32'
     ? (() => {
       const box = h('input', { type: 'checkbox', checked: !!status.daily_refresh_scheduled, onchange: async () => {
@@ -163,6 +166,30 @@ export async function showSettings() {
       h('button.btn.small', { type: 'button', onclick: updateCollection }, '⇪ Update my collection'),
       h('button.btn.small.ghost', { type: 'button', onclick: openHandAdded }, '✎ Cards added by hand'),
       h('a.btn.small.ghost', { href: '#/alerts' }, '🔔 Price alert settings'))));
+}
+
+/** The Windows app's port: the address it serves its pages on, for when another program uses 8765. */
+function portPanel(p) {
+  const input = h('input.num-input', { type: 'number', min: 1024, max: 65535, step: 1, value: p.saved, 'aria-label': 'Port' });
+  const note = h('p.small.muted');
+  const explain = r => {
+    note.textContent = r.from_environment
+      ? 'The CARDCLOPS_PORT environment variable is set, so it decides the port and this choice waits until it’s removed.'
+      : r.saved !== r.port ? `Cardclops will use port ${r.saved} the next time it starts (it’s on ${r.port} now).`
+      : `Cardclops is on port ${r.port}.`;
+  };
+  const save = async value => {
+    try { const r = await api.app.setPort(value); input.value = r.saved; explain(r); toast(r.restart_needed ? 'Saved: restart Cardclops to use it' : 'Saved'); }
+    catch (error) { toast('Could not save it: ' + error.message); }
+  };
+  explain(p);
+  return h('section.panel',
+    h('div.panel-head', h('h2', 'App'), h('span.muted.small', 'This computer')),
+    row('Port', `The local address the app serves its pages on (default ${p.default}). Change it if another program uses ${p.default}.`,
+      h('div.form-row', input,
+        h('button.btn.small.go', { type: 'button', onclick: () => save(input.value) }, 'Save'),
+        h('button.btn.small.ghost', { type: 'button', onclick: () => save(null) }, `Use ${p.default}`))),
+    note);
 }
 
 /** The Ask box in the browser edition: the visitor's own Anthropic API key (static/js/edition.js). */

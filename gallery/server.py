@@ -19,7 +19,7 @@ from collections import Counter, defaultdict
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from . import ask, backups, query, redux
+from . import ask, backups, query, redux, scryfall
 from .collection import COLOR_ORDER, Collection
 from .db import get_meta
 from .deckcheck import DeckChecker
@@ -29,12 +29,13 @@ from . import setup as setup_module
 from .api import Api
 from .binders import BinderBook
 from .rules import RuleBook
-from .decks import DeckBook
+from .decks import DeckBook, file_lines, parse_decklist
 from .setup import Jobs
 from .runtime import IN_BROWSER
 from .sets import SetBook, image_url
 from .radar import Radar
 from .alerts import Alerts
+from .page_policy import content_security_policy
 from .paths import IMAGE_CACHE_DIR, STATIC_DIR, USER_AGENT, ssl_context
 from .pricebook import SOURCE_LABELS, PriceBook
 from .similar import SimilarityIndex
@@ -53,6 +54,7 @@ class Gallery:
 
     def __init__(self, connection):
         self.connection = connection
+        self.port = None                 # the port it serves on (serve, start_in_background)
         self.lock = threading.Lock()     # sqlite3 connection shared across handler threads
         print("Loading collection…")
         if IN_BROWSER:
@@ -80,13 +82,15 @@ class Gallery:
             alerts = Alerts(connection)
             setbook = SetBook(connection, collection)
             set_info = {row["code"]: dict(row) for row in connection.execute("SELECT * FROM sets")}
-        self.collection, self.prices, self.similarity, self.deck_checker, self.deckbook, self.set_info = (
-            collection, prices, similarity, deck_checker, deckbook, set_info)
-        self.radar = radar
-        self.binderbook = binderbook
-        self.alerts = alerts
-        self.setbook = setbook
-        self.data_version = version
+            # Swapped in while still holding the lock: a deck or binder write that waited for it then
+            # goes to the new books, not to old ones that are about to be dropped.
+            self.collection, self.prices, self.similarity, self.deck_checker, self.deckbook, self.set_info = (
+                collection, prices, similarity, deck_checker, deckbook, set_info)
+            self.radar = radar
+            self.binderbook = binderbook
+            self.alerts = alerts
+            self.setbook = setbook
+            self.data_version = version
 
     def watch_for_new_data(self, interval_seconds=60):
         """Reload when `import`, `refresh` or `history` has run since we loaded (the daily task, say)."""
@@ -107,7 +111,6 @@ class Gallery:
     # ---- shapes -------------------------------------------------------------
 
     def summarize(self, entry, quantity=None, finish=None, row_id=True):
-        card = entry.card
         quantity = entry.quantity if quantity is None else quantity
         summary = {
             "row_id": entry.row_id if row_id else None,
@@ -243,13 +246,17 @@ class Gallery:
         entries = self.collection.entries
         totals = _totals(entries)
         paid = [e.purchase_price * e.quantity for e in entries if e.purchase_price is not None]
-        with self.lock:
+        with self.lock:            # every read of the shared connection, together
             coverage = self.prices.coverage()
+            updated = get_meta(self.connection, "scryfall_updated_at")
+            unseen = self.alerts.list(True, 1)["unseen"]
+            watching = self.connection.execute("SELECT COUNT(*) FROM watchlist").fetchone()[0]
+            backup = backups.status(self.connection)
         return {
             **totals,
             "sets": len({e.set_code for e in entries}),
             "purchase_total_usd": round(sum(paid), 2),
-            "scryfall_updated_at": get_meta(self.connection, "scryfall_updated_at"),
+            "scryfall_updated_at": updated,
             "price_history": coverage,
             "recent_legality_changes": self.legality_changes()[:20],
             "ask_available": ask.available(),
@@ -257,9 +264,8 @@ class Gallery:
             "reprints": self.radar.headline(),
             "app": {"version": __version__, "installed": setup_module.installed(), "platform": sys.platform,
                     "edition": os.environ.get("CARDCLOPS_EDITION", "app")},
-            "alerts": {"unseen": self.alerts.list(True, 1)["unseen"],
-                       "watching": self.connection.execute("SELECT COUNT(*) FROM watchlist").fetchone()[0]},
-            "backup": backups.status(self.connection),
+            "alerts": {"unseen": unseen, "watching": watching},
+            "backup": backup,
         }
 
     def card(self, scryfall_id, whole_card=False):
@@ -275,8 +281,9 @@ class Gallery:
             unowned = build_entry({"row_id": None, "scryfall_id": scryfall_id, "finish": "normal", "quantity": 0,
                                    "condition": "", "language": card.get("lang", "en"), "purchase_price": None,
                                    "added_at": "", "misprint": 0}, card, {})
-            unowned.tags = frozenset(r[0] for r in self.connection.execute(
-                "SELECT slug FROM oracle_taggings WHERE oracle_id = ?", (unowned.oracle_id,)))
+            with self.lock:
+                unowned.tags = frozenset(r[0] for r in self.connection.execute(
+                    "SELECT slug FROM oracle_taggings WHERE oracle_id = ?", (unowned.oracle_id,)))
             printing_entries = [unowned]
             whole_card = False
         lead = printing_entries[0]
@@ -504,10 +511,80 @@ class Gallery:
             result.append({**dict(row), "copies": copies})
         return result
 
+    # ---- card data fetched ahead of a write ---------------------------------
+    # A write holds the lock, and every other request waits for it. So the card data a write is going
+    # to need is fetched from Scryfall first, without the lock, and the write finds it here.
+
+    def cache_printings_ahead(self, scryfall_ids, required=False):
+        """Fetch and keep the card data of these printings that isn't here yet. With `required`, a
+        printing Scryfall can't supply (offline, or no such printing) is an error now, before the
+        write starts; otherwise the write goes ahead and the next refresh fills it in."""
+        from .ingest import _record_prices, _store_card
+        wanted = {scryfall_id for scryfall_id in scryfall_ids if scryfall_id}
+        if not wanted:
+            return
+        with self.lock:
+            have = {row[0] for row in self.connection.execute(
+                f"SELECT scryfall_id FROM cards WHERE scryfall_id IN ({','.join('?' * len(wanted))})", list(wanted))}
+        wanted -= have
+        if not wanted:
+            return
+        try:
+            cards = scryfall.fetch_cards_by_id(wanted)
+        except Exception as error:
+            if required:
+                raise ValueError(f"Couldn't reach Scryfall for that card ({error}). Try again when you're online.") from None
+            print(f"Card data not fetched ahead ({error}); the next refresh will fetch it")
+            return
+        if required and wanted - {card["id"] for card in cards}:
+            raise ValueError("Scryfall doesn't know that printing")
+        with self.lock:
+            day = time.strftime("%Y-%m-%d")
+            for card in cards:
+                _store_card(self.connection, card)
+                _record_prices(self.connection, card, day)
+            self.connection.commit()
+
+    def _deck_cards_ahead(self, method, deck_id, action, body):
+        """The card data a deck write will want, fetched before it takes the lock."""
+        lines, requests = [], []
+        if method == "POST" and deck_id is None and action == "import":
+            for spec in body.get("decks") or []:
+                lines += spec.get("parsed") or parse_decklist(spec.get("text", ""))[0]
+        elif method == "POST" and deck_id is None and action == "import-file" and isinstance(body.get("file"), dict):
+            for spec in body["file"].get("decks") or []:
+                lines += file_lines(spec) if isinstance(spec, dict) else []
+        elif method == "POST" and deck_id is None and action is None:
+            requests = [{"name": name} for name in body.get("commanders") or []]
+        elif method == "PUT" and action == "list":
+            lines = parse_decklist(body.get("text", ""))[0]
+        elif method == "POST" and action == "lines":
+            if "text" in body:
+                lines = parse_decklist(body["text"] or "")[0]
+            else:
+                requests = [body]
+        if not lines and not requests:
+            return
+        with self.lock:
+            wanted = self.deckbook.printings_to_fetch(lines, requests)
+        self.cache_printings_ahead(wanted)
+
+    def _deck_write(self, write):
+        """Run a deck write under the lock, with its card data already fetched (it fetches none)."""
+        book = self.deckbook
+        with self.lock:
+            book.fetch_cards_during_writes = False
+            try:
+                return write(book)
+            finally:
+                book.fetch_cards_during_writes = True
+
     # ---- adding cards by hand (docs/API.md) --------------------------------
 
     def collection_change(self, method, parts, body):
         """Add, edit or remove hand-added cards, then reload so every view (and deck) sees the change."""
+        if method == "POST" and parts[2:] == ["add"] and body.get("scryfall_id"):
+            self.cache_printings_ahead([body["scryfall_id"]], required=True)
         with self.lock:
             try:
                 if method == "POST" and parts[2:] == ["add"]:
@@ -538,6 +615,8 @@ class Gallery:
                 settings = alerts.settings() if method == "GET" else alerts.update_settings(body)
             # Desktop notifications exist only on Windows; elsewhere the page hides the option.
             return {**settings, "notifications_available": sys.platform == "win32"}
+        if route == "watchlist" and len(parts) == 2 and method == "POST" and body.get("scryfall_id"):
+            self.cache_printings_ahead([body["scryfall_id"]], required=True)
         with self.lock:
             if route == "watchlist":
                 if len(parts) == 2 and method == "GET":
@@ -651,7 +730,10 @@ class Gallery:
                           "status": body.get("status") or "active", "source": "archidekt",
                           "source_url": f"https://archidekt.com/decks/{deck_id}"})
         with self.lock:
-            imported, warnings = self.deckbook.import_decks(specs)
+            wanted = self.deckbook.printings_to_fetch([line for spec in specs for line in spec["parsed"]])
+        self.cache_printings_ahead(wanted)
+        imported, warnings = self._deck_write(lambda book: book.import_decks(specs))
+        with self.lock:
             return {"imported": [self.deckbook.summary(d) for d in imported], "warnings": failures + warnings}
 
     def archidekt_sync(self, deck_id):
@@ -662,7 +744,10 @@ class Gallery:
             raise ValueError("This deck wasn't imported from Archidekt")
         _, _, parsed, text = archidekt.fetch_deck(archidekt.deck_id_from(deck["source_url"]))
         with self.lock:
-            warnings = self.deckbook.replace_list(deck_id, text, parsed=parsed, reason="sync")
+            wanted = self.deckbook.printings_to_fetch(parsed)
+        self.cache_printings_ahead(wanted)
+        warnings = self._deck_write(lambda book: book.replace_list(deck_id, text, parsed=parsed, reason="sync"))
+        with self.lock:
             return {**self.deckbook.summary(deck_id), "warnings": warnings}
 
     def deck_goldfish(self, deck_id, params):
@@ -689,73 +774,80 @@ class Gallery:
             return self.archidekt_import(body)
         if method == "POST" and action == "sync" and deck_id in book.decks:
             return self.archidekt_sync(deck_id)
-        with self.lock:
-            if method == "POST" and deck_id is None and action is None:          # Decks → New deck
-                created = book.create(body.get("name"), body.get("format"), body.get("commanders") or [],
-                                      body.get("status") or "active", body.get("folder_id"))
-                return book.summary(created)
-            if deck_id is None and action == "folders":                           # the Decks page's folders
-                if method == "POST":
-                    return {"folder_id": book.create_folder(body.get("name")), "folders": book.folder_list()}
-                folder_id = int(body.get("folder_id") or 0)
-                if method == "PATCH":
-                    book.rename_folder(folder_id, body.get("name"))
-                elif method == "DELETE":
-                    book.delete_folder(folder_id)
-                return {"folders": book.folder_list()}
-            if method == "POST" and deck_id is None and action == "move-to-folder":   # Decks → Select
-                folder_id = body.get("folder_id")
-                moved = book.move_to_folder([int(d) for d in body.get("deck_ids") or []],
-                                            int(folder_id) if folder_id else None)
-                return {"moved": moved, "folders": book.folder_list()}
-            if method == "POST" and deck_id is None and action == "import":
-                imported, warnings = book.import_decks(body.get("decks") or [])
-                return {"imported": [book.summary(d) for d in imported], "warnings": warnings}
-            if method == "POST" and deck_id is None and action == "import-file":
-                return book.import_file(body.get("file"), body.get("on_conflict") or "replace")
-            if deck_id not in book.decks:
-                raise KeyError(f"no deck {deck_id}")
-            if method == "PATCH" and action is None:
-                book.update(deck_id, body)
-                return book.summary(deck_id)
-            if method == "PUT" and action == "list":
-                warnings = book.replace_list(deck_id, body.get("text", ""))
-                return {**book.summary(deck_id), "warnings": warnings}
-            if method == "DELETE" and action is None:
-                book.delete(deck_id)
-                return {"deleted": deck_id}
-            if method == "POST" and action == "versions" and len(rest) == 2 and rest[1] == "restore":
-                book.restore(deck_id, int(rest[0]))
-                return book.summary(deck_id)
-            if method == "POST" and action == "manafix":
-                book.apply_swaps(deck_id, body.get("swaps") or [])
-                summary = book.summary(deck_id)
-                if book.decks[deck_id]["source"] == "archidekt":
-                    summary["warning"] = "This deck syncs from Archidekt; the next sync will replace these swaps."
-                return summary
-            if action == "lines":
-                if method == "POST" and not rest and "text" in body:
-                    added = book.add_text(deck_id, body["text"], body.get("section") or None)
-                    summary = {**book.summary(deck_id), **added}
-                    if book.decks[deck_id]["source"] == "archidekt":
-                        summary["warning"] = "This deck syncs from Archidekt; the next sync will replace this change."
-                    return summary
-                if method == "POST" and not rest:
-                    line_id = book.add_line(deck_id, body)
-                elif method in ("PATCH", "DELETE") and len(rest) == 1 and rest[0].isdigit():
-                    line_id = int(rest[0])
-                    if book.line_by_id.get(line_id) is None or book.line_by_id[line_id].row["deck_id"] != deck_id:
-                        raise KeyError(f"no line {line_id} in deck {deck_id}")
-                    book.edit_line(line_id, {"quantity": 0} if method == "DELETE" else body)
-                else:
-                    raise LookupError("unknown deck line request")
-                summary = {**book.summary(deck_id), "line_id": line_id}
+        try:
+            self._deck_cards_ahead(method, deck_id, action, body)
+        except Exception as error:            # a malformed request fails properly in the write itself
+            print(f"Couldn't work out the card data ahead of a deck write ({error})")
+        return self._deck_write(lambda book: self._deck_change_locked(book, method, deck_id, action, body, rest))
+
+    def _deck_change_locked(self, book, method, deck_id, action, body, rest):
+        """A deck write; the caller holds the lock."""
+        if method == "POST" and deck_id is None and action is None:          # Decks → New deck
+            created = book.create(body.get("name"), body.get("format"), body.get("commanders") or [],
+                                  body.get("status") or "active", body.get("folder_id"))
+            return book.summary(created)
+        if deck_id is None and action == "folders":                           # the Decks page's folders
+            if method == "POST":
+                return {"folder_id": book.create_folder(body.get("name")), "folders": book.folder_list()}
+            folder_id = int(body.get("folder_id") or 0)
+            if method == "PATCH":
+                book.rename_folder(folder_id, body.get("name"))
+            elif method == "DELETE":
+                book.delete_folder(folder_id)
+            return {"folders": book.folder_list()}
+        if method == "POST" and deck_id is None and action == "move-to-folder":   # Decks → Select
+            folder_id = body.get("folder_id")
+            moved = book.move_to_folder([int(d) for d in body.get("deck_ids") or []],
+                                        int(folder_id) if folder_id else None)
+            return {"moved": moved, "folders": book.folder_list()}
+        if method == "POST" and deck_id is None and action == "import":
+            imported, warnings = book.import_decks(body.get("decks") or [])
+            return {"imported": [book.summary(d) for d in imported], "warnings": warnings}
+        if method == "POST" and deck_id is None and action == "import-file":
+            return book.import_file(body.get("file"), body.get("on_conflict") or "replace")
+        if deck_id not in book.decks:
+            raise KeyError(f"no deck {deck_id}")
+        if method == "PATCH" and action is None:
+            book.update(deck_id, body)
+            return book.summary(deck_id)
+        if method == "PUT" and action == "list":
+            warnings = book.replace_list(deck_id, body.get("text", ""))
+            return {**book.summary(deck_id), "warnings": warnings}
+        if method == "DELETE" and action is None:
+            book.delete(deck_id)
+            return {"deleted": deck_id}
+        if method == "POST" and action == "versions" and len(rest) == 2 and rest[1] == "restore":
+            book.restore(deck_id, int(rest[0]))
+            return book.summary(deck_id)
+        if method == "POST" and action == "manafix":
+            book.apply_swaps(deck_id, body.get("swaps") or [])
+            summary = book.summary(deck_id)
+            if book.decks[deck_id]["source"] == "archidekt":
+                summary["warning"] = "This deck syncs from Archidekt; the next sync will replace these swaps."
+            return summary
+        if action == "lines":
+            if method == "POST" and not rest and "text" in body:
+                added = book.add_text(deck_id, body["text"], body.get("section") or None)
+                summary = {**book.summary(deck_id), **added}
                 if book.decks[deck_id]["source"] == "archidekt":
                     summary["warning"] = "This deck syncs from Archidekt; the next sync will replace this change."
                 return summary
-            if method == "POST" and action == "pin":
-                state = book.pin(int(body["line_id"]), body.get("pool", ""), int(body.get("quantity", 0)))
-                return book.line_json(state, self.summarize)
+            if method == "POST" and not rest:
+                line_id = book.add_line(deck_id, body)
+            elif method in ("PATCH", "DELETE") and len(rest) == 1 and rest[0].isdigit():
+                line_id = int(rest[0])
+                if book.line_by_id.get(line_id) is None or book.line_by_id[line_id].row["deck_id"] != deck_id:
+                    raise KeyError(f"no line {line_id} in deck {deck_id}")
+                book.edit_line(line_id, {"quantity": 0} if method == "DELETE" else body)
+            else:
+                raise LookupError("unknown deck line request")
+            summary = {**book.summary(deck_id), "line_id": line_id}
+            if book.decks[deck_id]["source"] == "archidekt":
+                summary["warning"] = "This deck syncs from Archidekt; the next sync will replace this change."
+            return summary
+        if method == "POST" and action == "pin":
+            state = book.pin(int(body["line_id"]), body.get("pool", ""), int(body.get("quantity", 0)))
+            return book.line_json(state, self.summarize)
         raise LookupError("unknown deck action")
 
     def image_path(self, scryfall_id, face, size):
@@ -1002,6 +1094,9 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_response(HTTPStatus.OK)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        # The page talks only to this server (it fetches from Scryfall itself); gallery/page_policy.py.
+        self.send_header("Content-Security-Policy", content_security_policy(html))
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         self.wfile.write(body)
 
@@ -1080,6 +1175,7 @@ def start_in_background(connection, port=0, refresh_if_stale=True):
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     server.daemon_threads = True
     Handler.gallery = Gallery(connection)
+    Handler.gallery.port = server.server_address[1]
     Handler.gallery.watch_for_new_data()
     if refresh_if_stale:
         Handler.gallery.jobs.refresh_if_stale()
@@ -1089,6 +1185,7 @@ def start_in_background(connection, port=0, refresh_if_stale=True):
 
 def serve(connection, port, open_browser=False):
     Handler.gallery = Gallery(connection)
+    Handler.gallery.port = port
     Handler.gallery.watch_for_new_data()
     Handler.gallery.jobs.refresh_if_stale()
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)

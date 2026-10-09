@@ -9,6 +9,7 @@ Rulings come from Scryfall (/cards/<id>/rulings): Wizards of the Coast's rulings
 Gatherer (the set release notes' FAQ lands there) and Scryfall's own notes. They're cached per
 card for a month.
 """
+import contextlib
 import json
 import os
 import re
@@ -203,9 +204,14 @@ class RuleBook:
 RULINGS_KEEP = timedelta(days=30)
 
 
-def rulings(connection, scryfall_id, oracle_id):
-    """A card's rulings, newest first: [{date, source: "wotc"|"scryfall", text}], cached a month."""
-    row = connection.execute("SELECT fetched_at, data FROM rulings WHERE oracle_id = ?", (oracle_id,)).fetchone()
+def rulings(connection, scryfall_id, oracle_id, lock=None):
+    """A card's rulings, newest first: [{date, source: "wotc"|"scryfall", text}], cached a month.
+    `lock` guards the shared connection; it is held only for the database work, never during the
+    call to Scryfall, so a slow network doesn't hold up every other request."""
+    lock = lock or contextlib.nullcontext()
+    with lock:
+        row = connection.execute("SELECT fetched_at, data FROM rulings WHERE oracle_id = ?", (oracle_id,)).fetchone()
+        row = dict(row) if row else None
     if row and datetime.now() - datetime.fromisoformat(row["fetched_at"]) < RULINGS_KEEP:
         return json.loads(row["data"])
     try:
@@ -216,7 +222,8 @@ def rulings(connection, scryfall_id, oracle_id):
         raise
     found = sorted(({"date": r.get("published_at"), "source": r.get("source"), "text": r.get("comment")} for r in data),
                    key=lambda r: r["date"] or "", reverse=True)
-    connection.execute("INSERT OR REPLACE INTO rulings VALUES (?, ?, ?)",
-                       (oracle_id, datetime.now().isoformat(timespec="seconds"), json.dumps(found)))
-    connection.commit()
+    with lock:
+        connection.execute("INSERT OR REPLACE INTO rulings VALUES (?, ?, ?)",
+                           (oracle_id, datetime.now().isoformat(timespec="seconds"), json.dumps(found)))
+        connection.commit()
     return found

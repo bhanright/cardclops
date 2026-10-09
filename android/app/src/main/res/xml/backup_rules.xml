@@ -2,4 +2,6 @@
 <!-- Android 11 and older: the same as data_extraction_rules.xml's cloud backup. -->
 <full-backup-content>
     <include domain="file" path="cardclops/cardclops.sqlite" />
+    <!-- Writes since SQLite last folded its journal in live here; without it a backup misses them. -->
+    <include domain="file" path="cardclops/cardclops.sqlite-wal" />
 </full-backup-content>
