@@ -30,6 +30,7 @@ const MORE_THEMES = [
   { id: 'olympic', name: 'Olympic', note: 'Race day: a running track, the five-color ribbon, race-bib tabs and a gold medal', swatch: ['#ffffff', '#0085c7', '#a88400', '#009f3d', '#e8173a'], light: true },
   { id: 'spqr', name: 'SPQR', note: 'Imperial Rome: veined marble, Ionic columns, a gold meander, stone tablets and laurels', swatch: ['#f1ebe0', '#a855c0', '#e03a50', '#a88418'], light: true },
   { id: 'sasquatch', name: 'Sasquatch', note: 'A Pacific Northwest forest at dusk: pines, fog, fireflies and carved trail signs', swatch: ['#0d130e', '#c9793c', '#8cc063', '#e0bd52'] },
+  { id: 'ibm', name: 'IBM', note: 'Big Blue’s machine room: punch-card panels, console buttons, keyboard keys, a green-screen terminal and tape reels', swatch: ['#0f3d85', '#f6edd5', '#1f5fd6', '#3dff7a'] },
   { id: 'win95', name: 'Windows 95', note: 'The 1995 desktop: the taskbar and Start button, beveled windows with title bars, the Start menu', swatch: ['#008080', '#c0c0c0', '#000080', '#ffffff'], light: true },
   { id: 'mac8', name: 'Mac OS 8', note: 'Platinum: the menu bar, pinstriped windows with close boxes, Balloon Help and the barber pole', swatch: ['#66669a', '#dddddd', '#333399', '#ffffff'], light: true },
   { id: 'mac27', name: 'macOS 27', note: 'Liquid Glass: frosted panels, a floating dock, the window lights and a drifting aurora', swatch: ['#6f8cff', '#b88cff', '#ff9cc2', '#ffffff'], light: true },
