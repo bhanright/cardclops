@@ -29,6 +29,8 @@ const MORE_THEMES = [
   { id: 'lemonhead', name: 'Lemonhead', note: 'The candy box: lemon slices, sugar, a scalloped red lid, polka dots and a sunburst', swatch: ['#fff5b3', '#e0312c', '#4f9a00', '#a88000'], light: true },
   { id: 'olympic', name: 'Olympic', note: 'Race day: a running track, the five-color ribbon, race-bib tabs and a gold medal', swatch: ['#ffffff', '#0085c7', '#a88400', '#009f3d', '#e8173a'], light: true },
   { id: 'spqr', name: 'SPQR', note: 'Imperial Rome: veined marble, Ionic columns, a gold meander, stone tablets and laurels', swatch: ['#f1ebe0', '#a855c0', '#e03a50', '#a88418'], light: true },
+  { id: 'magna', name: 'Magna Carta', note: 'Runnymede, 1215: striped pavilions by the Thames, vellum ruled in red, illuminated letters, heraldic banners and a wax seal', swatch: ['#7d1717', '#f6ecd2', '#24408e', '#d8a93a', '#2f6b34'] },
+  { id: 'habeas', name: 'Habeas Corpus', note: 'The Great Writ in a courtroom of walnut and brass: a law library with a rolling ladder, pleading paper, rubber stamps, a typewriter and a gavel', swatch: ['#3b2416', '#fbf7ea', '#c9a24a', '#6e1d17', '#1f3f8a'] },
   { id: 'sasquatch', name: 'Sasquatch', note: 'A Pacific Northwest forest at dusk: pines, fog, fireflies and carved trail signs', swatch: ['#0d130e', '#c9793c', '#8cc063', '#e0bd52'] },
   { id: 'ibm', name: 'IBM', note: 'Big Blue’s machine room: punch-card panels, console buttons, keyboard keys, a green-screen terminal and tape reels', swatch: ['#0f3d85', '#f6edd5', '#1f5fd6', '#3dff7a'] },
   { id: 'win95', name: 'Windows 95', note: 'The 1995 desktop: the taskbar and Start button, beveled windows with title bars, the Start menu', swatch: ['#008080', '#c0c0c0', '#000080', '#ffffff'], light: true },

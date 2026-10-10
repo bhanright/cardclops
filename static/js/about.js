@@ -42,6 +42,12 @@ export function showAbout() {
         h('li', 'The fonts ', link('https://fonts.google.com/specimen/Lilita+One', 'Lilita One'), ' and ', link('https://fonts.google.com/specimen/Rubik', 'Rubik'),
           ', under the SIL Open Font License 1.1 (', h('a', { href: 'fonts/OFL-LilitaOne.txt', target: '_blank' }, 'Lilita One'), ', ',
           h('a', { href: 'fonts/OFL-Rubik.txt', target: '_blank' }, 'Rubik'), '), served with Cardclops.'),
+        h('li', 'For the Habeas Corpus and Magna Carta themes, the fonts ', link('https://fonts.google.com/specimen/Cinzel', 'Cinzel'), ', ',
+          link('https://fonts.google.com/specimen/Grenze', 'Grenze'), ' and ', link('https://fonts.google.com/specimen/Grenze+Gotisch', 'Grenze Gotisch'),
+          ', under the SIL Open Font License 1.1 (', h('a', { href: 'fonts/OFL-Cinzel.txt', target: '_blank' }, 'Cinzel'), ', ',
+          h('a', { href: 'fonts/OFL-Grenze.txt', target: '_blank' }, 'Grenze'), ', ', h('a', { href: 'fonts/OFL-GrenzeGotisch.txt', target: '_blank' }, 'Grenze Gotisch'),
+          '), and ', link('https://fonts.google.com/specimen/Special+Elite', 'Special Elite'), ', under the Apache License 2.0 (',
+          h('a', { href: 'fonts/LICENSE-SpecialElite.txt', target: '_blank' }, 'license'), '), also served with Cardclops.'),
         h('li', 'The optional Ask box uses ', link('https://www.anthropic.com', 'Anthropic'), '’s Claude.'))),
 
     h('section.panel',
