@@ -795,6 +795,359 @@
   background-color: #17171b; color: #f2f2f2; border: 3px solid #0d0d10;
 }
 
+/* ---- PlayStation 3 (More themes) ----
+   The XMB: a dark gradient with the slow white wave across it, piano-black glossy panels, thin
+   white type, and the chosen item lit rather than boxed. */
+:root[data-theme="ps3"] {
+  --bg: #0d0f14; --bg-deep: rgba(10, 12, 16, .85); --bg-blob: #0d0f14;
+  --panel: #121418; --panel-2: #0f1115; --panel-3: #22262e; --well: #0a0b0e;
+  --text: #f0f2f5; --muted: #a9afba; --faint: #6b717c; --paper: #f0f2f5; --paper-ink: #0a0b0e;
+  --lime: #4fd9a0; --orange: #ff6f6f; --cyan: #6fb0ff; --pink: #ff8ad8;
+  --yellow: #ffd36b; --violet: #a98bff; --mint: #5fe8d0; --peach: #ffae8a;
+  --pink-text: #ff9fe0; --pink-soft: #ffb6e8; --flat: #2a2e36;
+  --zebra: #16181d; --grid: #23262e; --grid-2: #30343e; --drop: #191c22; --hatch: #0a0b0e;
+  --tile-uncommon: #232a3a; --tile-rare: #33301f; --tile-mythic: #3a2620;
+  --tint-pink: #45202e; --tint-magenta: #40213d; --tint-green: #1d3a24; --legend-miss: #4a4a54;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: none;
+  --line: 1px solid rgba(255, 255, 255, .14); --line-thick: 1px solid rgba(255, 255, 255, .22);
+  --shadow: 0 8px 24px rgba(0, 0, 0, .55); --shadow-sm: 0 2px 8px rgba(0, 0, 0, .5);
+  --blob: 6px; --blob-sm: 4px; --pill: 999px;
+  --font-display: 'Segoe UI Light', 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --gloss: linear-gradient(rgba(255, 255, 255, .09), rgba(255, 255, 255, .02) 45%, transparent 50%);
+}
+:root[data-theme="ps3"] body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 400' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%23ffffff'%3E%3Cpath d='M0 230 C200 150 400 300 600 220 S1000 140 1200 210' stroke-opacity='.22' stroke-width='3'/%3E%3Cpath d='M0 250 C220 170 420 320 620 240 S1010 170 1200 235' stroke-opacity='.12' stroke-width='14'/%3E%3Cpath d='M0 215 C180 160 380 280 600 205 S990 130 1200 190' stroke-opacity='.08' stroke-width='40'/%3E%3C/g%3E%3C/svg%3E") center 40% / 100% 60vh no-repeat,
+    linear-gradient(#1c2230, #0b0d12 60%, #050608) fixed;
+  background-attachment: fixed;
+}
+:root[data-theme="ps3"] * { text-shadow: none !important; }
+:root[data-theme="ps3"] :is(h1, h2, h3, h4) { font-weight: 300; color: #fff; letter-spacing: .02em; }
+:root[data-theme="ps3"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #fff; }
+:root[data-theme="ps3"] :is(.panel, .dialog-card, .tools-list, .toast, .page-nav, .bignum, .deck-tile) { background-image: var(--gloss); }
+:root[data-theme="ps3"] .topbar { background: rgba(8, 9, 12, .7); border-bottom: 1px solid rgba(255, 255, 255, .12); box-shadow: none; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+:root[data-theme="ps3"] .logo-text .l2 { color: #fff; font-weight: 300; }
+:root[data-theme="ps3"] .logo-text .l2-card { color: #a9c8ff; }
+:root[data-theme="ps3"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile) { background: var(--gloss), #1a1d23; color: #e8eaee; border: 1px solid rgba(255, 255, 255, .16); box-shadow: none; filter: none; font-weight: 400; }
+:root[data-theme="ps3"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover { background: var(--gloss), #262a32; color: #fff; transform: none; box-shadow: 0 0 14px rgba(255, 255, 255, .18); }
+:root[data-theme="ps3"] :is(.tabs > a[aria-current="page"], .seg-btn.on, .mini-chip[aria-pressed="true"], .tools-btn[aria-expanded="true"], .shape-tile.open) { background: var(--gloss), #2c3240; color: #fff; border-color: rgba(255, 255, 255, .55); box-shadow: 0 0 16px rgba(255, 255, 255, .35); }
+:root[data-theme="ps3"] .btn.go { border-color: rgba(79, 217, 160, .7); }
+:root[data-theme="ps3"] .seg-btn { background: transparent; color: #e8eaee; border-color: rgba(255, 255, 255, .16) !important; }
+:root[data-theme="ps3"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #0a0b0e; color: #f0f2f5; border: 1px solid rgba(255, 255, 255, .18); }
+:root[data-theme="ps3"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="ps3"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 12px rgba(255, 255, 255, .12); }
+
+/* ---- PlayStation 4 (More themes) ----
+   The PS4 home screen: PlayStation blue fading to deep navy, soft drifting bokeh, flat rounded
+   tiles, and the focused item ringed in white. */
+:root[data-theme="ps4"] {
+  --bg: #04163d; --bg-deep: rgba(3, 14, 40, .8); --bg-blob: #04163d;
+  --panel: rgba(11, 31, 74, .86); --panel-2: rgba(8, 24, 60, .85); --panel-3: rgba(30, 64, 140, .8); --well: rgba(3, 14, 40, .85);
+  --text: #f2f6ff; --muted: #b3c3e6; --faint: #7088b8; --paper: #f2f6ff; --paper-ink: #031030;
+  --lime: #3ad6a0; --orange: #ff6b6b; --cyan: #5fa8ff; --pink: #ff7fd0;
+  --yellow: #ffcf5a; --violet: #a990ff; --mint: #4fe3d0; --peach: #ffa98a;
+  --pink-text: #ff99da; --pink-soft: #ffb3e3; --flat: rgba(90, 130, 220, .3);
+  --zebra: rgba(255, 255, 255, .03); --grid: rgba(120, 160, 230, .18); --grid-2: rgba(120, 160, 230, .3);
+  --drop: rgba(30, 64, 140, .4); --hatch: rgba(3, 14, 40, .7);
+  --tile-uncommon: #232a3a; --tile-rare: #33301f; --tile-mythic: #3a2620;
+  --tint-pink: #45202e; --tint-magenta: #40213d; --tint-green: #1d3a24; --legend-miss: #4a4a54;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: none;
+  --line: 1px solid rgba(140, 180, 255, .25); --line-thick: 2px solid rgba(160, 195, 255, .35);
+  --shadow: 0 10px 30px rgba(0, 6, 30, .5); --shadow-sm: 0 3px 10px rgba(0, 6, 30, .45);
+  --blob: 8px; --blob-sm: 6px; --pill: 999px;
+  --font-display: 'Segoe UI Light', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+:root[data-theme="ps4"] body {
+  background:
+    radial-gradient(circle 60px at 12% 22%, rgba(120, 180, 255, .14), transparent 70%),
+    radial-gradient(circle 90px at 82% 30%, rgba(120, 180, 255, .1), transparent 70%),
+    radial-gradient(circle 40px at 65% 70%, rgba(160, 200, 255, .12), transparent 70%),
+    radial-gradient(circle 120px at 30% 85%, rgba(90, 150, 255, .08), transparent 70%),
+    radial-gradient(ellipse 90% 70% at 50% 0%, #0a3fa8, transparent 70%),
+    linear-gradient(#063088, #04163d 55%, #020b22);
+  background-attachment: fixed;
+}
+:root[data-theme="ps4"] * { text-shadow: none !important; }
+:root[data-theme="ps4"] :is(h1, h2, h3, h4) { font-weight: 300; color: #fff; }
+:root[data-theme="ps4"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #fff; }
+:root[data-theme="ps4"] .topbar { background: rgba(2, 12, 36, .55); border-bottom: 0; box-shadow: none; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+:root[data-theme="ps4"] .logo-text .l2 { color: #fff; font-weight: 300; }
+:root[data-theme="ps4"] .logo-text .l2-card { color: #5fa8ff; }
+:root[data-theme="ps4"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile) { background: rgba(255, 255, 255, .08); color: #f2f6ff; border: 1px solid rgba(255, 255, 255, .12); box-shadow: none; filter: none; font-weight: 400; }
+:root[data-theme="ps4"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover { background: rgba(255, 255, 255, .16); color: #fff; transform: none; box-shadow: 0 0 0 3px #fff, 0 0 18px rgba(160, 200, 255, .6); }
+:root[data-theme="ps4"] :is(.tabs > a[aria-current="page"], .seg-btn.on, .mini-chip[aria-pressed="true"], .tools-btn[aria-expanded="true"], .shape-tile.open) { background: #0070d1; color: #fff; border-color: transparent; box-shadow: 0 0 0 2px #fff; }
+:root[data-theme="ps4"] .btn.go { background: #0070d1; color: #fff; }
+:root[data-theme="ps4"] .seg-btn { background: transparent; color: #f2f6ff; border-color: rgba(255, 255, 255, .12) !important; }
+:root[data-theme="ps4"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: rgba(2, 12, 36, .7); color: #f2f6ff; border: 1px solid rgba(160, 195, 255, .3); }
+:root[data-theme="ps4"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="ps4"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #0070d1; color: #fff; }
+
+/* ---- Sega Genesis (More themes) ----
+   The black console and its box art: glossy black, the 16-BIT red-and-gold, Sega blue, speed
+   stripes, heavy italic capitals and a faint grid. */
+:root[data-theme="genesis"] {
+  --bg: #050506; --bg-deep: #0a0a0c; --bg-blob: #050506;
+  --panel: #141416; --panel-2: #101012; --panel-3: #24242a; --well: #0b0b0d;
+  --text: #f4f4f6; --muted: #b8b8c2; --faint: #7a7a86; --paper: #f4f4f6; --paper-ink: #050506;
+  --pink: #ff3b3b; --lime: #2fd35a; --cyan: #3b8cff; --yellow: #ffd23a;
+  --violet: #b07bff; --orange: #ff8a2a; --mint: #3fe0c0; --peach: #ffae8a;
+  --pink-text: #ff6060; --pink-soft: #ff8080; --flat: #2a2a30;
+  --zebra: #18181b; --grid: #222227; --grid-2: #303037; --drop: #1a1a1e; --hatch: #0b0b0d;
+  --tile-uncommon: #232a3a; --tile-rare: #33301f; --tile-mythic: #3a2620;
+  --tint-pink: #45202e; --tint-magenta: #40213d; --tint-green: #1d3a24; --legend-miss: #4a4a54;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M32 0H0V32' fill='none' stroke='%23121216' stroke-width='1'/%3E%3C/svg%3E");
+  --line: 2px solid #2c2c33; --line-thick: 3px solid #3a3a42;
+  --shadow: 0 6px 18px rgba(0, 0, 0, .6); --shadow-sm: 0 2px 6px rgba(0, 0, 0, .6);
+  --blob: 4px; --blob-sm: 3px; --pill: 4px;
+  --font-display: 'Arial Black', 'Segoe UI Black', Impact, sans-serif;
+  --font-body: 'Segoe UI', Arial, sans-serif;
+  --speed: linear-gradient(#ff3b3b 0 2px, transparent 2px 4px, #ff3b3b 4px 5px, transparent 5px 7px, #ffd23a 7px 8px);
+}
+:root[data-theme="genesis"] * { text-shadow: none !important; }
+:root[data-theme="genesis"] :is(h1, h2, h3, h4) { font-style: italic; font-weight: 900; text-transform: uppercase; letter-spacing: .02em; color: #fff; }
+:root[data-theme="genesis"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #fff; }
+:root[data-theme="genesis"] :is(.panel, .dialog-card) > .panel-head { padding-bottom: 12px; background: var(--speed) bottom left / 160px 8px no-repeat; }
+:root[data-theme="genesis"] .stat-panel > h3 { padding-bottom: 10px; background: var(--speed) bottom left / 110px 8px no-repeat; }
+:root[data-theme="genesis"] :is(.panel, .dialog-card) { background-image: linear-gradient(rgba(255, 255, 255, .05), transparent 40%); }
+:root[data-theme="genesis"] .topbar { background: #000; border-bottom: 0; box-shadow: none; }
+:root[data-theme="genesis"] .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: -8px; height: 8px; background: var(--speed); }
+:root[data-theme="genesis"] .logo-text .l2 { color: #fff; font-style: italic; font-weight: 900; }
+:root[data-theme="genesis"] .logo-text .l2-card { color: #3b8cff; }
+:root[data-theme="genesis"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile) { background: linear-gradient(#2a2a30, #121216); color: #fff; border: 1px solid #45454e; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12); font-style: italic; font-weight: 800; filter: none; }
+:root[data-theme="genesis"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover { background: linear-gradient(#3a3a42, #1a1a20); color: #fff; transform: none; border-color: #ff3b3b; }
+:root[data-theme="genesis"] :is(.tabs > a[aria-current="page"], .seg-btn.on, .mini-chip[aria-pressed="true"], .tools-btn[aria-expanded="true"], .shape-tile.open) { background: linear-gradient(#ff5050, #c81e1e); color: #fff; border-color: #ff8080; }
+:root[data-theme="genesis"] .btn.go { background: linear-gradient(#4a9cff, #1f63d8); color: #fff; border-color: #7ab4ff; }
+:root[data-theme="genesis"] .seg-btn { background: transparent; color: #fff; border-color: #45454e !important; }
+:root[data-theme="genesis"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #0b0b0d; color: #f4f4f6; border: 2px solid #2c2c33; }
+:root[data-theme="genesis"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="genesis"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #c81e1e; color: #fff; }
+
+/* ---- Game Boy Color (More themes) ----
+   A teal shell around a pale screen: square pixel edges, stair-stepped pixel shadows, the Atomic
+   Purple top bar, chunky monospace capitals and berry A and B buttons. The screen is light, so the
+   accents keep Light's contrast. */
+:root[data-theme="gbc"] {
+  --bg: #1fa3b4; --bg-deep: #6f58a8; --bg-blob: #1fa3b4;
+  --panel: #eef3e2; --panel-2: #e4ead4; --panel-3: #d6dec2; --well: #f5f8ec;
+  --text: #1c2616; --muted: #3e4a36; --faint: #6c7860; --paper: #f5f8ec; --paper-ink: #1c2616;
+  --pink: #e0237f; --cyan: #3a78c8; --lime: #3a8a00; --orange: #d05800;
+  --yellow: #9a7a00; --violet: #9068e0; --mint: #008a6a; --peach: #c8603a;
+  --pink-text: #b0136f; --pink-soft: #a0105f; --flat: #d6dec2;
+  --zebra: #e8eed8; --grid: #d6dec2; --grid-2: #bcc8a4; --drop: #e4ead4; --hatch: #c8d2b0; --legend-miss: #c8d2b0;
+  --tile-uncommon: #eef3fb; --tile-rare: #fbf4e0; --tile-mythic: #fbeae0;
+  --tint-pink: #fbdaea; --tint-magenta: #f5d7ee; --tint-green: #ddf2c9;
+  --mana-W: #f3e27a; --mana-C: #c9c9c9; --mana-N: #d3d3d3;
+  --r-common: #c8c8c8; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Crect width='2' height='2' fill='%231b93a3'/%3E%3Crect x='6' y='6' width='2' height='2' fill='%2325afc0'/%3E%3C/svg%3E");
+  --line: 3px solid #1c2616; --line-thick: 4px solid #1c2616;
+  --shadow: 4px 0 0 #1c2616, 0 4px 0 #1c2616, 4px 4px 0 #1c2616;
+  --shadow-sm: 2px 0 0 #1c2616, 0 2px 0 #1c2616, 2px 2px 0 #1c2616;
+  --blob: 0; --blob-sm: 0; --pill: 0;
+  --font-display: 'Consolas', 'Lucida Console', 'Courier New', monospace;
+  --font-body: 'Segoe UI', Verdana, sans-serif;
+}
+:root[data-theme="gbc"] *, :root[data-theme="gbc"] *::before { text-shadow: none !important; border-radius: 0 !important; }
+:root[data-theme="gbc"] :is(h1, h2, h3, h4) { font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #1c2616; }
+:root[data-theme="gbc"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #1c2616; }
+:root[data-theme="gbc"] img { image-rendering: auto; }
+:root[data-theme="gbc"] .topbar { background: #6f58a8; border-bottom: 4px solid #1c2616; box-shadow: none; }
+:root[data-theme="gbc"] .logo-text .l2 { color: #fff; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; }
+:root[data-theme="gbc"] .logo-text .l2-card { color: #ffd6ec; }
+:root[data-theme="gbc"] .header-stats { color: #efe8ff; }
+:root[data-theme="gbc"] .header-stats b { color: #fff; }
+:root[data-theme="gbc"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile) { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; filter: none; }
+:root[data-theme="gbc"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover { transform: translate(-2px, -2px); box-shadow: 4px 0 0 #1c2616, 0 4px 0 #1c2616, 4px 4px 0 #1c2616; }
+:root[data-theme="gbc"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):active { transform: translate(2px, 2px); box-shadow: none; }
+:root[data-theme="gbc"] .btn.go { background: #e0237f; color: #000; }
+:root[data-theme="gbc"] .tabs > a { background: #eef3e2; color: #1c2616; }
+:root[data-theme="gbc"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #f5f8ec; color: #1c2616; border: 3px solid #1c2616; font-family: var(--font-display); }
+
+/* ---- ColecoVision (More themes) ----
+   The 1982 console: a black case with a brushed-silver strip, the logo's warm stripes in orange,
+   amber and red, keypad-style buttons and wide bold type. */
+:root[data-theme="coleco"] {
+  --bg: #0c0c0d; --bg-deep: #c6c6c8; --bg-blob: #0c0c0d;
+  --panel: #1b1b1d; --panel-2: #161618; --panel-3: #2a2a2e; --well: #121214;
+  --text: #f2f2f2; --muted: #bdbdc4; --faint: #84848c; --paper: #f2f2f2; --paper-ink: #0c0c0d;
+  --orange: #ff8a1a; --pink: #ff5a3a; --yellow: #ffc23a; --cyan: #4a9cff;
+  --lime: #5ad14a; --violet: #c08aff; --mint: #40d8c0; --peach: #ffae8a;
+  --pink-text: #ff7a5c; --pink-soft: #ff967c; --flat: #2a2a2e;
+  --zebra: #1f1f22; --grid: #29292d; --grid-2: #36363b; --drop: #202023; --hatch: #121214;
+  --tile-uncommon: #232a3a; --tile-rare: #33301f; --tile-mythic: #3a2620;
+  --tint-pink: #45202e; --tint-magenta: #40213d; --tint-green: #1d3a24; --legend-miss: #4a4a54;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0 0h8' stroke='%23111113'/%3E%3C/svg%3E");
+  --line: 2px solid #000; --line-thick: 3px solid #000;
+  --shadow: 0 5px 0 #000; --shadow-sm: 0 3px 0 #000;
+  --blob: 6px; --blob-sm: 6px; --pill: 6px;
+  --font-display: 'Segoe UI Black', 'Arial Black', 'Helvetica Neue', sans-serif;
+  --font-body: 'Segoe UI', Arial, sans-serif;
+  --coleco-stripes: linear-gradient(#ff8a1a 0 3px, transparent 3px 5px, #ffc23a 5px 8px, transparent 8px 10px, #ff5a3a 10px 13px);
+}
+:root[data-theme="coleco"] * { text-shadow: none !important; }
+:root[data-theme="coleco"] :is(h1, h2, h3, h4) { font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: #fff; }
+:root[data-theme="coleco"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #fff; }
+:root[data-theme="coleco"] :is(.panel, .dialog-card) > .panel-head { padding-bottom: 16px; background: var(--coleco-stripes) bottom / 100% 13px no-repeat; }
+:root[data-theme="coleco"] .stat-panel > h3 { padding-bottom: 14px; background: var(--coleco-stripes) bottom / 100% 13px no-repeat; }
+:root[data-theme="coleco"] .topbar { background: linear-gradient(#e4e4e6, #b8b8bc 55%, #9c9ca2); border-bottom: 3px solid #000; box-shadow: none; }
+:root[data-theme="coleco"] .logo-text .l2 { color: #111; font-weight: 900; letter-spacing: .04em; }
+:root[data-theme="coleco"] .logo-text .l2-card { color: #c84a10; }
+:root[data-theme="coleco"] .header-stats { color: #222; }
+:root[data-theme="coleco"] .header-stats b { color: #000; }
+:root[data-theme="coleco"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile) { background: linear-gradient(#3a3a40, #222226); color: #f2f2f2; border: 2px solid #000; box-shadow: 0 3px 0 #000, inset 0 1px 0 rgba(255, 255, 255, .16); font-weight: 800; filter: none; }
+:root[data-theme="coleco"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover { background: linear-gradient(#48484f, #2a2a2e); color: #fff; transform: none; }
+:root[data-theme="coleco"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):active { transform: translateY(3px); box-shadow: 0 0 0 #000; }
+:root[data-theme="coleco"] :is(.tabs > a[aria-current="page"], .seg-btn.on, .mini-chip[aria-pressed="true"], .tools-btn[aria-expanded="true"], .shape-tile.open) { background: linear-gradient(#ffa040, #e06a00); color: #000; }
+:root[data-theme="coleco"] .tabs > a { color: #f2f2f2; }
+:root[data-theme="coleco"] .seg-btn { background: transparent; color: #f2f2f2; border-color: #000 !important; }
+:root[data-theme="coleco"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #121214; color: #f2f2f2; border: 2px solid #000; }
+:root[data-theme="coleco"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="coleco"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #e06a00; color: #000; }
+:root[data-theme="coleco"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #2a1200; }
+
+/* ---- Cyberpunk (More themes) ----
+   Night City's interfaces: black with scan lines and a faint grid, warning yellow, neon red and
+   cyan, panels and buttons with their corners cut off, condensed capitals with a slight glitch. */
+:root[data-theme="cyberpunk"] {
+  --bg: #050508; --bg-deep: #0b0b10; --bg-blob: #050508;
+  --panel: #0b0b10; --panel-2: #09090d; --panel-3: #1a1a24; --well: #07070a;
+  --text: #e9f6ff; --muted: #9fb3c4; --faint: #5f7080; --paper: #e9f6ff; --paper-ink: #050508;
+  --yellow: #fcee0a; --pink: #ff2a6d; --cyan: #00f0ff; --lime: #39ff88;
+  --violet: #b967ff; --orange: #ff8a00; --mint: #05d9e8; --peach: #ff9e7a;
+  --pink-text: #ff4f85; --pink-soft: #ff7aa3; --flat: #1a1a24;
+  --zebra: #0e0e14; --grid: #16161f; --grid-2: #22222e; --drop: #101018; --hatch: #07070a;
+  --tile-uncommon: #232a3a; --tile-rare: #33301f; --tile-mythic: #3a2620;
+  --tint-pink: #45202e; --tint-magenta: #40213d; --tint-green: #1d3a24; --legend-miss: #4a4a54;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M40 0H0V40' fill='none' stroke='%230d1a22' stroke-width='1'/%3E%3C/svg%3E");
+  --line: 1px solid rgba(252, 238, 10, .55); --line-thick: 2px solid #fcee0a;
+  --shadow: none; --shadow-sm: none;
+  --blob: 0; --blob-sm: 0; --pill: 0;
+  --font-display: Bahnschrift, 'DIN Condensed', 'Arial Narrow', 'Segoe UI', sans-serif;
+  --font-body: Bahnschrift, 'Segoe UI', Arial, sans-serif;
+}
+:root[data-theme="cyberpunk"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(transparent 0 2px, rgba(0, 240, 255, .035) 2px 3px);
+}
+:root[data-theme="cyberpunk"] :is(h1, h2, h3, h4) {
+  font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #fcee0a;
+  text-shadow: 1px 0 #ff2a6d, -1px 0 #00f0ff !important;
+}
+:root[data-theme="cyberpunk"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #fcee0a; }
+:root[data-theme="cyberpunk"] :is(.panel, .dialog-card, .bignum, .deck-tile, .toast) { clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px)); }
+:root[data-theme="cyberpunk"] :is(.panel, .dialog-card) { border-left: 3px solid #fcee0a; }
+:root[data-theme="cyberpunk"] .topbar { background: #050508; border-bottom: 1px solid #ff2a6d; box-shadow: 0 1px 12px rgba(255, 42, 109, .4); }
+:root[data-theme="cyberpunk"] .logo-text .l2 { color: #fcee0a; text-transform: uppercase; letter-spacing: .1em; text-shadow: 1px 0 #ff2a6d, -1px 0 #00f0ff !important; }
+:root[data-theme="cyberpunk"] .logo-text .l2-card { color: #00f0ff; }
+:root[data-theme="cyberpunk"] .header-stats b { color: #fcee0a; }
+:root[data-theme="cyberpunk"] :is(.tabs > a, .tools-btn) { letter-spacing: .02em; padding-left: 11px; padding-right: 11px; }
+:root[data-theme="cyberpunk"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile) { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); background: #12121a; color: #e9f6ff; border: 1px solid #00f0ff; box-shadow: none; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; filter: none; }
+:root[data-theme="cyberpunk"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover { background: #00f0ff; color: #050508; transform: none; }
+:root[data-theme="cyberpunk"] :is(.tabs > a[aria-current="page"], .seg-btn.on, .mini-chip[aria-pressed="true"], .tools-btn[aria-expanded="true"], .shape-tile.open) { background: #fcee0a; color: #050508; border-color: #fcee0a; }
+:root[data-theme="cyberpunk"] .btn.go { background: #ff2a6d; color: #050508; border-color: #ff2a6d; }
+:root[data-theme="cyberpunk"] .seg { clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); border-color: #00f0ff; }
+:root[data-theme="cyberpunk"] .seg-btn { background: transparent; color: #e9f6ff; border-color: #00f0ff !important; text-transform: uppercase; }
+:root[data-theme="cyberpunk"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #07070a; color: #e9f6ff; border: 1px solid #00f0ff; }
+:root[data-theme="cyberpunk"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="cyberpunk"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #fcee0a; color: #050508; }
+:root[data-theme="cyberpunk"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #2a2600; }
+
+/* ---- Hokkaido (More themes) ----
+   Winter on Hokkaido, with more than colors changed: a pale sky with slowly falling snow (still when
+   motion is reduced) and Mount Yotei's snowcap at the foot of the page; an indigo top bar in the
+   seigaiha wave pattern; tabs that hang from it like noren curtains; washi-paper panels under a
+   brushed ink stroke; a vermilion seal before each heading; Mincho type for headings. The paper is
+   near-white, so the accents keep Light's contrast. */
+:root[data-theme="hokkaido"] {
+  --bg: #e3ecf5; --bg-deep: #1f3a5f; --bg-blob: #e3ecf5;
+  --panel: #fbf8f1; --panel-2: #f5f0e4; --panel-3: #ebe4d3; --well: #fffdf8;
+  --text: #1b2a40; --muted: #4a5568; --faint: #7a8494; --paper: #fffdf8; --paper-ink: #1b2a40;
+  --pink: #d0453a; --cyan: #3a7cc0; --violet: #8a62c8; --lime: #3a8a3a;
+  --yellow: #9a7a00; --orange: #c85a1a; --mint: #008a7a; --peach: #c8603a;
+  --pink-text: #b0322a; --pink-soft: #9a2a22; --flat: #e4dccb;
+  --zebra: #f7f2e7; --grid: #e6dfcf; --grid-2: #d6cdb8; --drop: #f0eadc; --hatch: #ddd4c0; --legend-miss: #d6cdb8;
+  --tile-uncommon: #eef3fb; --tile-rare: #fbf4e0; --tile-mythic: #fbeae0;
+  --tint-pink: #fbdaea; --tint-magenta: #f5d7ee; --tint-green: #ddf2c9;
+  --mana-W: #f3e27a; --mana-C: #c9c9c9; --mana-N: #d3d3d3;
+  --r-common: #c8c8c8; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: none;
+  --line: 1px solid #c9bfa8; --line-thick: 2px solid #1f3a5f;
+  --shadow: 0 6px 18px rgba(31, 58, 95, .12); --shadow-sm: 0 2px 6px rgba(31, 58, 95, .12);
+  --blob: 3px; --blob-sm: 3px; --pill: 3px;
+  --font-display: 'Yu Mincho', YuMincho, 'Hiragino Mincho ProN', 'Noto Serif JP', 'MS PMincho', Georgia, serif;
+  --font-body: 'Yu Gothic UI', 'Yu Gothic', 'Hiragino Sans', 'Noto Sans JP', 'Segoe UI', sans-serif;
+  --indigo: #1f3a5f; --vermilion: #c8372d;
+}
+:root[data-theme="hokkaido"] body {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 300' preserveAspectRatio='none'%3E%3Cpath d='M0 300V230L180 200L330 225L470 150L600 40L730 150L860 210L1020 185L1200 225V300Z' fill='%23c3d2e2'/%3E%3Cpath d='M520 108L600 40L680 108L650 100L625 118L600 98L572 120L548 102Z' fill='%23ffffff'/%3E%3Cpath d='M0 300V262L240 240L420 262L640 236L880 258L1200 240V300Z' fill='%23aebfd3'/%3E%3C/svg%3E") bottom / 100% 32vh no-repeat, linear-gradient(#cfdcea, #e9f0f7 45%, #f4f7fb);
+  background-attachment: fixed;
+}
+:root[data-theme="hokkaido"] body::before {
+  content: ''; position: fixed; inset: -260px 0 0; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(4px 4px at 20px 30px, #ffffff 50%, transparent 51%), radial-gradient(3px 3px at 90px 140px, #ffffff 50%, transparent 51%), radial-gradient(5px 5px at 150px 60px, #ffffff 50%, transparent 51%), radial-gradient(3px 3px at 210px 190px, #ffffff 50%, transparent 51%), radial-gradient(4px 4px at 60px 220px, #ffffff 50%, transparent 51%), radial-gradient(2px 2px at 130px 250px, #ffffff 50%, transparent 51%), radial-gradient(3px 3px at 240px 100px, #ffffff 50%, transparent 51%); background-size: 260px 260px; opacity: .9;
+  animation: hokkaido-snow 26s linear infinite;
+}
+@keyframes hokkaido-snow { to { transform: translateY(260px); } }
+:root[data-theme="hokkaido"][data-motion="reduce"] body::before { animation: none; }
+@media (prefers-reduced-motion: reduce) { :root[data-theme="hokkaido"] body::before { animation: none; } }
+:root[data-theme="hokkaido"] * { text-shadow: none !important; }
+:root[data-theme="hokkaido"] :is(h1, h2, h3, h4) { font-weight: 600; color: var(--indigo); letter-spacing: .04em; }
+:root[data-theme="hokkaido"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: var(--indigo); }
+:root[data-theme="hokkaido"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title)::before {
+  content: ''; display: inline-block; width: .85em; height: .85em; margin-right: .5em; vertical-align: -.08em;
+  background: var(--vermilion); border-radius: 2px; box-shadow: inset 0 0 0 2px #fbf8f1, inset 0 0 0 3.5px var(--vermilion);
+}
+:root[data-theme="hokkaido"] ::selection { background: #c8372d; color: #fff; }
+:root[data-theme="hokkaido"] :focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
+:root[data-theme="hokkaido"] a { color: #24508a; }
+:root[data-theme="hokkaido"] a:hover { color: var(--vermilion); }
+/* panels: washi under a brushed ink stroke */
+:root[data-theme="hokkaido"] :is(.panel, .dialog-card) {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 12' preserveAspectRatio='none'%3E%3Cpath d='M2 7C40 3 90 4 150 5S300 3 398 6C340 9 250 8 160 9S50 10 2 7Z' fill='%231f3a5f'/%3E%3C/svg%3E") top / 100% 10px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg stroke='%23e9e2d2' stroke-width='.8' fill='none'%3E%3Cpath d='M10 20q20 6 34-2M60 70q18 10 40 2M20 96q14-8 30 0M80 30q10 8 26 4'/%3E%3C/g%3E%3C/svg%3E"), var(--panel);
+  border: 1px solid #ddd3bf; border-top: 0; padding-top: 22px;
+}
+/* the top bar: indigo seigaiha; the tabs hang from it like noren */
+:root[data-theme="hokkaido"] .topbar { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24'%3E%3Cg fill='%231f3a5f' stroke='%233a5f8f' stroke-width='1.6'%3E%3Ccircle cx='0' cy='12' r='15'/%3E%3Ccircle cx='0' cy='12' r='10'/%3E%3Ccircle cx='0' cy='12' r='5'/%3E%3Ccircle cx='48' cy='12' r='15'/%3E%3Ccircle cx='48' cy='12' r='10'/%3E%3Ccircle cx='48' cy='12' r='5'/%3E%3Ccircle cx='24' cy='24' r='15'/%3E%3Ccircle cx='24' cy='24' r='10'/%3E%3Ccircle cx='24' cy='24' r='5'/%3E%3C/g%3E%3C/svg%3E"), var(--indigo); background-size: 48px 24px; border-bottom: 3px solid var(--vermilion); box-shadow: none; padding-bottom: 0; align-items: flex-start; }
+:root[data-theme="hokkaido"] .logo, :root[data-theme="hokkaido"] .bell, :root[data-theme="hokkaido"] .header-stats { margin-bottom: 10px; }
+:root[data-theme="hokkaido"] .logo-text .l2 { color: #fffdf8; font-family: var(--font-display); font-weight: 600; letter-spacing: .08em; }
+:root[data-theme="hokkaido"] .logo-text .l2-card { color: #ffb3a8; }
+:root[data-theme="hokkaido"] .header-stats { color: #d5deea; }
+:root[data-theme="hokkaido"] .header-stats b { color: #fff; }
+:root[data-theme="hokkaido"] .tabs { align-self: flex-start; gap: 6px; margin-top: -10px; }
+:root[data-theme="hokkaido"] .tabs > a {
+  font-family: var(--font-display); font-weight: 600; color: #fffdf8; padding: 18px 14px 12px;
+  background: linear-gradient(90deg, transparent calc(50% - .5px), rgba(255, 253, 248, .35) calc(50% - .5px) calc(50% + .5px), transparent calc(50% + .5px)) bottom / 100% 45% no-repeat, #274a76;
+  border: 0; border-radius: 0 0 4px 4px; box-shadow: 0 2px 0 rgba(0, 0, 0, .25);
+}
+:root[data-theme="hokkaido"] .tabs > a:hover { background-color: #2f5a8f; color: #fff; transform: translateY(2px); box-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
+:root[data-theme="hokkaido"] .tabs > a[aria-current="page"] { background-color: var(--vermilion); color: #fff; }
+:root[data-theme="hokkaido"] .tools-btn { font-family: var(--font-display); background: #274a76; color: #fffdf8; border: 0; box-shadow: none; }
+:root[data-theme="hokkaido"] .tools-btn:hover, :root[data-theme="hokkaido"] .tools-btn[aria-expanded="true"] { background: #2f5a8f; color: #fff; transform: none; box-shadow: none; }
+:root[data-theme="hokkaido"] .bell { background: #fbf8f1; border: 0; box-shadow: none; }
+/* buttons: indigo-edged paper; under the pointer, indigo ink */
+:root[data-theme="hokkaido"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  background: #fffdf8; color: var(--indigo); border: 1.5px solid var(--indigo); box-shadow: none; font-weight: 600; filter: none;
+}
+:root[data-theme="hokkaido"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover { background: var(--indigo); color: #fff; transform: none; box-shadow: none; }
+:root[data-theme="hokkaido"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open) { background: var(--indigo); color: #fff; }
+:root[data-theme="hokkaido"] .btn.go { background: var(--vermilion); border-color: var(--vermilion); color: #fff; }
+:root[data-theme="hokkaido"] .btn.go:hover { background: #a82a22; color: #fff; }
+:root[data-theme="hokkaido"] .seg { border: 1.5px solid var(--indigo); box-shadow: none; background: #fffdf8; }
+:root[data-theme="hokkaido"] .seg-btn { background: transparent; color: var(--indigo); border-color: var(--indigo) !important; }
+:root[data-theme="hokkaido"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #fffdf8; color: #1b2a40; border: 0; border-bottom: 2px solid var(--indigo); box-shadow: none; }
+:root[data-theme="hokkaido"] .tools-list { background: #fbf8f1; border: 1px solid #ddd3bf; }
+:root[data-theme="hokkaido"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
+:root[data-theme="hokkaido"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: var(--indigo); color: #fff; }
+:root[data-theme="hokkaido"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #d5deea; }
+
 /* Settings → Appearance: reduce motion (as the system setting does), no foil shimmer. */
 :root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
   animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;

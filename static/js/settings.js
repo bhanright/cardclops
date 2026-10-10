@@ -36,6 +36,13 @@ const MORE_THEMES = [
   { id: 'win8', name: 'Windows 8', note: 'Metro: flat color tiles on the Start screen’s purple', swatch: ['#1b0b3a', '#2d89ef', '#00b7b5', '#ff3db8'] },
   { id: 'ps2', name: 'PlayStation 2', note: 'Glowing blue towers in black space, glass panels and the controller’s symbol colors', swatch: ['#02040c', '#7ab4ff', '#3ee6a0', '#ff8ad8'] },
   { id: 'n64', name: 'Nintendo 64', note: 'Charcoal plastic, chunky buttons and the logo’s four colors', swatch: ['#1c1c22', '#ff4d4d', '#33d65a', '#5b8cff', '#ffd21a'] },
+  { id: 'ps3', name: 'PlayStation 3', note: 'The XMB: a slow white wave over dark glass and piano black', swatch: ['#0d0f14', '#1c2230', '#ffffff', '#6fb0ff'] },
+  { id: 'ps4', name: 'PlayStation 4', note: 'PlayStation blue, soft bokeh and white focus rings', swatch: ['#04163d', '#0070d1', '#5fa8ff', '#ffffff'] },
+  { id: 'genesis', name: 'Sega Genesis', note: 'Glossy black, 16-bit red and gold, Sega blue and speed stripes', swatch: ['#050506', '#ff3b3b', '#ffd23a', '#3b8cff'] },
+  { id: 'gbc', name: 'Game Boy Color', note: 'A teal shell, a pale screen, pixel edges and berry buttons', swatch: ['#1fa3b4', '#6f58a8', '#eef3e2', '#e0237f'], light: true },
+  { id: 'coleco', name: 'ColecoVision', note: 'Black and brushed silver with the logo’s warm stripes', swatch: ['#0c0c0d', '#c6c6c8', '#ff8a1a', '#ffc23a'] },
+  { id: 'cyberpunk', name: 'Cyberpunk', note: 'Night City: warning yellow, neon red and cyan, cut corners and scan lines', swatch: ['#050508', '#fcee0a', '#ff2a6d', '#00f0ff'] },
+  { id: 'hokkaido', name: 'Hokkaido', note: 'Winter in the north: falling snow, indigo waves, noren tabs, washi paper and vermilion seals', swatch: ['#e3ecf5', '#1f3a5f', '#c8372d', '#fbf8f1'], light: true },
 ];
 const LIGHT_THEMES = new Set([...THEMES, ...MORE_THEMES].filter(t => t.light).map(t => t.id));
 const SIZES = [[90, 'Smaller'], [100, 'Normal'], [112.5, 'Larger'], [125, 'Largest']];
