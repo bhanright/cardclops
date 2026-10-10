@@ -150,7 +150,7 @@ docs/               design notes: API, decks, setup, the public edition plan
 
 Settings (the ⚙ button, top right) chooses a theme (Neon, the original; Light; Dark, or Light/Dark following the
 device; and under More themes: Lollipop, Astronaut, Necronomicon, Stovepipe, Gamma, Galactus, Unicorn,
-Lemonhead, Olympic, SPQR, Sasquatch and Windows 95), text size,
+Lemonhead, Olympic, SPQR, Sasquatch, Windows 95, Windows XP, Windows 8, Mac OS 8, macOS 27, PlayStation 2 and Nintendo 64), text size,
 reduced motion, the foil shimmer and hover previews. These are saved in the browser, per device.
 It also shows the card data's date and where your data lives, and gathers the housekeeping actions.
 In the Windows app, Settings → App sets the port it serves on (8765 unless another program needs it;

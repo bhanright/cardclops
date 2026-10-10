@@ -401,6 +401,400 @@
 :root[data-theme="win95"] ::-webkit-scrollbar-thumb { background: #c0c0c0; box-shadow: var(--raised); }
 :root[data-theme="win95"] ::-webkit-scrollbar-corner { background: #c0c0c0; }
 
+/* ---- Mac OS 8 (More themes) ----
+   Platinum: the purple-gray patterned desktop, a light gray menu bar, square windows with pinstriped
+   title bars and the title centered, rounded beveled buttons, and Charcoal where a Mac has it.
+   Window contents are white, so the accents keep Light's contrast (3:1 on white, 4.5:1 behind black). */
+:root[data-theme="mac8"] {
+  --bg: #66669a; --bg-deep: #dddddd; --bg-blob: #66669a;
+  --panel: #ffffff; --panel-2: #f2f2f2; --panel-3: #e2e2e2; --well: #ffffff;
+  --text: #000000; --muted: #444444; --faint: #777777; --paper: #ffffff; --paper-ink: #000000;
+  --pink: #e0237f; --cyan: #4078d8; --violet: #9068e0; --lime: #3a8a00;
+  --orange: #d05800; --yellow: #9a7a00; --mint: #008a6a; --peach: #c8603a;
+  --pink-text: #b0136f; --pink-soft: #a0105f; --flat: #d8d8d8;
+  --zebra: #f4f4f4; --grid: #dcdcdc; --grid-2: #c4c4c4; --drop: #ececec; --hatch: #d0d0d0; --legend-miss: #d0d0d0;
+  --tile-uncommon: #eef3fb; --tile-rare: #fbf4e0; --tile-mythic: #fbeae0;
+  --tint-pink: #fbdaea; --tint-magenta: #f5d7ee; --tint-green: #ddf2c9;
+  --mana-W: #f3e27a; --mana-C: #c9c9c9; --mana-N: #d3d3d3;
+  --r-common: #c8c8c8; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='%235c5c8f'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%237070a6'/%3E%3C/svg%3E");
+  --line: 1px solid #000; --line-thick: 2px solid #000;
+  --shadow: 1px 1px 0 #000; --shadow-sm: none;
+  --blob: 0; --blob-sm: 5px; --pill: 7px;
+  --font-display: Charcoal, Chicago, 'Lucida Grande', Geneva, Verdana, sans-serif;
+  --font-body: Geneva, 'Lucida Grande', Verdana, sans-serif;
+  --platinum: linear-gradient(#f4f4f4, #d6d6d6);
+  --bevel: inset 1px 1px #ffffff, inset -1px -1px #999999;
+}
+:root[data-theme="mac8"] * { text-shadow: none !important; }
+:root[data-theme="mac8"] :is(h1, h2, h3, h4) { font-weight: 700; color: #000; letter-spacing: 0; }
+:root[data-theme="mac8"] ::selection { background: #ccccff; color: #000; }
+:root[data-theme="mac8"] :focus-visible { outline: 2px solid #6666cc; outline-offset: 1px; }
+:root[data-theme="mac8"] a { color: #2a52b8; }
+/* the menu bar */
+:root[data-theme="mac8"] .topbar { background: #dddddd; border-bottom: 1px solid #000; box-shadow: var(--bevel); }
+:root[data-theme="mac8"] .logo-text .l2, :root[data-theme="mac8"] .logo-text .l2-card { color: #000; }
+:root[data-theme="mac8"] .header-stats { color: #000; }
+:root[data-theme="mac8"] .header-stats b { color: #333399; }
+:root[data-theme="mac8"] .tabs > a { background: transparent; border-color: transparent; box-shadow: none; font-weight: 700; }
+:root[data-theme="mac8"] .tabs > a:hover { background: transparent; transform: none; box-shadow: none; color: #000; }
+:root[data-theme="mac8"] .tabs > a[aria-current="page"] { background: #333399; color: #fff; }
+/* buttons: rounded, beveled platinum */
+:root[data-theme="mac8"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .seg, .shape-tile) {
+  background: var(--platinum); color: #000; border: 1px solid #000; box-shadow: var(--bevel); filter: none; font-weight: 700;
+}
+:root[data-theme="mac8"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .shape-tile):hover {
+  background: var(--platinum); color: #000; transform: none; box-shadow: var(--bevel); filter: none;
+}
+:root[data-theme="mac8"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .shape-tile):active,
+:root[data-theme="mac8"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open, .tools-btn[aria-expanded="true"]) {
+  background: linear-gradient(#9a9a9a, #bdbdbd); color: #000; transform: none; box-shadow: inset 1px 1px #666;
+}
+:root[data-theme="mac8"] .btn.go { box-shadow: var(--bevel), 0 0 0 2px #dddddd, 0 0 0 3px #000; }   /* the default button's ring */
+:root[data-theme="mac8"] .seg-btn { background: transparent; color: #000; border-color: #000 !important; }
+:root[data-theme="mac8"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #fff; color: #000; border: 1px solid #000; box-shadow: inset 1px 1px #999;
+}
+/* windows: a pinstriped title bar with the title centered */
+:root[data-theme="mac8"] :is(.panel, .dialog-card, .tools-list, .toast) { border: 1px solid #000; box-shadow: var(--bevel), 1px 1px 0 #000; }
+:root[data-theme="mac8"] :is(.panel, .dialog-card) > .panel-head > :is(h1, h2, h3), :root[data-theme="mac8"] .stat-panel > h3 {
+  flex: 1 0 100%; display: flex; align-items: center; gap: 8px; font-size: .95rem; color: #000;
+}
+:root[data-theme="mac8"] :is(.panel, .dialog-card) > .panel-head > :is(h1, h2, h3)::before,
+:root[data-theme="mac8"] :is(.panel, .dialog-card) > .panel-head > :is(h1, h2, h3)::after,
+:root[data-theme="mac8"] .stat-panel > h3::before, :root[data-theme="mac8"] .stat-panel > h3::after {
+  content: ''; flex: 1; height: 9px; background: repeating-linear-gradient(#ffffff 0 1px, #9a9a9a 1px 2px);
+}
+:root[data-theme="mac8"] .tools-list { background: #f2f2f2; }
+:root[data-theme="mac8"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
+:root[data-theme="mac8"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #333399; color: #fff; }
+:root[data-theme="mac8"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #e4e4ff; }
+
+/* ---- macOS 27 (More themes) ----
+   Liquid Glass: frosted, translucent panels over a bright wallpaper, deep rounding, soft shadows,
+   glass pill buttons and the system font. The panels stay nearly opaque white where text sits, so
+   the accents keep Light's contrast. */
+:root[data-theme="mac27"] {
+  --bg: #6f8cff; --bg-deep: rgba(255, 255, 255, .55); --bg-blob: #6f8cff;
+  --panel: rgba(255, 255, 255, .82); --panel-2: rgba(255, 255, 255, .62); --panel-3: rgba(255, 255, 255, .95);
+  --well: rgba(255, 255, 255, .7);
+  --text: #1d1d1f; --muted: #55555f; --faint: #8a8a96; --paper: #ffffff; --paper-ink: #1d1d1f;
+  --pink: #e02a76; --cyan: #2f7cf0; --lime: #248a3d; --orange: #c95a00;
+  --yellow: #9a7300; --violet: #a05ad8; --mint: #00857a; --peach: #c4602f;
+  --pink-text: #c0175f; --pink-soft: #a8124f; --flat: rgba(0, 0, 0, .08);
+  --zebra: rgba(0, 0, 0, .03); --grid: rgba(0, 0, 0, .08); --grid-2: rgba(0, 0, 0, .14); --drop: rgba(255, 255, 255, .5);
+  --hatch: rgba(0, 0, 0, .1); --legend-miss: rgba(0, 0, 0, .14);
+  --tile-uncommon: #eef3fb; --tile-rare: #fbf4e0; --tile-mythic: #fbeae0;
+  --tint-pink: #fbdaea; --tint-magenta: #f5d7ee; --tint-green: #ddf2c9;
+  --mana-W: #f3e27a; --mana-C: #c9c9c9; --mana-N: #d3d3d3;
+  --r-common: #c8c8c8; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 1px solid rgba(0, 0, 0, .12); --line-thick: 1px solid rgba(0, 0, 0, .16);
+  --shadow: 0 10px 30px rgba(30, 30, 90, .18), inset 0 1px 0 rgba(255, 255, 255, .9);
+  --shadow-sm: 0 2px 8px rgba(30, 30, 90, .14);
+  --blob: 22px; --blob-sm: 12px; --pill: 999px;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --glass: blur(26px) saturate(180%);
+}
+:root[data-theme="mac27"] body {
+  background: radial-gradient(ellipse 70% 60% at 15% 10%, #8fb4ff 0, transparent 60%),
+              radial-gradient(ellipse 60% 55% at 85% 25%, #d59cff 0, transparent 60%),
+              radial-gradient(ellipse 70% 60% at 70% 95%, #ffb38a 0, transparent 60%),
+              linear-gradient(160deg, #6f8cff, #b88cff 50%, #ff9cc2) fixed;
+}
+:root[data-theme="mac27"] * { text-shadow: none !important; }
+:root[data-theme="mac27"] :is(h1, h2, h3, h4) { font-weight: 650; color: #1d1d1f; letter-spacing: -.01em; }
+:root[data-theme="mac27"] a { color: #1a62d6; }
+:root[data-theme="mac27"] :focus-visible { outline: 3px solid rgba(47, 124, 240, .55); outline-offset: 2px; }
+:root[data-theme="mac27"] :is(.panel, .dialog-card, .tools-list, .toast, .page-nav, .topbar, .bignum, .deck-tile) {
+  -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
+  border: 1px solid rgba(255, 255, 255, .7);
+}
+:root[data-theme="mac27"] .topbar { box-shadow: 0 1px 0 rgba(0, 0, 0, .08); border-width: 0 0 1px; }
+:root[data-theme="mac27"] .logo-text .l2 { color: #1d1d1f; }
+:root[data-theme="mac27"] .logo-text .l2-card { color: #1a62d6; }
+:root[data-theme="mac27"] .header-stats { color: #3a3a44; }
+:root[data-theme="mac27"] .header-stats b { color: #1d1d1f; }
+/* glass pills; the default button is the system blue */
+:root[data-theme="mac27"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .seg, .shape-tile) {
+  background: rgba(255, 255, 255, .6); color: #1d1d1f; border: 1px solid rgba(255, 255, 255, .85);
+  box-shadow: 0 1px 3px rgba(30, 30, 90, .12), inset 0 1px 0 rgba(255, 255, 255, .9);
+  -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass); font-weight: 600; filter: none;
+}
+:root[data-theme="mac27"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover {
+  background: rgba(255, 255, 255, .85); color: #1d1d1f; transform: none; box-shadow: 0 4px 14px rgba(30, 30, 90, .16);
+}
+:root[data-theme="mac27"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):active { transform: scale(.97); }
+:root[data-theme="mac27"] .btn.go, :root[data-theme="mac27"] .btn.go:hover { background: #1a62d6; color: #fff; border-color: rgba(255, 255, 255, .4); }
+:root[data-theme="mac27"] :is(.tabs > a[aria-current="page"], .seg-btn.on, .mini-chip[aria-pressed="true"], .tools-btn[aria-expanded="true"], .shape-tile.open) {
+  background: #ffffff; color: #1d1d1f; box-shadow: 0 2px 10px rgba(30, 30, 90, .2);
+}
+:root[data-theme="mac27"] .seg { padding: 3px; gap: 2px; }
+:root[data-theme="mac27"] .seg-btn { background: transparent; color: #1d1d1f; border: 0 !important; border-radius: 999px; }
+:root[data-theme="mac27"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: rgba(255, 255, 255, .75); color: #1d1d1f; border: 1px solid rgba(0, 0, 0, .1); box-shadow: inset 0 1px 2px rgba(0, 0, 0, .06);
+}
+:root[data-theme="mac27"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
+:root[data-theme="mac27"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #1a62d6; color: #fff; }
+:root[data-theme="mac27"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #e4ecff; }
+
+/* ---- Windows XP (More themes) ----
+   Luna: the Bliss hill and sky behind blue-framed windows with round-topped gradient title bars,
+   a blue taskbar with a green Start button, and soft buttons that glow orange under the pointer.
+   Window contents are white, so the accents keep Light's contrast. */
+:root[data-theme="xp"] {
+  --bg: #5a9ee8; --bg-deep: #245de1; --bg-blob: #5a9ee8;
+  --panel: #ffffff; --panel-2: #f4f3ee; --panel-3: #e7e4d6; --well: #ffffff;
+  --text: #000000; --muted: #444444; --faint: #777777; --paper: #ffffff; --paper-ink: #000000;
+  --pink: #e0237f; --cyan: #3478e6; --lime: #3a8a00; --orange: #d05800;
+  --yellow: #9a7a00; --violet: #9068e0; --mint: #008a6a; --peach: #c8603a;
+  --pink-text: #b0136f; --pink-soft: #a0105f; --flat: #e2dfd2;
+  --zebra: #f7f6f1; --grid: #e2dfd2; --grid-2: #cdc9b8; --drop: #eef2fb; --hatch: #d8d4c4; --legend-miss: #d0ccbc;
+  --tile-uncommon: #eef3fb; --tile-rare: #fbf4e0; --tile-mythic: #fbeae0;
+  --tint-pink: #fbdaea; --tint-magenta: #f5d7ee; --tint-green: #ddf2c9;
+  --mana-W: #f3e27a; --mana-C: #c9c9c9; --mana-N: #d3d3d3;
+  --r-common: #c8c8c8; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 1px solid #7f9db9; --line-thick: 2px solid #0054e3;
+  --shadow: 2px 3px 8px rgba(0, 0, 0, .35); --shadow-sm: 1px 1px 3px rgba(0, 0, 0, .25);
+  --blob: 8px 8px 3px 3px; --blob-sm: 3px; --pill: 3px;
+  --font-display: Tahoma, 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+  --font-body: Tahoma, 'Segoe UI', Verdana, sans-serif;
+  --luna-title: linear-gradient(#0997ff 0%, #0053ee 8%, #0050ee 40%, #0066ff 88%, #0055ea 100%);
+  --luna-button: linear-gradient(#ffffff 0%, #f3f2ec 40%, #e3e0d2 85%, #d6d0c0 100%);
+}
+:root[data-theme="xp"] body {
+  background: radial-gradient(ellipse 120% 55% at 30% 105%, #6cbf3c 0 55%, #4f9b29 70%, transparent 71%),
+              radial-gradient(ellipse 30% 9% at 22% 30%, rgba(255, 255, 255, .85), transparent 70%),
+              radial-gradient(ellipse 22% 7% at 70% 18%, rgba(255, 255, 255, .7), transparent 70%),
+              linear-gradient(#2f6fd8, #6fa9ef 45%, #b9dbff 70%) fixed;
+}
+:root[data-theme="xp"] * { text-shadow: none; }
+:root[data-theme="xp"] :is(h1, h2, h3, h4) { font-weight: 700; color: #0b3aa8; letter-spacing: 0; }
+:root[data-theme="xp"] ::selection { background: #316ac5; color: #fff; }
+:root[data-theme="xp"] a { color: #0645c8; }
+/* the taskbar, with Cardclops as the Start button */
+:root[data-theme="xp"] .topbar {
+  background: linear-gradient(#3168d5 0%, #4993e6 3%, #2157d7 7%, #2663e0 12%, #245de1 90%, #1941a5 100%);
+  border-bottom: 0; box-shadow: 0 2px 4px rgba(0, 0, 0, .35); color: #fff;
+}
+:root[data-theme="xp"] .logo {
+  background: linear-gradient(#3c9b3c, #2f8a2f 60%, #267a26); padding: 2px 16px 2px 8px; margin-left: calc(-1 * var(--gutter));
+  border-radius: 0 14px 14px 0; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 2px 0 4px rgba(0, 0, 0, .35);
+}
+:root[data-theme="xp"] .logo-text .l2, :root[data-theme="xp"] .logo-text .l2-card { color: #fff; font-style: italic; text-shadow: 1px 1px 1px #1a4d1a; }
+:root[data-theme="xp"] .header-stats { color: #dbe8ff; }
+:root[data-theme="xp"] .header-stats b { color: #fff; }
+:root[data-theme="xp"] .tabs > a { background: linear-gradient(#5c99f2, #3c81f3 50%, #2f6fe0); color: #fff; border: 1px solid #1c49b8; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35); font-weight: 700; }
+:root[data-theme="xp"] .tabs > a:hover { background: linear-gradient(#73a9f5, #4f8ef5); color: #fff; transform: none; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45); }
+:root[data-theme="xp"] .tabs > a[aria-current="page"] { background: linear-gradient(#1e52b7, #1a48a4); color: #fff; box-shadow: inset 1px 1px 3px rgba(0, 0, 0, .45); }
+/* buttons: soft, with an orange glow under the pointer */
+:root[data-theme="xp"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .seg, .shape-tile) {
+  background: var(--luna-button); color: #000; border: 1px solid #003c74; box-shadow: none; filter: none;
+}
+:root[data-theme="xp"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .shape-tile):hover {
+  background: var(--luna-button); color: #000; transform: none; box-shadow: inset 0 0 0 2px #f8b636;
+}
+:root[data-theme="xp"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .shape-tile):active,
+:root[data-theme="xp"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open, .tools-btn[aria-expanded="true"]) {
+  background: linear-gradient(#cdcac3, #e3e3db 60%, #f0efe8); color: #000; transform: none; box-shadow: none;
+}
+:root[data-theme="xp"] .btn.go { box-shadow: inset 0 0 0 1px #5a8ce6, inset 0 0 0 2px #b6d0f6; }
+:root[data-theme="xp"] .seg-btn { background: transparent; color: #000; border-color: #003c74 !important; }
+:root[data-theme="xp"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #fff; color: #000; border: 1px solid #7f9db9; box-shadow: none;
+}
+/* windows: a blue frame and a round-topped title bar */
+:root[data-theme="xp"] :is(.panel, .dialog-card) { border: 3px solid #0054e3; border-top-width: 0; padding-top: 0; }
+:root[data-theme="xp"] :is(.panel, .dialog-card) > .panel-head { margin: 0 -18px 10px; }
+:root[data-theme="xp"] :is(.panel, .dialog-card) > .panel-head > :is(h1, h2, h3) {
+  flex: 1 0 100%; padding: 6px 10px; color: #fff; font-size: 1rem; background: var(--luna-title);
+  border-radius: 8px 8px 0 0; text-shadow: 1px 1px 0 #0f1089;
+}
+:root[data-theme="xp"] .panel > .panel-head > :not(h1, h2, h3) { margin-left: 18px; }
+:root[data-theme="xp"] .panel > .panel-head .muted { color: #444; }
+:root[data-theme="xp"] .panel:not(:has(> .panel-head)) { padding-top: 14px; border-top-width: 3px; }
+:root[data-theme="xp"] .stat-panel > h3 { color: #0b3aa8; }
+:root[data-theme="xp"] .tools-list { background: #fff; border: 1px solid #7f9db9; }
+:root[data-theme="xp"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
+:root[data-theme="xp"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #316ac5; color: #fff; }
+:root[data-theme="xp"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #dbe8ff; }
+
+/* ---- Windows 8 (More themes) ----
+   Metro on the Start screen's deep purple: flat, square and borderless; solid color tiles, light
+   lowercase headings, a pivot of plain words for the tabs, and Segoe UI. */
+:root[data-theme="win8"] {
+  --bg: #1b0b3a; --bg-deep: #1b0b3a; --bg-blob: #1b0b3a;
+  --panel: #2a1a52; --panel-2: #23164a; --panel-3: #3a2770; --well: #160a30;
+  --text: #ffffff; --muted: #cfc6e8; --faint: #8f84ad; --paper: #ffffff; --paper-ink: #000000;
+  --cyan: #2d89ef; --mint: #00b7b5; --orange: #f0752c; --lime: #3ac43a;
+  --yellow: #ffc40d; --pink: #ff3db8; --violet: #b45ad6; --peach: #ff6a5a;
+  --pink-text: #ff6fcd; --pink-soft: #ff8fd8; --flat: #3a2770;
+  --tile-uncommon: #2a2a66; --tile-rare: #3a2c4c; --tile-mythic: #45263f;
+  --zebra: #26174c; --grid: #34226a; --grid-2: #45307f; --drop: #2b1b55; --hatch: #160a30;
+  --tint-pink: #4a1640; --tint-magenta: #461a46; --tint-green: #1d3b20; --legend-miss: #4c3d75;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cg fill='none' stroke='%23240f4a' stroke-width='2'%3E%3Cpath d='M0 150 Q60 110 120 140 T240 120'/%3E%3Cpath d='M-20 60 Q50 20 110 50 T230 30'/%3E%3C/g%3E%3C/svg%3E");
+  --line: 2px solid transparent; --line-thick: 2px solid transparent;
+  --shadow: none; --shadow-sm: none;
+  --blob: 0; --blob-sm: 0; --pill: 0;
+  --font-display: 'Segoe UI Light', 'Segoe UI Variable Display', 'Segoe UI', 'Selawik', system-ui, sans-serif;
+  --font-body: 'Segoe UI', 'Segoe UI Variable Text', 'Selawik', system-ui, sans-serif;
+}
+:root[data-theme="win8"] *, :root[data-theme="win8"] *::before { text-shadow: none !important; border-radius: 0 !important; }
+:root[data-theme="win8"] :is(h1, h2, h3, h4) { font-weight: 300; color: #fff; letter-spacing: 0; }
+:root[data-theme="win8"] :is(.panel-head h2, .area-title, .shape-title) { text-transform: lowercase; font-size: 1.7rem; }
+:root[data-theme="win8"] ::selection { background: #2d89ef; color: #fff; }
+:root[data-theme="win8"] :focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+:root[data-theme="win8"] a { color: #7ab8ff; }
+:root[data-theme="win8"] .topbar { background: transparent; box-shadow: none; border: 0; }
+:root[data-theme="win8"] .logo-text .l2 { color: #fff; font-family: var(--font-display); font-weight: 300; font-size: 1.9rem; }
+:root[data-theme="win8"] .logo-text .l2-card { color: #fff; }
+/* tabs are a pivot: plain lowercase words, the current one white */
+:root[data-theme="win8"] .tabs > a { background: transparent; color: #8f84ad; font-family: var(--font-display); font-weight: 300; font-size: 1.35rem; text-transform: lowercase; padding: 2px 8px; }
+:root[data-theme="win8"] .tabs > a:hover { background: transparent; color: #fff; transform: none; }
+:root[data-theme="win8"] .tabs > a[aria-current="page"] { background: transparent; color: #fff; }
+:root[data-theme="win8"] .tools-btn { background: transparent; color: #8f84ad; font-weight: 300; font-size: 1.35rem; text-transform: lowercase; }
+/* flat buttons: a solid fill, and a white edge under the pointer */
+:root[data-theme="win8"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .shape-tile):hover {
+  transform: none; box-shadow: none; outline: 2px solid #fff; outline-offset: -2px; filter: none;
+}
+:root[data-theme="win8"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .shape-tile):active { transform: scale(.97); }
+:root[data-theme="win8"] .bell { background: #2a1a52; }
+:root[data-theme="win8"] .seg-btn + .seg-btn { border-left: 0; }
+:root[data-theme="win8"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #fff; color: #000; border: 2px solid #fff;
+}
+:root[data-theme="win8"] .tools-list { background: #2a1a52; }
+:root[data-theme="win8"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="win8"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #3a2770; }
+
+/* ---- PlayStation 2 (More themes) ----
+   The PS2's menus: black space with the boot screen's glowing blue towers, translucent blue glass
+   panels with thin lit edges, thin wide-spaced capitals, and the controller's symbol colors as the
+   accents: triangle green, circle red, cross blue and square pink. */
+:root[data-theme="ps2"] {
+  --bg: #02040c; --bg-deep: rgba(4, 10, 32, .82); --bg-blob: #02040c;
+  --panel: rgba(14, 26, 60, .72); --panel-2: rgba(10, 20, 50, .7); --panel-3: rgba(40, 70, 150, .55); --well: rgba(4, 10, 32, .7);
+  --text: #e8f0ff; --muted: #9fb4dc; --faint: #5f78a8; --paper: #e8f0ff; --paper-ink: #02040c;
+  --lime: #3ee6a0; --orange: #ff5a5a; --cyan: #7ab4ff; --pink: #ff8ad8;
+  --yellow: #ffd86b; --violet: #a98bff; --mint: #5ff0d0; --peach: #ffae8a;
+  --pink-text: #ff9fe0; --pink-soft: #ffb6e8; --flat: rgba(90, 130, 220, .25);
+  --tile-uncommon: rgba(40, 80, 160, .35); --tile-rare: rgba(120, 100, 40, .3); --tile-mythic: rgba(140, 60, 40, .3);
+  --zebra: rgba(60, 100, 200, .08); --grid: rgba(90, 130, 220, .18); --grid-2: rgba(90, 130, 220, .3); --drop: rgba(30, 60, 140, .3);
+  --hatch: rgba(4, 10, 32, .6); --tint-pink: rgba(255, 90, 180, .18); --tint-magenta: rgba(200, 90, 220, .18);
+  --tint-green: rgba(62, 230, 160, .14); --legend-miss: rgba(120, 140, 190, .35);
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 1px solid rgba(110, 160, 255, .55); --line-thick: 1px solid rgba(140, 185, 255, .75);
+  --shadow: 0 0 18px rgba(60, 120, 255, .28), inset 0 0 24px rgba(60, 120, 255, .1);
+  --shadow-sm: 0 0 8px rgba(60, 120, 255, .3);
+  --blob: 8px; --blob-sm: 6px; --pill: 999px;
+  --font-display: 'Segoe UI Light', 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --lit: 0 0 10px rgba(110, 165, 255, .55);
+}
+:root[data-theme="ps2"] body {
+  /* the boot screen's towers: pillars of light rising from the bottom, at different heights */
+  background:
+    linear-gradient(to top, rgba(70, 130, 255, .26), rgba(70, 130, 255, .04) 85%, transparent) 6% 100% / 14px 34vh no-repeat,
+    linear-gradient(to top, rgba(70, 130, 255, .26), rgba(70, 130, 255, .04) 85%, transparent) 13% 100% / 10px 52vh no-repeat,
+    linear-gradient(to top, rgba(70, 130, 255, .26), rgba(70, 130, 255, .04) 85%, transparent) 22% 100% / 18px 26vh no-repeat,
+    linear-gradient(to top, rgba(70, 130, 255, .26), rgba(70, 130, 255, .04) 85%, transparent) 31% 100% / 8px 44vh no-repeat,
+    linear-gradient(to top, rgba(70, 130, 255, .26), rgba(70, 130, 255, .04) 85%, transparent) 63% 100% / 12px 38vh no-repeat,
+    linear-gradient(to top, rgba(70, 130, 255, .26), rgba(70, 130, 255, .04) 85%, transparent) 71% 100% / 16px 58vh no-repeat,
+    linear-gradient(to top, rgba(70, 130, 255, .26), rgba(70, 130, 255, .04) 85%, transparent) 80% 100% / 10px 30vh no-repeat,
+    linear-gradient(to top, rgba(70, 130, 255, .26), rgba(70, 130, 255, .04) 85%, transparent) 90% 100% / 14px 47vh no-repeat,
+    radial-gradient(ellipse 80% 45% at 50% 115%, rgba(40, 90, 255, .45), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 40%, rgba(20, 40, 120, .35), transparent 70%),
+    #02040c;
+  background-attachment: fixed;
+}
+:root[data-theme="ps2"] :is(h1, h2, h3, h4) {
+  font-weight: 300; color: #f2f6ff; text-transform: uppercase; letter-spacing: .14em;
+  text-shadow: 0 0 10px rgba(120, 170, 255, .75) !important;
+}
+:root[data-theme="ps2"] .dh-name h1 { text-transform: none; letter-spacing: .04em; }
+:root[data-theme="ps2"] ::selection { background: rgba(110, 165, 255, .5); color: #fff; }
+:root[data-theme="ps2"] :focus-visible { outline: 1px solid #b8d4ff; outline-offset: 2px; box-shadow: var(--lit); }
+:root[data-theme="ps2"] a { color: #9cc8ff; }
+:root[data-theme="ps2"] :is(.panel, .dialog-card, .tools-list, .toast, .page-nav, .topbar, .bignum, .deck-tile) {
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+:root[data-theme="ps2"] .topbar { border-bottom: 1px solid rgba(140, 185, 255, .6); box-shadow: 0 0 22px rgba(60, 120, 255, .35); }
+:root[data-theme="ps2"] .logo-text .l2 { color: #f2f6ff; font-weight: 300; letter-spacing: .12em; text-transform: uppercase; text-shadow: var(--lit) !important; }
+:root[data-theme="ps2"] .logo-text .l2-card { color: #7ab4ff; }
+:root[data-theme="ps2"] .header-stats b { color: #ffd86b; }
+/* buttons: glass with a lit edge; the chosen one glows full */
+:root[data-theme="ps2"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .seg, .shape-tile) {
+  background: rgba(20, 40, 100, .45); color: #e8f0ff; border: 1px solid rgba(120, 170, 255, .6); box-shadow: var(--shadow-sm);
+  font-weight: 400; letter-spacing: .06em; filter: none;
+}
+:root[data-theme="ps2"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover {
+  background: rgba(50, 90, 200, .55); color: #fff; transform: none; box-shadow: 0 0 16px rgba(110, 165, 255, .7);
+}
+:root[data-theme="ps2"] :is(.tabs > a[aria-current="page"], .seg-btn.on, .mini-chip[aria-pressed="true"], .tools-btn[aria-expanded="true"], .shape-tile.open) {
+  background: linear-gradient(rgba(120, 175, 255, .85), rgba(50, 100, 230, .85)); color: #02040c; box-shadow: 0 0 18px rgba(110, 165, 255, .9);
+}
+:root[data-theme="ps2"] .btn.go { border-color: #3ee6a0; box-shadow: 0 0 12px rgba(62, 230, 160, .55); }
+:root[data-theme="ps2"] .seg-btn { background: transparent; color: #e8f0ff; border-color: rgba(120, 170, 255, .6) !important; }
+:root[data-theme="ps2"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: rgba(0, 8, 30, .65); color: #e8f0ff; border: 1px solid rgba(120, 170, 255, .5); box-shadow: inset 0 0 10px rgba(60, 120, 255, .2);
+}
+:root[data-theme="ps2"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="ps2"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: rgba(60, 110, 230, .5); box-shadow: var(--lit); }
+
+/* ---- Nintendo 64 (More themes) ----
+   The console's charcoal plastic, chunky rounded parts that sit on a shadow, heavy italic type like
+   the logo, the logo's red, green, blue and yellow as a stripe under every heading, and the
+   controller's buttons as the accents. */
+:root[data-theme="n64"] {
+  --bg: #1c1c22; --bg-deep: #2a2a31; --bg-blob: #1c1c22;
+  --panel: #2c2c33; --panel-2: #26262c; --panel-3: #3a3a44; --well: #222228;
+  --text: #f2f2f2; --muted: #c4c4cc; --faint: #8a8a96; --paper: #f2f2f2; --paper-ink: #111114;
+  --pink: #ff4d4d; --lime: #33d65a; --cyan: #5b8cff; --yellow: #ffd21a;
+  --violet: #b07bff; --orange: #ff8a2a; --mint: #3fe0c0; --peach: #ffae8a;
+  --pink-text: #ff7070; --pink-soft: #ff9090; --flat: #3a3a44;
+  --tile-uncommon: #2a3044; --tile-rare: #3a3424; --tile-mythic: #402a24;
+  --zebra: #303037; --grid: #38383f; --grid-2: #46464f; --drop: #2f2f36; --hatch: #1a1a1f;
+  --tint-pink: #4a2226; --tint-magenta: #45243f; --tint-green: #203d26; --legend-miss: #4a4a54;
+  --glow-a: transparent; --glow-b: transparent;
+  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Crect width='1' height='1' fill='%23232329'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%2317171c'/%3E%3C/svg%3E");
+  --line: 3px solid #0d0d10; --line-thick: 4px solid #0d0d10;
+  --shadow: 0 7px 0 #0d0d10; --shadow-sm: 0 4px 0 #0d0d10;
+  --blob: 20px; --blob-sm: 14px; --pill: 999px;
+  --font-display: 'Arial Black', 'Segoe UI Black', 'Helvetica Neue', Impact, sans-serif;
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --n64-stripe: linear-gradient(90deg, #ff4d4d 0 25%, #33d65a 25% 50%, #5b8cff 50% 75%, #ffd21a 75%);
+}
+:root[data-theme="n64"] * { text-shadow: none !important; }
+:root[data-theme="n64"] :is(h1, h2, h3, h4) { font-style: italic; font-weight: 900; letter-spacing: -.01em; color: #fff; }
+:root[data-theme="n64"] :is(.panel, .dialog-card) > .panel-head {
+  padding-bottom: 10px; background: var(--n64-stripe) bottom / 100% 5px no-repeat;
+}
+:root[data-theme="n64"] .stat-panel > h3 { padding-bottom: 8px; background: var(--n64-stripe) bottom / 100% 4px no-repeat; }
+:root[data-theme="n64"] ::selection { background: #ffd21a; color: #111; }
+:root[data-theme="n64"] :focus-visible { outline: 3px solid #ffd21a; outline-offset: 2px; }
+:root[data-theme="n64"] .topbar { background: #2a2a31; box-shadow: none; border-bottom: 6px solid; border-image: var(--n64-stripe) 1; }
+:root[data-theme="n64"] .logo-text .l2 { color: #fff; font-style: italic; font-weight: 900; }
+:root[data-theme="n64"] .logo-text .l2-card { color: #ff4d4d; }
+:root[data-theme="n64"] .header-stats b { color: #ffd21a; }
+/* chunky plastic parts that press down onto their shadow */
+:root[data-theme="n64"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile) {
+  font-style: italic; font-weight: 800; filter: none;
+}
+:root[data-theme="n64"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .bell, .shape-tile):hover {
+  transform: translateY(-2px); box-shadow: 0 6px 0 #0d0d10; filter: brightness(1.08);
+}
+:root[data-theme="n64"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .bell, .shape-tile):active {
+  transform: translateY(3px); box-shadow: 0 1px 0 #0d0d10;
+}
+:root[data-theme="n64"] .seg-btn + .seg-btn { border-left-color: #0d0d10; }
+:root[data-theme="n64"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #17171b; color: #f2f2f2; border: 3px solid #0d0d10;
+}
+
 /* Settings → Appearance: reduce motion (as the system setting does), no foil shimmer. */
 :root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
   animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;
