@@ -84,6 +84,7 @@ async function boot() {
     console.info('Cardclops engine ready', info);
     await import('/app.js');
     splash.remove();
+    document.getElementById('intro')?.remove();   // the description for search engines (scripts/build_static.py)
   } catch (error) {
     say('Cardclops couldn’t start: ' + (error?.message || error));
     console.error(error);

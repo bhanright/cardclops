@@ -51,7 +51,12 @@ def build(devdata=None, pack=None, data_url="/pack/"):
     if swapped != 1:
         raise SystemExit("index.html: couldn't find the app.js script tag")
     html = html.replace("</head>", '  <link rel="stylesheet" href="engine/boot.css">\n</head>', 1)
+    html = for_search_engines(html)
     index.write_text(html, encoding="utf-8")
+    (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE}sitemap.xml\n", encoding="utf-8")
+    (OUT / "sitemap.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"  <url><loc>{SITE}</loc><changefreq>weekly</changefreq></url>\n</urlset>\n", encoding="utf-8")
     shutil.copy(ROOT / "web" / "engine" / "boot.css", engine / "boot.css")
     (OUT / "_headers").write_text(headers(html, data_url), encoding="utf-8")
 
@@ -64,6 +69,51 @@ def build(devdata=None, pack=None, data_url="/pack/"):
         shutil.copy(devdata[1], target / "cards.sqlite")
     size = sum(p.stat().st_size for p in OUT.rglob("*") if p.is_file() and not {"devdata", "pack", "pyodide"} & set(p.parts))
     print(f"Built Cardclops {__version__} (browser edition) in {OUT}: {size / 1e6:.1f} MB, {len(files)} engine files")
+
+
+SITE = "https://cardclops.com/"
+# The public site's title in search results: what Cardclops is, in the words people search with.
+SEARCH_TITLE = "Cardclops: Free MTG Collection, Price and Deck Tracker"
+# Tells search engines this is a free web app (schema.org), for richer results.
+STRUCTURED_DATA = {
+    "@context": "https://schema.org", "@type": "WebApplication", "name": "Cardclops", "url": SITE,
+    "description": "A free Magic: The Gathering collection manager: search your cards like Scryfall, track prices, "
+                   "build and check decks. No account; your collection stays on your device.",
+    "applicationCategory": "UtilitiesApplication", "operatingSystem": "Web browser, Windows, Android",
+    "image": SITE + "images/social-preview.png", "isAccessibleForFree": True,
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+}
+# What Cardclops does, as plain text in the page itself. The app starts in the browser, so without
+# this a search engine reading the page finds little but menu labels. Visitors see the loading screen
+# over it, and engine/boot.js removes it once the app is running.
+INTRO = """<section id="intro" class="site-intro" aria-labelledby="intro-title">
+      <h1 id="intro-title">Cardclops: a free Magic: The Gathering collection tracker</h1>
+      <p>Cardclops keeps your Magic: The Gathering collection searchable, priced and ready for deckbuilding.
+        Import your collection from ManaBox and it runs right in your browser, with no account; your cards stay on your device.
+        It is also available as a free Windows and Android app.</p>
+      <h2>Search your own cards</h2>
+      <p>Search the cards you own with Scryfall-style syntax, browse them as a gallery or a list, and see set completion for every set.</p>
+      <h2>Track prices and value</h2>
+      <p>See what your collection is worth with daily TCGplayer, Card Kingdom, Cardmarket and ManaPool prices from Scryfall and MTGJSON,
+        follow its value over time, find your biggest winners and losers, and set price alerts on cards you want to buy or sell.</p>
+      <h2>Build and check decks</h2>
+      <p>Paste a deck list or import one from Archidekt to see which cards you already own, which are missing and what it costs to finish.
+        Commander decks get a deck-shape check and a bracket estimate, with combos from Commander Spellbook.
+        Find decks you can build from your collection, a trade binder of spare copies, and your cards in upcoming reprints.</p>
+    </section>
+    """
+
+
+def for_search_engines(html):
+    """The public page as search engines should read it: its title, its one address, what it is,
+    and a description in words."""
+    html, titled = re.subn(r"<title>Cardclops</title>", f"<title>{SEARCH_TITLE}</title>", html)
+    main, found = re.subn(r'(<main id="main">\s*)', lambda m: m.group(1) + INTRO, html)
+    if titled != 1 or found != 1:
+        raise SystemExit("index.html: couldn't find the title or the main element")
+    head = (f'  <link rel="canonical" href="{SITE}">\n'
+            f'  <script type="application/ld+json">{json.dumps(STRUCTURED_DATA, separators=(",", ":"))}</script>\n</head>')
+    return main.replace("</head>", head, 1)
 
 
 def headers(html, data_url):

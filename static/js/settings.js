@@ -63,6 +63,13 @@ export function applySettings(s = settings()) {
   const root = document.documentElement;
   const theme = s.theme === 'auto' ? (lightQuery.matches ? 'light' : 'dark') : s.theme;
   root.dataset.theme = theme;
+  // themes.css stays switched off (media="print" in index.html) until a More theme needs it; the
+  // colors below are read again once it has loaded, if it hadn't yet.
+  const moreThemes = document.getElementById('moreThemes');
+  if (moreThemes && !THEMES.some(t => t.id === theme) && moreThemes.media !== 'all') {
+    moreThemes.media = 'all';
+    if (!moreThemes.sheet) moreThemes.addEventListener('load', () => applySettings(), { once: true });
+  }
   root.style.fontSize = s.textScale === 100 ? '' : `${s.textScale}%`;
   if (s.motion === 'reduce') root.dataset.motion = 'reduce'; else delete root.dataset.motion;
   if (s.foil === false) root.dataset.foil = 'off'; else delete root.dataset.foil;
