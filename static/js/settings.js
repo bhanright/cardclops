@@ -42,8 +42,10 @@ const MORE_THEMES = [
   { id: 'ps4', name: 'PlayStation 4', note: 'The home screen: PlayStation blue, drifting bokeh, tile tabs and white focus rings', swatch: ['#04163d', '#0070d1', '#5fa8ff', '#ffffff'] },
   { id: 'genesis', name: 'Sega Genesis', note: 'Sixteen bits: a scrolling starfield over a grid floor, chrome headings, speed stripes and a gold ring', swatch: ['#050506', '#ff3b3b', '#ffd23a', '#3b8cff'] },
   { id: 'gbc', name: 'Game Boy Color', note: 'A teal shell: LCD panels in the screen bezel, a power light, pixel hearts and a ▶ menu cursor', swatch: ['#1fa3b4', '#6f58a8', '#eef3e2', '#e0237f'], light: true },
+  { id: 'gen1', name: 'Gen 1', note: 'Generation one in four shades of handheld green: a route of trees and tall grass, text boxes, the ▶ cursor and HP bars', swatch: ['#88c070', '#e0f8d0', '#346856', '#081820'], light: true },
   { id: 'coleco', name: 'ColecoVision', note: 'Black and brushed aluminum: numbered keypad tabs, warm stripes and a waggling joystick', swatch: ['#0c0c0d', '#c6c6c8', '#ff8a1a', '#ffc23a'] },
   { id: 'cyberpunk', name: 'Cyberpunk', note: 'A city at night: rain, neon windows, glitching headings, cut corners and hazard stripes', swatch: ['#050508', '#fcee0a', '#ff2a6d', '#00f0ff'] },
+  { id: 'retro', name: 'Retrofuturism', note: 'The future as the 1950s saw it: a Googie skyline at sunset, a gliding monorail, chrome trim, atoms and starbursts', swatch: ['#13213d', '#fdf3e1', '#1d6e78', '#e2504a', '#e9b44c'] },
   { id: 'hokkaido', name: 'Hokkaido', note: 'Winter in the north: falling snow, indigo waves, noren tabs, washi paper and vermilion seals', swatch: ['#e3ecf5', '#1f3a5f', '#c8372d', '#fbf8f1'], light: true },
 ];
 const LIGHT_THEMES = new Set([...THEMES, ...MORE_THEMES].filter(t => t.light).map(t => t.id));

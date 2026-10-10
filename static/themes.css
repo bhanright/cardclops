@@ -1341,9 +1341,11 @@
 }
 /* a heading out on the wall, not on a card, gets a cabinet's placard */
 :root[data-theme="ibm"] h2.area-title { display: inline-block; padding: 5px 14px 4px 10px; color: #ffffff; background: linear-gradient(#2a5c9e, var(--cabinet)); border-bottom: 3px solid var(--trim); box-shadow: var(--shadow-sm); }
-/* the Gallery's count and sort label sit out on the wall too, so they are light */
+/* the Gallery's count and sort label and the Sets page's years sit out on the wall too, so they are light, on plates */
 :root[data-theme="ibm"] :is(.result-count, .result-count .muted, .sort-caption) { color: #c9d8f0; }
 :root[data-theme="ibm"] .result-count b { color: #ffffff; }
+:root[data-theme="ibm"] :is(.result-count, .sort-caption) { display: inline-block; padding: 2px 10px; background: rgba(11, 42, 85, .88); border-radius: 3px; }
+:root[data-theme="ibm"] h3.year-head { display: inline-block; width: fit-content; padding: 4px 12px 3px 10px; background: linear-gradient(#2a5c9e, var(--cabinet)); border-bottom: 3px solid var(--trim); box-shadow: var(--shadow-sm); }
 :root[data-theme="ibm"] ::selection { background: var(--ibm-blue); color: #ffffff; }
 :root[data-theme="ibm"] :focus-visible { outline: 2px solid var(--ibm-blue); outline-offset: 2px; }
 :root[data-theme="ibm"] .topbar :focus-visible { outline-color: var(--lamp); }
@@ -3380,6 +3382,185 @@
 :root[data-theme="gbc"]::-webkit-scrollbar-thumb, :root[data-theme="gbc"] ::-webkit-scrollbar-thumb { background: #44445a; border: 3px solid #1c2616; }
 :root[data-theme="gbc"]::-webkit-scrollbar-thumb:hover, :root[data-theme="gbc"] ::-webkit-scrollbar-thumb:hover { background: #c8287a; }
 
+/* ==== Gen 1 =======================================================================================
+   Generation one of the handheld monster-catching games, 1996, in the original handheld's four
+   shades of green. The page is a route seen from above: grass ground with tufts, a row of trees
+   along the bottom of the screen, tall grass that rustles now and then, flowers blinking between
+   their two frames, a path, a sign and a ledge. The top bar is a text box holding the menu, the open
+   page marked by the ▶ cursor and the one under the pointer by the hollow ▷; panels are text boxes
+   with the double-lined frame, each heading underlined like a battle's status box and led by the
+   "!" that pops up when someone spots you; buttons are little boxes the cursor points at; a message
+   is the text box at the bottom with its ▼ blinking; progress bars are HP bars, and the busy sign is
+   an HP bar draining from green through yellow to red. Text is set in capitals like the games', in a
+   monospace face. No character, logo or ball is drawn. */
+:root[data-theme="gen1"] {
+  --bg: #88c070; --bg-deep: #e0f8d0; --bg-blob: #88c070;
+  --panel: #e0f8d0; --panel-2: #d2ecc0; --panel-3: #c2e0ac; --well: #eefbe4;
+  --text: #081820; --muted: #346856; --faint: #5f8a6c; --paper: #eefbe4; --paper-ink: #081820;
+  --pink: #e0305a; --lime: #2f8f2f; --cyan: #3478c8; --violet: #9060d8;
+  --orange: #d05800; --yellow: #9a7a00; --mint: #008a6a; --peach: #c8603a;
+  --pink-text: #b0204a; --pink-soft: #a01a40; --flat: #c2e0ac;
+  --tile-uncommon: #e6f3ea; --tile-rare: #f4f3d6; --tile-mythic: #f6e8d8;
+  --zebra: #d6eec6; --grid: #c2e0ac; --grid-2: #a8cf8e; --drop: #d2ecc0; --hatch: #b8d8a0;
+  --tint-pink: #f2d6d6; --tint-magenta: #e8d6e8; --tint-green: #c8e8b0; --legend-miss: #b8d8a0;
+  --mana-W: #f3e27a; --mana-C: #c9c9c9; --mana-N: #d3d3d3;
+  --r-common: #c8c8c8; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 3px solid #081820; --line-thick: 3px solid #081820;
+  --shadow: 4px 4px 0 rgba(8, 24, 32, .3); --shadow-sm: 3px 3px 0 rgba(8, 24, 32, .3);
+  --blob: 8px; --blob-sm: 6px; --pill: 6px;
+  --font-display: Consolas, 'Lucida Console', 'Courier New', monospace;
+  --font-body: 'Segoe UI', Verdana, 'Helvetica Neue', Arial, sans-serif;
+  --ink: #081820; --dark: #346856; --light: #88c070; --paper-green: #e0f8d0;
+  /* the games' text-box frame: a heavy outer line, a gap, a fine inner line */
+  --frame: inset 0 0 0 2px var(--paper-green), inset 0 0 0 4px var(--ink);
+  --ground: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' shape-rendering='crispEdges'%3E%3Cpath d='M7 1h1v1h-1zM14 8h1v1h-1zM1 14h1v1h-1z' fill='%23e0f8d0'/%3E%3Cpath d='M0 0h16v1h-16zM0 1h7v1h-7zM8 1h8v1h-8zM0 2h2v1h-2zM3 2h13v1h-13zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h12v1h-12zM0 4h16v1h-16zM0 5h10v1h-10zM11 5h5v1h-5zM0 6h9v1h-9zM10 6h1v1h-1zM12 6h4v1h-4zM0 7h16v1h-16zM0 8h14v1h-14zM15 8h1v1h-1zM0 9h4v1h-4zM5 9h11v1h-11zM0 10h3v1h-3zM4 10h1v1h-1zM6 10h10v1h-10zM0 11h16v1h-16zM0 12h13v1h-13zM14 12h2v1h-2zM0 13h12v1h-12zM13 13h1v1h-1zM15 13h1v1h-1zM0 14h1v1h-1zM2 14h14v1h-14zM0 15h16v1h-16z' fill='%2388c070'/%3E%3Cpath d='M2 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1zM10 5h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM4 9h1v1h-1zM3 10h1v1h-1zM5 10h1v1h-1zM13 12h1v1h-1zM12 13h1v1h-1zM14 13h1v1h-1z' fill='%23346856'/%3E%3C/svg%3E");
+  --route: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='384' height='32' shape-rendering='crispEdges'%3E%3Cdefs%3E%3Cg id='path'%3E%3Cpath d='M0 0h16v1h-16zM0 1h16v1h-16zM0 2h11v1h-11zM12 2h4v1h-4zM0 3h16v1h-16zM0 4h3v1h-3zM4 4h12v1h-12zM0 5h16v1h-16zM0 6h16v1h-16zM0 7h16v1h-16zM0 8h16v1h-16zM0 9h16v1h-16zM0 10h6v1h-6zM7 10h9v1h-9zM0 11h16v1h-16zM0 12h1v1h-1zM2 12h14v1h-14zM0 13h13v1h-13zM14 13h2v1h-2zM0 14h16v1h-16zM0 15h16v1h-16z' fill='%23e0f8d0'/%3E%3Cpath d='M11 2h1v1h-1zM3 4h1v1h-1zM6 10h1v1h-1zM1 12h1v1h-1zM13 13h1v1h-1z' fill='%2388c070'/%3E%3C/g%3E%3Cg id='ledge'%3E%3Cpath d='M7 1h1v1h-1zM14 8h1v1h-1zM1 14h1v1h-1z' fill='%23e0f8d0'/%3E%3Cpath d='M0 0h16v1h-16zM0 1h7v1h-7zM8 1h8v1h-8zM0 2h2v1h-2zM3 2h13v1h-13zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h12v1h-12zM0 4h16v1h-16zM0 5h10v1h-10zM11 5h5v1h-5zM0 6h9v1h-9zM10 6h1v1h-1zM12 6h4v1h-4zM0 7h16v1h-16zM0 8h14v1h-14zM15 8h1v1h-1zM0 11h1v1h-1zM2 11h3v1h-3zM6 11h3v1h-3zM10 11h3v1h-3zM14 11h2v1h-2zM0 12h13v1h-13zM14 12h2v1h-2zM0 13h12v1h-12zM13 13h1v1h-1zM15 13h1v1h-1zM0 14h1v1h-1zM2 14h14v1h-14zM0 15h16v1h-16z' fill='%2388c070'/%3E%3Cpath d='M2 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1zM10 5h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM0 10h16v1h-16zM1 11h1v1h-1zM5 11h1v1h-1zM9 11h1v1h-1zM13 11h1v1h-1zM13 12h1v1h-1zM12 13h1v1h-1zM14 13h1v1h-1z' fill='%23346856'/%3E%3Cpath d='M0 9h16v1h-16z' fill='%23081820'/%3E%3C/g%3E%3Cg id='flower'%3E%3Cpath d='M7 5h2v1h-2zM7 6h2v1h-2zM5 7h2v1h-2zM9 7h2v1h-2zM5 8h2v1h-2zM9 8h2v1h-2zM7 9h2v1h-2zM7 10h2v1h-2z' fill='%23e0f8d0'/%3E%3Cpath d='M0 0h16v1h-16zM0 1h16v1h-16zM0 2h13v1h-13zM14 2h2v1h-2zM0 3h12v1h-12zM13 3h1v1h-1zM15 3h1v1h-1zM0 4h16v1h-16zM0 5h7v1h-7zM9 5h7v1h-7zM0 6h7v1h-7zM9 6h7v1h-7zM0 7h5v1h-5zM11 7h5v1h-5zM0 8h5v1h-5zM11 8h5v1h-5zM0 9h7v1h-7zM9 9h7v1h-7zM0 10h7v1h-7zM9 10h7v1h-7zM0 11h16v1h-16zM0 12h16v1h-16zM0 13h2v1h-2zM3 13h13v1h-13zM0 14h1v1h-1zM2 14h1v1h-1zM4 14h12v1h-12zM0 15h16v1h-16z' fill='%2388c070'/%3E%3Cpath d='M13 2h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM2 13h1v1h-1zM1 14h1v1h-1zM3 14h1v1h-1z' fill='%23346856'/%3E%3Cpath d='M7 7h2v1h-2zM7 8h2v1h-2z' fill='%23081820'/%3E%3C/g%3E%3Cg id='ground'%3E%3Cpath d='M7 1h1v1h-1zM14 8h1v1h-1zM1 14h1v1h-1z' fill='%23e0f8d0'/%3E%3Cpath d='M0 0h16v1h-16zM0 1h7v1h-7zM8 1h8v1h-8zM0 2h2v1h-2zM3 2h13v1h-13zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h12v1h-12zM0 4h16v1h-16zM0 5h10v1h-10zM11 5h5v1h-5zM0 6h9v1h-9zM10 6h1v1h-1zM12 6h4v1h-4zM0 7h16v1h-16zM0 8h14v1h-14zM15 8h1v1h-1zM0 9h4v1h-4zM5 9h11v1h-11zM0 10h3v1h-3zM4 10h1v1h-1zM6 10h10v1h-10zM0 11h16v1h-16zM0 12h13v1h-13zM14 12h2v1h-2zM0 13h12v1h-12zM13 13h1v1h-1zM15 13h1v1h-1zM0 14h1v1h-1zM2 14h14v1h-14zM0 15h16v1h-16z' fill='%2388c070'/%3E%3Cpath d='M2 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1zM10 5h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM4 9h1v1h-1zM3 10h1v1h-1zM5 10h1v1h-1zM13 12h1v1h-1zM12 13h1v1h-1zM14 13h1v1h-1z' fill='%23346856'/%3E%3C/g%3E%3Cg id='sign'%3E%3Cpath d='M7 1h1v1h-1zM14 8h1v1h-1zM1 14h1v1h-1z' fill='%23e0f8d0'/%3E%3Cpath d='M0 0h16v1h-16zM0 1h7v1h-7zM8 1h8v1h-8zM0 2h2v1h-2zM3 2h13v1h-13zM0 3h1v1h-1zM14 3h2v1h-2zM0 4h2v1h-2zM14 4h2v1h-2zM0 5h2v1h-2zM4 5h7v1h-7zM14 5h2v1h-2zM0 6h2v1h-2zM14 6h2v1h-2zM0 7h2v1h-2zM4 7h5v1h-5zM14 7h2v1h-2zM0 8h2v1h-2zM15 8h1v1h-1zM0 9h2v1h-2zM14 9h2v1h-2zM0 10h3v1h-3zM4 10h1v1h-1zM6 10h1v1h-1zM9 10h7v1h-7zM0 11h7v1h-7zM9 11h7v1h-7zM0 12h7v1h-7zM9 12h4v1h-4zM14 12h2v1h-2zM0 13h7v1h-7zM9 13h3v1h-3zM13 13h1v1h-1zM15 13h1v1h-1zM0 14h1v1h-1zM2 14h5v1h-5zM9 14h7v1h-7zM0 15h16v1h-16z' fill='%2388c070'/%3E%3Cpath d='M2 2h1v1h-1zM1 3h1v1h-1zM3 4h10v1h-10zM3 5h1v1h-1zM11 5h2v1h-2zM3 6h10v1h-10zM3 7h1v1h-1zM9 7h4v1h-4zM3 8h10v1h-10zM3 10h1v1h-1zM5 10h1v1h-1zM13 12h1v1h-1zM12 13h1v1h-1zM14 13h1v1h-1z' fill='%23346856'/%3E%3Cpath d='M2 3h12v1h-12zM2 4h1v1h-1zM13 4h1v1h-1zM2 5h1v1h-1zM13 5h1v1h-1zM2 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM13 7h1v1h-1zM2 8h1v1h-1zM13 8h1v1h-1zM2 9h12v1h-12zM7 10h2v1h-2zM7 11h2v1h-2zM7 12h2v1h-2zM7 13h2v1h-2zM7 14h2v1h-2z' fill='%23081820'/%3E%3C/g%3E%3Cg id='tree'%3E%3Cpath d='M0 0h5v1h-5zM11 0h5v1h-5zM0 1h3v1h-3zM13 1h3v1h-3zM0 2h2v1h-2zM5 2h1v1h-1zM9 2h1v1h-1zM14 2h2v1h-2zM0 3h2v1h-2zM4 3h2v1h-2zM8 3h2v1h-2zM14 3h2v1h-2zM0 4h1v1h-1zM4 4h1v1h-1zM15 4h1v1h-1zM0 5h1v1h-1zM11 5h1v1h-1zM15 5h1v1h-1zM0 6h1v1h-1zM3 6h2v1h-2zM7 6h2v1h-2zM11 6h1v1h-1zM15 6h1v1h-1zM0 7h1v1h-1zM15 7h1v1h-1zM0 8h1v1h-1zM15 8h1v1h-1zM0 9h2v1h-2zM6 9h2v1h-2zM10 9h1v1h-1zM14 9h2v1h-2zM0 10h2v1h-2zM14 10h2v1h-2zM0 11h3v1h-3zM13 11h3v1h-3zM0 12h5v1h-5zM11 12h5v1h-5zM0 13h6v1h-6zM10 13h6v1h-6zM0 14h6v1h-6zM10 14h6v1h-6zM0 15h6v1h-6zM10 15h6v1h-6z' fill='%2388c070'/%3E%3Cpath d='M5 1h6v1h-6zM3 2h2v1h-2zM6 2h3v1h-3zM10 2h3v1h-3zM3 3h1v1h-1zM6 3h2v1h-2zM10 3h3v1h-3zM2 4h2v1h-2zM5 4h9v1h-9zM2 5h9v1h-9zM12 5h2v1h-2zM2 6h1v1h-1zM5 6h2v1h-2zM9 6h2v1h-2zM12 6h2v1h-2zM2 7h12v1h-12zM2 8h12v1h-12zM3 9h3v1h-3zM8 9h2v1h-2zM11 9h2v1h-2zM3 10h10v1h-10zM5 11h6v1h-6zM7 12h2v1h-2zM7 13h2v1h-2zM7 14h2v1h-2z' fill='%23346856'/%3E%3Cpath d='M5 0h6v1h-6zM3 1h2v1h-2zM11 1h2v1h-2zM2 2h1v1h-1zM13 2h1v1h-1zM2 3h1v1h-1zM13 3h1v1h-1zM1 4h1v1h-1zM14 4h1v1h-1zM1 5h1v1h-1zM14 5h1v1h-1zM1 6h1v1h-1zM14 6h1v1h-1zM1 7h1v1h-1zM14 7h1v1h-1zM1 8h1v1h-1zM14 8h1v1h-1zM2 9h1v1h-1zM13 9h1v1h-1zM2 10h1v1h-1zM13 10h1v1h-1zM3 11h2v1h-2zM11 11h2v1h-2zM5 12h2v1h-2zM9 12h2v1h-2zM6 13h1v1h-1zM9 13h1v1h-1zM6 14h1v1h-1zM9 14h1v1h-1zM6 15h4v1h-4z' fill='%23081820'/%3E%3C/g%3E%3Cg id='grass'%3E%3Cpath d='M1 0h1v1h-1zM3 0h1v1h-1zM5 0h1v1h-1zM7 0h1v1h-1zM9 0h1v1h-1zM11 0h1v1h-1zM13 0h1v1h-1zM15 0h1v1h-1zM1 1h1v1h-1zM3 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM9 1h1v1h-1zM11 1h1v1h-1zM13 1h1v1h-1zM15 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM10 2h1v1h-1zM12 2h1v1h-1zM14 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM1 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM9 4h1v1h-1zM11 4h1v1h-1zM13 4h1v1h-1zM15 4h1v1h-1zM1 5h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM7 5h1v1h-1zM9 5h1v1h-1zM11 5h1v1h-1zM13 5h1v1h-1zM15 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM0 7h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h1v1h-1zM1 8h1v1h-1zM3 8h1v1h-1zM5 8h1v1h-1zM7 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM15 8h1v1h-1zM1 9h1v1h-1zM3 9h1v1h-1zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h1v1h-1zM13 9h1v1h-1zM15 9h1v1h-1zM0 10h1v1h-1zM2 10h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM14 10h1v1h-1zM0 11h1v1h-1zM2 11h1v1h-1zM4 11h1v1h-1zM6 11h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM12 11h1v1h-1zM14 11h1v1h-1zM1 12h1v1h-1zM3 12h1v1h-1zM5 12h1v1h-1zM7 12h1v1h-1zM9 12h1v1h-1zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM1 13h1v1h-1zM3 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM15 13h1v1h-1zM0 14h1v1h-1zM2 14h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h1v1h-1zM14 14h1v1h-1zM0 15h1v1h-1zM2 15h1v1h-1zM4 15h1v1h-1zM6 15h1v1h-1zM8 15h1v1h-1zM10 15h1v1h-1zM12 15h1v1h-1zM14 15h1v1h-1z' fill='%2388c070'/%3E%3Cpath d='M0 1h1v1h-1zM2 1h1v1h-1zM4 1h1v1h-1zM6 1h1v1h-1zM8 1h1v1h-1zM10 1h1v1h-1zM12 1h1v1h-1zM14 1h1v1h-1zM1 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM9 2h1v1h-1zM11 2h1v1h-1zM13 2h1v1h-1zM15 2h1v1h-1zM0 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM12 5h1v1h-1zM14 5h1v1h-1zM1 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM13 6h1v1h-1zM15 6h1v1h-1zM0 9h1v1h-1zM2 9h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM14 9h1v1h-1zM1 10h1v1h-1zM3 10h1v1h-1zM5 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h1v1h-1zM13 10h1v1h-1zM15 10h1v1h-1zM0 13h1v1h-1zM2 13h1v1h-1zM4 13h1v1h-1zM6 13h1v1h-1zM8 13h1v1h-1zM10 13h1v1h-1zM12 13h1v1h-1zM14 13h1v1h-1zM1 14h1v1h-1zM3 14h1v1h-1zM5 14h1v1h-1zM7 14h1v1h-1zM9 14h1v1h-1zM11 14h1v1h-1zM13 14h1v1h-1zM15 14h1v1h-1z' fill='%23346856'/%3E%3Cpath d='M0 0h1v1h-1zM2 0h1v1h-1zM4 0h1v1h-1zM6 0h1v1h-1zM8 0h1v1h-1zM10 0h1v1h-1zM12 0h1v1h-1zM14 0h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM7 3h1v1h-1zM9 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM15 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM14 4h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM9 7h1v1h-1zM11 7h1v1h-1zM13 7h1v1h-1zM15 7h1v1h-1zM0 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM1 11h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM15 11h1v1h-1zM0 12h1v1h-1zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM14 12h1v1h-1zM1 15h1v1h-1zM3 15h1v1h-1zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1z' fill='%23081820'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23grass' x='0' y='0'/%3E%3Cuse href='%23grass' x='16' y='0'/%3E%3Cuse href='%23grass' x='32' y='0'/%3E%3Cuse href='%23ground' x='48' y='0'/%3E%3Cuse href='%23flower' x='64' y='0'/%3E%3Cuse href='%23ground' x='80' y='0'/%3E%3Cuse href='%23path' x='96' y='0'/%3E%3Cuse href='%23path' x='112' y='0'/%3E%3Cuse href='%23path' x='128' y='0'/%3E%3Cuse href='%23sign' x='144' y='0'/%3E%3Cuse href='%23ground' x='160' y='0'/%3E%3Cuse href='%23flower' x='176' y='0'/%3E%3Cuse href='%23ground' x='192' y='0'/%3E%3Cuse href='%23ledge' x='208' y='0'/%3E%3Cuse href='%23ledge' x='224' y='0'/%3E%3Cuse href='%23ledge' x='240' y='0'/%3E%3Cuse href='%23grass' x='256' y='0'/%3E%3Cuse href='%23grass' x='272' y='0'/%3E%3Cuse href='%23ground' x='288' y='0'/%3E%3Cuse href='%23flower' x='304' y='0'/%3E%3Cuse href='%23flower' x='320' y='0'/%3E%3Cuse href='%23ground' x='336' y='0'/%3E%3Cuse href='%23path' x='352' y='0'/%3E%3Cuse href='%23ground' x='368' y='0'/%3E%3Cuse href='%23tree' x='0' y='16'/%3E%3Cuse href='%23tree' x='16' y='16'/%3E%3Cuse href='%23tree' x='32' y='16'/%3E%3Cuse href='%23tree' x='48' y='16'/%3E%3Cuse href='%23tree' x='64' y='16'/%3E%3Cuse href='%23tree' x='80' y='16'/%3E%3Cuse href='%23tree' x='96' y='16'/%3E%3Cuse href='%23tree' x='112' y='16'/%3E%3Cuse href='%23tree' x='128' y='16'/%3E%3Cuse href='%23tree' x='144' y='16'/%3E%3Cuse href='%23tree' x='160' y='16'/%3E%3Cuse href='%23tree' x='176' y='16'/%3E%3Cuse href='%23tree' x='192' y='16'/%3E%3Cuse href='%23tree' x='208' y='16'/%3E%3Cuse href='%23tree' x='224' y='16'/%3E%3Cuse href='%23tree' x='240' y='16'/%3E%3Cuse href='%23tree' x='256' y='16'/%3E%3Cuse href='%23tree' x='272' y='16'/%3E%3Cuse href='%23tree' x='288' y='16'/%3E%3Cuse href='%23tree' x='304' y='16'/%3E%3Cuse href='%23tree' x='320' y='16'/%3E%3Cuse href='%23tree' x='336' y='16'/%3E%3Cuse href='%23tree' x='352' y='16'/%3E%3Cuse href='%23tree' x='368' y='16'/%3E%3C/svg%3E");
+  --route-grass: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='384' height='32' shape-rendering='crispEdges'%3E%3Cdefs%3E%3Cg id='grass'%3E%3Cpath d='M1 0h1v1h-1zM3 0h1v1h-1zM5 0h1v1h-1zM7 0h1v1h-1zM9 0h1v1h-1zM11 0h1v1h-1zM13 0h1v1h-1zM15 0h1v1h-1zM1 1h1v1h-1zM3 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM9 1h1v1h-1zM11 1h1v1h-1zM13 1h1v1h-1zM15 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM10 2h1v1h-1zM12 2h1v1h-1zM14 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM8 3h1v1h-1zM10 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM1 4h1v1h-1zM3 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM9 4h1v1h-1zM11 4h1v1h-1zM13 4h1v1h-1zM15 4h1v1h-1zM1 5h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM7 5h1v1h-1zM9 5h1v1h-1zM11 5h1v1h-1zM13 5h1v1h-1zM15 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM0 7h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h1v1h-1zM1 8h1v1h-1zM3 8h1v1h-1zM5 8h1v1h-1zM7 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM15 8h1v1h-1zM1 9h1v1h-1zM3 9h1v1h-1zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h1v1h-1zM13 9h1v1h-1zM15 9h1v1h-1zM0 10h1v1h-1zM2 10h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM14 10h1v1h-1zM0 11h1v1h-1zM2 11h1v1h-1zM4 11h1v1h-1zM6 11h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM12 11h1v1h-1zM14 11h1v1h-1zM1 12h1v1h-1zM3 12h1v1h-1zM5 12h1v1h-1zM7 12h1v1h-1zM9 12h1v1h-1zM11 12h1v1h-1zM13 12h1v1h-1zM15 12h1v1h-1zM1 13h1v1h-1zM3 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h1v1h-1zM13 13h1v1h-1zM15 13h1v1h-1zM0 14h1v1h-1zM2 14h1v1h-1zM4 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM12 14h1v1h-1zM14 14h1v1h-1zM0 15h1v1h-1zM2 15h1v1h-1zM4 15h1v1h-1zM6 15h1v1h-1zM8 15h1v1h-1zM10 15h1v1h-1zM12 15h1v1h-1zM14 15h1v1h-1z' fill='%2388c070'/%3E%3Cpath d='M0 1h1v1h-1zM2 1h1v1h-1zM4 1h1v1h-1zM6 1h1v1h-1zM8 1h1v1h-1zM10 1h1v1h-1zM12 1h1v1h-1zM14 1h1v1h-1zM1 2h1v1h-1zM3 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM9 2h1v1h-1zM11 2h1v1h-1zM13 2h1v1h-1zM15 2h1v1h-1zM0 5h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM12 5h1v1h-1zM14 5h1v1h-1zM1 6h1v1h-1zM3 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM13 6h1v1h-1zM15 6h1v1h-1zM0 9h1v1h-1zM2 9h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM14 9h1v1h-1zM1 10h1v1h-1zM3 10h1v1h-1zM5 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h1v1h-1zM13 10h1v1h-1zM15 10h1v1h-1zM0 13h1v1h-1zM2 13h1v1h-1zM4 13h1v1h-1zM6 13h1v1h-1zM8 13h1v1h-1zM10 13h1v1h-1zM12 13h1v1h-1zM14 13h1v1h-1zM1 14h1v1h-1zM3 14h1v1h-1zM5 14h1v1h-1zM7 14h1v1h-1zM9 14h1v1h-1zM11 14h1v1h-1zM13 14h1v1h-1zM15 14h1v1h-1z' fill='%23346856'/%3E%3Cpath d='M0 0h1v1h-1zM2 0h1v1h-1zM4 0h1v1h-1zM6 0h1v1h-1zM8 0h1v1h-1zM10 0h1v1h-1zM12 0h1v1h-1zM14 0h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1zM5 3h1v1h-1zM7 3h1v1h-1zM9 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM15 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM14 4h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM9 7h1v1h-1zM11 7h1v1h-1zM13 7h1v1h-1zM15 7h1v1h-1zM0 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM1 11h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1zM15 11h1v1h-1zM0 12h1v1h-1zM2 12h1v1h-1zM4 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM14 12h1v1h-1zM1 15h1v1h-1zM3 15h1v1h-1zM5 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1z' fill='%23081820'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23grass' x='0' y='0'/%3E%3Cuse href='%23grass' x='16' y='0'/%3E%3Cuse href='%23grass' x='32' y='0'/%3E%3Cuse href='%23grass' x='256' y='0'/%3E%3Cuse href='%23grass' x='272' y='0'/%3E%3C/svg%3E");
+  --route-flowers: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='384' height='32' shape-rendering='crispEdges'%3E%3Cdefs%3E%3Cg id='flower2'%3E%3Cpath d='M5 5h2v1h-2zM9 5h2v1h-2zM5 6h2v1h-2zM9 6h2v1h-2zM5 9h2v1h-2zM9 9h2v1h-2zM5 10h2v1h-2zM9 10h2v1h-2z' fill='%23e0f8d0'/%3E%3Cpath d='M0 0h16v1h-16zM0 1h16v1h-16zM0 2h13v1h-13zM14 2h2v1h-2zM0 3h12v1h-12zM13 3h1v1h-1zM15 3h1v1h-1zM0 4h16v1h-16zM0 5h5v1h-5zM7 5h2v1h-2zM11 5h5v1h-5zM0 6h5v1h-5zM7 6h2v1h-2zM11 6h5v1h-5zM0 7h7v1h-7zM9 7h7v1h-7zM0 8h7v1h-7zM9 8h7v1h-7zM0 9h5v1h-5zM7 9h2v1h-2zM11 9h5v1h-5zM0 10h5v1h-5zM7 10h2v1h-2zM11 10h5v1h-5zM0 11h16v1h-16zM0 12h16v1h-16zM0 13h2v1h-2zM3 13h13v1h-13zM0 14h1v1h-1zM2 14h1v1h-1zM4 14h12v1h-12zM0 15h16v1h-16z' fill='%2388c070'/%3E%3Cpath d='M13 2h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM2 13h1v1h-1zM1 14h1v1h-1zM3 14h1v1h-1z' fill='%23346856'/%3E%3Cpath d='M7 7h2v1h-2zM7 8h2v1h-2z' fill='%23081820'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23flower2' x='64' y='0'/%3E%3Cuse href='%23flower2' x='176' y='0'/%3E%3Cuse href='%23flower2' x='304' y='0'/%3E%3Cuse href='%23flower2' x='320' y='0'/%3E%3C/svg%3E");
+  --exclaim: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='12' shape-rendering='crispEdges'%3E%3Cpath d='M1 0h8v1h-8zM0 1h1v1h-1zM9 1h1v1h-1zM0 2h1v1h-1zM4 2h2v1h-2zM9 2h1v1h-1zM0 3h1v1h-1zM4 3h2v1h-2zM9 3h1v1h-1zM0 4h1v1h-1zM4 4h2v1h-2zM9 4h1v1h-1zM0 5h1v1h-1zM4 5h2v1h-2zM9 5h1v1h-1zM0 6h1v1h-1zM9 6h1v1h-1zM0 7h1v1h-1zM4 7h2v1h-2zM9 7h1v1h-1zM0 8h1v1h-1zM9 8h1v1h-1zM1 9h8v1h-8zM3 10h2v1h-2zM3 11h1v1h-1z' fill='%23081820'/%3E%3Cpath d='M1 1h8v1h-8zM1 2h3v1h-3zM6 2h3v1h-3zM1 3h3v1h-3zM6 3h3v1h-3zM1 4h3v1h-3zM6 4h3v1h-3zM1 5h3v1h-3zM6 5h3v1h-3zM1 6h8v1h-8zM1 7h3v1h-3zM6 7h3v1h-3zM1 8h8v1h-8z' fill='%23e0f8d0'/%3E%3C/svg%3E");
+  --cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM0 1h2v1h-2zM0 2h3v1h-3zM0 3h4v1h-4zM0 4h3v1h-3zM0 5h2v1h-2zM0 6h1v1h-1z' fill='%23081820'/%3E%3C/svg%3E");
+  --hollow-cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='5' height='7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM0 1h2v1h-2zM0 2h1v1h-1zM2 2h1v1h-1zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM0 5h2v1h-2zM0 6h1v1h-1z' fill='%23081820'/%3E%3C/svg%3E");
+  --arrow-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h7v1h-7zM1 1h5v1h-5zM2 2h3v1h-3zM3 3h1v1h-1z' fill='%23081820'/%3E%3C/svg%3E");
+  --line-tip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='5' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h2v1h-2zM0 1h4v1h-4zM0 2h6v1h-6zM0 3h4v1h-4zM0 4h2v1h-2z' fill='%23081820'/%3E%3C/svg%3E");
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='6' shape-rendering='crispEdges'%3E%3Cpath d='M6 0h1v1h-1zM5 1h2v1h-2zM0 2h1v1h-1zM4 2h2v1h-2zM0 3h2v1h-2zM3 3h2v1h-2zM1 4h3v1h-3zM2 5h1v1h-1z' fill='%23081820'/%3E%3C/svg%3E");
+}
+/* the route: grass ground everywhere, a row of trees, grass, flowers and a path along the bottom */
+:root[data-theme="gen1"] body {
+  background: var(--route) left bottom / 1152px 96px repeat-x, var(--ground) 0 0 / 48px 48px, var(--light);
+  background-attachment: fixed;
+}
+/* the tall grass rustling now and then, and the flowers blinking between their two frames */
+:root[data-theme="gen1"] body::before, :root[data-theme="gen1"] body::after {
+  content: ''; position: fixed; left: 0; right: 0; bottom: 0; height: 96px; z-index: -1; pointer-events: none;
+}
+:root[data-theme="gen1"] body::before { background: var(--route-grass) left bottom / 1152px 96px repeat-x; animation: gen1-rustle 5s steps(1) infinite; }
+:root[data-theme="gen1"] body::after { background: var(--route-flowers) left bottom / 1152px 96px repeat-x; animation: gen1-blink 1.6s steps(1) infinite; }
+@keyframes gen1-rustle { 0%, 84% { transform: none; } 86% { transform: translateX(3px); } 88% { transform: translateX(-3px); } 90% { transform: translateX(3px); } 92% { transform: none; } }
+@keyframes gen1-blink { 50% { opacity: 0; } }
+:root[data-theme="gen1"] * { text-shadow: none !important; }
+:root[data-theme="gen1"] :is(h1, h2, h3, h4) { font-family: var(--font-display); font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: .04em; }
+:root[data-theme="gen1"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: var(--ink); }
+:root[data-theme="gen1"] .dh-name h1 { text-transform: none; letter-spacing: .01em; }
+/* under each heading, the line of a battle's status box: up the left, along the bottom, a point at the end */
+:root[data-theme="gen1"] :is(.panel-head h2, .stat-panel > h3) {
+  padding: 0 14px 8px 12px;
+  background: var(--line-tip) right 0 bottom 0 / 6px 5px no-repeat,
+              linear-gradient(var(--ink), var(--ink)) left 0 bottom 1px / calc(100% - 5px) 2px no-repeat,
+              linear-gradient(var(--ink), var(--ink)) left 0 bottom 1px / 2px 16px no-repeat;
+}
+:root[data-theme="gen1"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title)::before {
+  content: ''; display: inline-block; width: .8em; height: .96em; margin-right: .45em; vertical-align: -.12em; background: var(--exclaim) center / contain no-repeat;
+}
+:root[data-theme="gen1"] ::selection { background: var(--dark); color: var(--paper-green); }
+:root[data-theme="gen1"] :focus-visible { outline: 3px solid var(--dark); outline-offset: 2px; }
+:root[data-theme="gen1"] a { color: #1f5aa8; }
+/* the Gallery's count and sort label and the Sets page's years sit out on the grass, where the tufts muddle the type, so each gets a little text box */
+:root[data-theme="gen1"] :is(.result-count, .result-count .muted, .sort-caption) { color: var(--ink); }
+:root[data-theme="gen1"] :is(.result-count, .sort-caption, h3.year-head) { display: inline-block; width: fit-content; padding: 2px 10px; background: var(--paper-green); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 3px 3px 0 rgba(8, 24, 32, .3); }
+:root[data-theme="gen1"] h3.year-head { padding: 4px 14px 3px; }
+
+/* the top bar: a text box holding the menu */
+:root[data-theme="gen1"] .topbar { background: var(--paper-green); border-bottom: 3px solid var(--ink); box-shadow: var(--frame), 0 4px 0 rgba(8, 24, 32, .3); }
+:root[data-theme="gen1"] .logo:hover :is(.logo-mark, .pupil) { transform: none; }
+:root[data-theme="gen1"] .logo-text .l2 { font-family: var(--font-display); font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: .06em; }
+:root[data-theme="gen1"] .logo-text .l2-card { color: var(--dark); }
+:root[data-theme="gen1"] .header-stats { color: var(--dark); font-family: var(--font-display); text-transform: uppercase; }
+:root[data-theme="gen1"] .header-stats b { color: var(--ink); }
+:root[data-theme="gen1"] .bell { background: var(--paper-green); border: 3px solid var(--ink); border-radius: 6px; box-shadow: var(--frame); }
+:root[data-theme="gen1"] :is(.bell, .bell.gear):hover { background: #ffffff; transform: none; }
+:root[data-theme="gen1"] .bell[aria-current] { background: var(--light); }
+
+/* tabs: the menu; ▶ points at the open page and ▷ at the one under the pointer */
+:root[data-theme="gen1"] :is(.tabs > a, .tools-btn) {
+  position: relative; background: transparent; color: var(--ink); border: 0; border-radius: 0; box-shadow: none; filter: none;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 6px 10px 5px 24px;
+}
+:root[data-theme="gen1"] :is(.tabs > a, .tools-btn)::before {
+  content: ''; position: absolute; left: 7px; top: 50%; width: 10px; height: 14px; margin-top: -7px;
+}
+:root[data-theme="gen1"] :is(.tabs > a, .tools-btn):hover { background: transparent; color: var(--ink); transform: none; box-shadow: none; }
+:root[data-theme="gen1"] :is(.tabs > a, .tools-btn):hover::before { background: var(--hollow-cursor) center / 10px 14px no-repeat; }
+:root[data-theme="gen1"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on) { background: transparent; color: var(--ink); }
+:root[data-theme="gen1"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on)::before { background: var(--cursor) center / 10px 14px no-repeat; }
+
+/* panels: text boxes */
+:root[data-theme="gen1"] :is(.panel, .dialog-card, .modal-card) { background: var(--panel); border: 3px solid var(--ink); border-radius: 8px; box-shadow: var(--frame), var(--shadow); }
+:root[data-theme="gen1"] :is(.panel, .dialog-card) { padding: 14px 16px 16px; }
+:root[data-theme="gen1"] .modal-top { background: var(--panel); border-bottom: 3px solid var(--ink); box-shadow: 0 2px 0 var(--paper-green), 0 4px 0 var(--ink); }
+:root[data-theme="gen1"] .modal-backdrop { background: repeating-linear-gradient(rgba(8, 24, 32, .84) 0 6px, rgba(8, 24, 32, .72) 6px 12px); }
+
+/* buttons: little boxes the cursor points at; go is dark green; a chosen one is ink */
+:root[data-theme="gen1"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  background: var(--well); color: var(--ink); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 3px 3px 0 rgba(8, 24, 32, .3); filter: none;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+}
+:root[data-theme="gen1"] :is(.btn, .page-chip) { position: relative; padding-left: 24px; }
+:root[data-theme="gen1"] :is(.btn, .page-chip)::before { content: ''; position: absolute; left: 8px; top: 50%; width: 8px; height: 12px; margin-top: -6px; }
+:root[data-theme="gen1"] :is(.btn, .page-chip):is(:hover, :focus-visible)::before { background: var(--cursor) center / 8px 12px no-repeat; }
+:root[data-theme="gen1"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover { background: #ffffff; color: var(--ink); transform: none; box-shadow: 3px 3px 0 rgba(8, 24, 32, .3); filter: none; }
+:root[data-theme="gen1"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(8, 24, 32, .3); }
+:root[data-theme="gen1"] .btn.go, :root[data-theme="gen1"] .btn.go:hover { background: var(--dark); color: var(--paper-green); }
+:root[data-theme="gen1"] .btn.go:is(:hover, :focus-visible)::before { background: var(--cursor) center / 8px 12px no-repeat; filter: invert(1) brightness(1.6); }
+:root[data-theme="gen1"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open, .icon-btn.star.on, .btn.on) { background: var(--ink); color: var(--paper-green); outline: 0; }
+:root[data-theme="gen1"] .seg { background: var(--well); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 3px 3px 0 rgba(8, 24, 32, .3); }
+:root[data-theme="gen1"] .seg-btn { color: var(--ink); font-family: var(--font-display); font-weight: 700; text-transform: uppercase; }
+:root[data-theme="gen1"] .seg-btn:hover { background: #ffffff; }
+:root[data-theme="gen1"] .seg-btn + .seg-btn { border-left: 3px solid var(--ink); }
+
+/* text boxes and the rest of the form */
+:root[data-theme="gen1"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: var(--well); color: var(--ink); border: 3px solid var(--ink); border-radius: 6px; box-shadow: inset 2px 2px 0 rgba(8, 24, 32, .12);
+}
+:root[data-theme="gen1"] :is(.text-input, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"])::placeholder { color: var(--faint); }
+:root[data-theme="gen1"] .select { background-image: var(--arrow-down); background-position: right 10px center; background-size: 14px 8px; background-repeat: no-repeat; font-family: var(--font-display); }
+:root[data-theme="gen1"] input[type="checkbox"] { appearance: none; width: 18px; height: 18px; flex: none; cursor: pointer; background: var(--well); border: 3px solid var(--ink); border-radius: 3px; }
+:root[data-theme="gen1"] input[type="checkbox"]:checked { background: var(--check) center / 14px 12px no-repeat, var(--well); }
+
+/* the rest: framed totals and tiles, HP bars, the START menu, the bottom text box */
+:root[data-theme="gen1"] .bignum { border: 3px solid var(--ink); border-radius: 8px; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35), var(--shadow-sm); }
+/* the big totals size their type to their tile, which in a monospace face keeps Chrome repainting */
+:root[data-theme="gen1"] .bn-value { font-family: var(--font-body); font-weight: 800; }
+:root[data-theme="gen1"] :is(.tile, .deck-tile) { border: 3px solid var(--ink); border-radius: 8px; box-shadow: var(--shadow); }
+:root[data-theme="gen1"] .tile:is(:hover, :focus-within), :root[data-theme="gen1"] .deck-tile:hover { box-shadow: 0 0 0 3px var(--dark), var(--shadow); }
+:root[data-theme="gen1"] :is(.bar-track, .part-track, .cb-track, .fit-track, .progress, .stack-bar, .cast-bar) { border: 2px solid var(--ink); border-radius: 4px; background-color: var(--well); box-shadow: none; }
+:root[data-theme="gen1"] :is(.page-nav, .select-bar, .job-banner:not(.good, .bad)) { background: var(--panel); color: var(--ink); border: 3px solid var(--ink); border-radius: 8px; box-shadow: var(--frame), var(--shadow-sm); }
+:root[data-theme="gen1"] .job-banner:is(.good, .bad) { border: 3px solid var(--ink); border-radius: 8px; box-shadow: var(--shadow-sm); }
+:root[data-theme="gen1"] .spinner {
+  width: 54px; height: 12px; border: 2px solid var(--ink); border-radius: 4px; box-shadow: none;
+  background: linear-gradient(#2f8f2f, #2f8f2f) left center / 100% 100% no-repeat, var(--well);
+  animation: gen1-hp 2.4s steps(24) infinite;
+}
+@keyframes gen1-hp {
+  0% { background-size: 100% 100%; background-image: linear-gradient(#2f8f2f, #2f8f2f); }
+  49% { background-image: linear-gradient(#2f8f2f, #2f8f2f); }
+  50% { background-size: 50% 100%; background-image: linear-gradient(#c8a000, #c8a000); }
+  79% { background-image: linear-gradient(#c8a000, #c8a000); }
+  80% { background-size: 20% 100%; background-image: linear-gradient(#e0305a, #e0305a); }
+  100% { background-size: 3% 100%; background-image: linear-gradient(#e0305a, #e0305a); }
+}
+:root[data-theme="gen1"] .tools-list { background: var(--panel); border: 3px solid var(--ink); border-radius: 8px; box-shadow: var(--frame), var(--shadow); padding: 8px; gap: 0; }
+:root[data-theme="gen1"] .tools-list :is(a, button) { position: relative; background: transparent; border: 0; border-radius: 0; box-shadow: none; color: var(--ink); padding: 5px 10px 5px 24px; }
+:root[data-theme="gen1"] .tools-list :is(a, button) b { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; }
+:root[data-theme="gen1"] .tools-list :is(a, button) span { color: var(--dark); }
+:root[data-theme="gen1"] .tools-list :is(a, button):is(:hover, :focus-visible), :root[data-theme="gen1"] .tools-list a[aria-current="page"] { background: transparent; color: var(--ink); outline: 0; }
+:root[data-theme="gen1"] .tools-list :is(a, button):is(:hover, :focus-visible)::before, :root[data-theme="gen1"] .tools-list a[aria-current="page"]::before {
+  content: ''; position: absolute; left: 7px; top: 8px; width: 10px; height: 14px; background: var(--cursor) center / 10px 14px no-repeat;
+}
+:root[data-theme="gen1"] .tools-sep { height: 0; margin: 4px 6px; border: 0; border-top: 3px dotted var(--dark); }
+:root[data-theme="gen1"] .toast {
+  background: var(--panel); color: var(--ink); border: 3px solid var(--ink); border-radius: 8px; box-shadow: var(--frame), var(--shadow);
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: .02em; padding: 14px 36px 16px 18px;
+}
+:root[data-theme="gen1"] .toast::after { content: ''; position: absolute; right: 14px; bottom: 9px; width: 14px; height: 8px; background: var(--arrow-down) center / 14px 8px no-repeat; animation: gen1-blink 1s steps(1) infinite; }
+:root[data-theme="gen1"] .site-footer { background: var(--panel); color: var(--dark); border: 3px solid var(--ink); border-radius: 8px; box-shadow: var(--frame), var(--shadow-sm); }
+:root[data-theme="gen1"] .site-footer a { color: #1f5aa8; }
+
+/* scroll bars: an ink slider */
+:root[data-theme="gen1"]::-webkit-scrollbar, :root[data-theme="gen1"] ::-webkit-scrollbar { width: 14px; height: 14px; }
+:root[data-theme="gen1"]::-webkit-scrollbar-track, :root[data-theme="gen1"] ::-webkit-scrollbar-track { background: var(--light); }
+:root[data-theme="gen1"]::-webkit-scrollbar-thumb, :root[data-theme="gen1"] ::-webkit-scrollbar-thumb { background: var(--ink); border: 3px solid var(--light); border-radius: 3px; }
+
 /* ==== ColecoVision ================================================================================
    1982, black and brushed aluminum. A black shell cut with fine vent grooves, the controller's
    twelve-key pad standing faintly in the corner; the top bar is the brushed-aluminum plate with a
@@ -3640,6 +3821,183 @@
 :root[data-theme="cyberpunk"]::-webkit-scrollbar-track, :root[data-theme="cyberpunk"] ::-webkit-scrollbar-track { background: #050508; }
 :root[data-theme="cyberpunk"]::-webkit-scrollbar-thumb, :root[data-theme="cyberpunk"] ::-webkit-scrollbar-thumb { background: #fcee0a; }
 :root[data-theme="cyberpunk"]::-webkit-scrollbar-thumb:hover, :root[data-theme="cyberpunk"] ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+
+/* ==== Retrofuturism ===============================================================================
+   The future as the 1950s and '60s pictured it. A twilight sky shading to a sunset over the desert
+   mesas, a ringed planet hanging in it and atomic starbursts twinkling; along the bottom of the
+   screen a Googie skyline (a saucer-topped tower, a pair of arches holding a flying-saucer
+   restaurant, a dome of porthole windows, a diner under a boomerang roof with its starburst sign, a
+   porthole tower and a rocket on its gantry) and a monorail that glides along its beam. The top bar
+   is turquoise enamel over a band of chrome, the name in a diner's script; tabs are chrome-ringed
+   enamel pills, the open one lit coral. Panels are cream enamel in chrome rims with a turquoise
+   band across the top, an atom before each heading in wide space-age capitals; buttons are enamel
+   pills, go in turquoise; a message comes up on a dark capsule beside a starburst, and the busy sign
+   is the atom, spinning. The phone's bars follow the turquoise top bar, so Settings counts this
+   among the dark themes although its panels are light. */
+:root[data-theme="retro"] {
+  --bg: #13213d; --bg-deep: #1d6e78; --bg-blob: #13213d;
+  --panel: #fdf3e1; --panel-2: #f7e8cc; --panel-3: #efd9b0; --well: #fffaf0;
+  --text: #1f2433; --muted: #5a5348; --faint: #8a8070; --paper: #fffaf0; --paper-ink: #1f2433;
+  --pink: #e2504a; --lime: #5a8a14; --cyan: #12899a; --violet: #8f60d6;
+  --orange: #d2621a; --yellow: #a57a00; --mint: #0f8f7a; --peach: #cf6a4a;
+  --pink-text: #b83a30; --pink-soft: #a03028; --flat: #efd9b0;
+  --tile-uncommon: #e6f2f0; --tile-rare: #fbf0d6; --tile-mythic: #fbe2d8;
+  --zebra: #f8ecd6; --grid: #efd9b0; --grid-2: #dcc496; --drop: #f7e8cc; --hatch: #e6cfa2;
+  --tint-pink: #f9d9d2; --tint-magenta: #efdcec; --tint-green: #e0eccb; --legend-miss: #dcc496;
+  --mana-W: #f3e27a; --mana-C: #c9c9c9; --mana-N: #d3d3d3;
+  --r-common: #c8c8c8; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 2px solid #c9b48a; --line-thick: 3px solid #0e6f7d;
+  --shadow: 8px 8px 0 rgba(10, 20, 40, .35); --shadow-sm: 4px 4px 0 rgba(10, 20, 40, .3);
+  --blob: 26px; --blob-sm: 14px; --pill: 999px;
+  /* this Eurostile comes only in bold, oblique and extended, so it is used only where the type is bold */
+  --font-display: 'Century Gothic', 'Tw Cen MT', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-label: Eurostile, 'Microgramma', 'Century Gothic', 'Tw Cen MT', 'Avenir Next', sans-serif;
+  --font-wide: 'Eurostile Extended', Eurostile, 'Century Gothic', 'Avenir Next', sans-serif;
+  --font-body: 'Century Gothic', 'Tw Cen MT', 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-script: Magneto, 'Brush Script MT', 'Segoe Script', cursive;
+  --teal: #1d6e78; --teal-deep: #0e6f7d; --coral: #c8402e; --navy: #13213d;
+  --chrome: linear-gradient(160deg, #ffffff, #cfd6dd 30%, #8d98a5 52%, #e4e9ee 70%, #a7b2bd);
+  --chrome-band: linear-gradient(#ffffff, #c4ccd4 40%, #7d8895 55%, #d9dfe5 80%, #9aa5b1);
+  --chrome-ring: 0 0 0 2px #e4e9ee, 0 0 0 3px #8d98a5;
+  --skyline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='320'%3E%3Cpath d='M0 300V250L60 246L90 226H190L214 248L330 252L360 232H470L500 254L640 256L700 238H820L846 258L1000 260L1030 236H1150L1180 256L1320 258L1350 240H1470L1500 254L1600 250V300Z' fill='%234a3f6b' fill-opacity='.85'/%3E%3Cpath d='M140 300L147 112H153L160 300Z' fill='%231f5a68'/%3E%3Cpath d='M128 300L147 180M172 300L153 180' stroke='%231f5a68' stroke-width='4'/%3E%3Cellipse cx='150' cy='104' rx='48' ry='10' fill='%23f3e3c3' stroke='%232f7f8f' stroke-width='3'/%3E%3Cellipse cx='150' cy='92' rx='28' ry='8' fill='%232f7f8f'/%3E%3Ccircle cx='132' cy='92' r='2.4' fill='%23ffd36b'/%3E%3Ccircle cx='144' cy='92' r='2.4' fill='%23173f4c'/%3E%3Ccircle cx='156' cy='92' r='2.4' fill='%23ffd36b'/%3E%3Ccircle cx='168' cy='92' r='2.4' fill='%23ffd36b'/%3E%3Cpath d='M150 84V44' stroke='%23c9d1d9' stroke-width='3'/%3E%3Ccircle cx='150' cy='40' r='5' fill='%23e2504a'/%3E%3Cpath d='M350 300Q430 110 510 300' fill='none' stroke='%23f3e3c3' stroke-width='8'/%3E%3Cpath d='M370 300Q430 140 490 300' fill='none' stroke='%232f7f8f' stroke-width='6'/%3E%3Cellipse cx='430' cy='196' rx='44' ry='11' fill='%23f3e3c3' stroke='%23e2504a' stroke-width='3'/%3E%3Cpath d='M400 196h60' stroke='%232f7f8f' stroke-width='3' stroke-dasharray='6 4'/%3E%3Crect x='424' y='206' width='12' height='94' fill='%231f5a68'/%3E%3Cpath d='M616 300A84 84 0 0 1 784 300Z' fill='%232f7f8f'/%3E%3Cpath d='M616 300A84 84 0 0 1 784 300' fill='none' stroke='%23f3e3c3' stroke-width='3'/%3E%3Cpath d='M640 258H760' stroke='%23f3e3c3' stroke-width='2' stroke-opacity='.6'/%3E%3Ccircle cx='656' cy='244' r='5' fill='%23173f4c'/%3E%3Ccircle cx='678' cy='244' r='5' fill='%23ffd36b'/%3E%3Ccircle cx='700' cy='244' r='5' fill='%23173f4c'/%3E%3Ccircle cx='722' cy='244' r='5' fill='%23ffd36b'/%3E%3Ccircle cx='744' cy='244' r='5' fill='%23173f4c'/%3E%3Ccircle cx='656' cy='274' r='5' fill='%23ffd36b'/%3E%3Ccircle cx='678' cy='274' r='5' fill='%23173f4c'/%3E%3Ccircle cx='700' cy='274' r='5' fill='%23ffd36b'/%3E%3Ccircle cx='722' cy='274' r='5' fill='%23173f4c'/%3E%3Ccircle cx='744' cy='274' r='5' fill='%23ffd36b'/%3E%3Cpath d='M700 216V186' stroke='%23c9d1d9' stroke-width='3'/%3E%3Ccircle cx='700' cy='182' r='4' fill='%23e9b44c'/%3E%3Crect x='890' y='252' width='170' height='48' fill='%23f3e3c3'/%3E%3Crect x='900' y='262' width='150' height='26' fill='%237fc6c9' stroke='%231f5a68' stroke-width='2'/%3E%3Cpath d='M940 262v26M980 262v26M1020 262v26' stroke='%231f5a68' stroke-width='2'/%3E%3Cpath d='M876 256L960 236L1010 250L1086 214L1076 228L1010 260L960 246L884 264Z' fill='%23e2504a'/%3E%3Crect x='1086' y='206' width='6' height='94' fill='%23c9d1d9'/%3E%3Cpath d='M1089.0 174.0L1092.5 187.5L1104.6 180.4L1097.5 192.5L1111.0 196.0L1097.5 199.5L1104.6 211.6L1092.5 204.5L1089.0 218.0L1085.5 204.5L1073.4 211.6L1080.5 199.5L1067.0 196.0L1080.5 192.5L1073.4 180.4L1085.5 187.5Z' fill='%23e9b44c'/%3E%3Ccircle cx='1089' cy='196' r='6' fill='%23e2504a'/%3E%3Crect x='1200' y='122' width='70' height='178' rx='10' fill='%231f5a68'/%3E%3Crect x='1206' y='122' width='6' height='178' fill='%232f7f8f'/%3E%3Ccircle cx='1220' cy='140' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1234' cy='140' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1248' cy='140' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1258' cy='140' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1220' cy='158' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1234' cy='158' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1248' cy='158' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1258' cy='158' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1220' cy='176' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1234' cy='176' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1248' cy='176' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1258' cy='176' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1220' cy='194' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1234' cy='194' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1248' cy='194' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1258' cy='194' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1220' cy='212' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1234' cy='212' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1248' cy='212' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1258' cy='212' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1220' cy='230' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1234' cy='230' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1248' cy='230' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1258' cy='230' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1220' cy='248' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1234' cy='248' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1248' cy='248' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1258' cy='248' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1220' cy='266' r='4' fill='%23ffd36b'/%3E%3Ccircle cx='1234' cy='266' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1248' cy='266' r='4' fill='%23173f4c'/%3E%3Ccircle cx='1258' cy='266' r='4' fill='%23173f4c'/%3E%3Cpath d='M1235 122V96' stroke='%23c9d1d9' stroke-width='3'/%3E%3Ccircle cx='1235' cy='88' r='9' fill='%23f3e3c3'/%3E%3Cellipse cx='1235' cy='88' rx='16' ry='4' fill='none' stroke='%23e2504a' stroke-width='2'/%3E%3Crect x='1414' y='112' width='4' height='188' fill='%238d98a5'/%3E%3Crect x='1436' y='112' width='4' height='188' fill='%238d98a5'/%3E%3Cpath d='M1416 120h22M1416 120l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1416 140h22M1416 140l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1416 160h22M1416 160l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1416 180h22M1416 180l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1416 200h22M1416 200l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1416 220h22M1416 220l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1416 240h22M1416 240l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1416 260h22M1416 260l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1416 280h22M1416 280l22 20' stroke='%238d98a5' stroke-width='2'/%3E%3Cpath d='M1438 286L1420 300H1444ZM1482 286L1500 300H1476Z' fill='%23e2504a'/%3E%3Cpath d='M1440 290V170Q1440 120 1460 96Q1480 120 1480 170V290Z' fill='%23f3e3c3'/%3E%3Cpath d='M1460 96Q1448 110 1444 132H1476Q1472 110 1460 96Z' fill='%23e2504a'/%3E%3Crect x='1440' y='240' width='40' height='8' fill='%23e2504a'/%3E%3Ccircle cx='1460' cy='170' r='8' fill='%237fc6c9' stroke='%23c9d1d9' stroke-width='3'/%3E%3Cpath d='M1440 290L1424 302H1496L1480 290Z' fill='%235a6472'/%3E%3Cpath d='M65 217H75V300H65Z M54 217H86L75 228H65Z' fill='%237d8895'/%3E%3Cpath d='M325 217H335V300H325Z M314 217H346L335 228H325Z' fill='%237d8895'/%3E%3Cpath d='M585 217H595V300H585Z M574 217H606L595 228H585Z' fill='%237d8895'/%3E%3Cpath d='M845 217H855V300H845Z M834 217H866L855 228H845Z' fill='%237d8895'/%3E%3Cpath d='M1105 217H1115V300H1105Z M1094 217H1126L1115 228H1105Z' fill='%237d8895'/%3E%3Cpath d='M1365 217H1375V300H1365Z M1354 217H1386L1375 228H1365Z' fill='%237d8895'/%3E%3Crect y='208' width='1600' height='10' fill='%23c9d1d9'/%3E%3Crect y='215' width='1600' height='3' fill='%237d8895'/%3E%3Crect y='300' width='1600' height='20' fill='%231d2f4a'/%3E%3Crect y='300' width='1600' height='2' fill='%23e9b44c' fill-opacity='.6'/%3E%3C/svg%3E");
+  --train: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='36'%3E%3Cpath d='M6 34V14Q6 6 16 6H84Q94 6 94 14V34Z' fill='%23f3e3c3' stroke='%231f5a68' stroke-width='1.5'/%3E%3Crect x='6' y='24' width='88' height='5' fill='%232f7f8f'/%3E%3Ccircle cx='20' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='35' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='50' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='65' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='80' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Cpath d='M100 34V14Q100 6 110 6H178Q188 6 188 14V34Z' fill='%23f3e3c3' stroke='%231f5a68' stroke-width='1.5'/%3E%3Crect x='100' y='24' width='88' height='5' fill='%232f7f8f'/%3E%3Ccircle cx='114' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='129' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='144' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='159' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='174' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Cpath d='M194 34V14Q194 6 204 6H264Q298 8 298 30V34Z' fill='%23f3e3c3' stroke='%231f5a68' stroke-width='1.5'/%3E%3Crect x='194' y='24' width='100' height='5' fill='%232f7f8f'/%3E%3Ccircle cx='208' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='223' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='238' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Ccircle cx='253' cy='16' r='4.5' fill='%23ffd36b' stroke='%231f5a68' stroke-width='1'/%3E%3Cpath d='M288 12Q298 14 298 30H288Z' fill='%23e2504a'/%3E%3Crect x='94' y='22' width='6' height='6' fill='%237d8895'/%3E%3Crect x='188' y='22' width='6' height='6' fill='%237d8895'/%3E%3C/svg%3E");
+  --planet: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='110'%3E%3Cdefs%3E%3CradialGradient id='p' cx='.35' cy='.35' r='.75'%3E%3Cstop offset='0' stop-color='%23ffc9a8'/%3E%3Cstop offset='.6' stop-color='%23e8806a'/%3E%3Cstop offset='1' stop-color='%23a8475a'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpath d='M18 66Q85 30 152 52' fill='none' stroke='%23f3e3c3' stroke-width='7' stroke-opacity='.75'/%3E%3Ccircle cx='85' cy='55' r='38' fill='url(%23p)'/%3E%3Cpath d='M20 70Q85 92 150 50' fill='none' stroke='%23f3e3c3' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E");
+  --starbursts: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='420'%3E%3Cpath d='M60.0 41.0L61.8 48.2L69.0 50.0L61.8 51.8L60.0 59.0L58.2 51.8L51.0 50.0L58.2 48.2Z' fill='%23e9b44c'/%3E%3Cpath d='M210.0 114.0L211.2 118.8L216.0 120.0L211.2 121.2L210.0 126.0L208.8 121.2L204.0 120.0L208.8 118.8Z' fill='%23fdf3e1'/%3E%3Cpath d='M330.0 28.0L332.4 37.6L342.0 40.0L332.4 42.4L330.0 52.0L327.6 42.4L318.0 40.0L327.6 37.6Z' fill='%23fdf3e1'/%3E%3Cpath d='M470.0 143.0L471.4 148.6L477.0 150.0L471.4 151.4L470.0 157.0L468.6 151.4L463.0 150.0L468.6 148.6Z' fill='%23e9b44c'/%3E%3Cpath d='M590.0 60.0L592.0 68.0L600.0 70.0L592.0 72.0L590.0 80.0L588.0 72.0L580.0 70.0L588.0 68.0Z' fill='%23fdf3e1'/%3E%3Cpath d='M120.0 225.0L121.0 229.0L125.0 230.0L121.0 231.0L120.0 235.0L119.0 231.0L115.0 230.0L119.0 229.0Z' fill='%23fdf3e1'/%3E%3Cpath d='M400.0 252.0L401.6 258.4L408.0 260.0L401.6 261.6L400.0 268.0L398.4 261.6L392.0 260.0L398.4 258.4Z' fill='%23e9b44c'/%3E%3Cpath d='M650.0 214.0L651.2 218.8L656.0 220.0L651.2 221.2L650.0 226.0L648.8 221.2L644.0 220.0L648.8 218.8Z' fill='%23fdf3e1'/%3E%3Cpath d='M260.0 323.0L261.4 328.6L267.0 330.0L261.4 331.4L260.0 337.0L258.6 331.4L253.0 330.0L258.6 328.6Z' fill='%23fdf3e1'/%3E%3Cpath d='M540.0 351.0L541.8 358.2L549.0 360.0L541.8 361.8L540.0 369.0L538.2 361.8L531.0 360.0L538.2 358.2Z' fill='%23e9b44c'/%3E%3Ccircle cx='150' cy='80' r='1.6' fill='%23fdf3e1'/%3E%3Ccircle cx='280' cy='200' r='1.6' fill='%23fdf3e1'/%3E%3Ccircle cx='520' cy='30' r='1.6' fill='%23fdf3e1'/%3E%3Ccircle cx='620' cy='140' r='1.6' fill='%23fdf3e1'/%3E%3Ccircle cx='40' cy='300' r='1.6' fill='%23fdf3e1'/%3E%3Ccircle cx='360' cy='180' r='1.6' fill='%23fdf3e1'/%3E%3Ccircle cx='470' cy='300' r='1.6' fill='%23fdf3e1'/%3E%3Ccircle cx='680' cy='390' r='1.6' fill='%23fdf3e1'/%3E%3C/svg%3E");
+  --atom: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='12' rx='10.5' ry='4' fill='none' stroke='%230e6f7d' stroke-width='1.6' transform='rotate(0 12 12)'/%3E%3Cellipse cx='12' cy='12' rx='10.5' ry='4' fill='none' stroke='%230e6f7d' stroke-width='1.6' transform='rotate(60 12 12)'/%3E%3Cellipse cx='12' cy='12' rx='10.5' ry='4' fill='none' stroke='%230e6f7d' stroke-width='1.6' transform='rotate(120 12 12)'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23e2504a'/%3E%3C/svg%3E");
+  --atom-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='12' rx='10.5' ry='4' fill='none' stroke='%23fdf3e1' stroke-width='1.6' transform='rotate(0 12 12)'/%3E%3Cellipse cx='12' cy='12' rx='10.5' ry='4' fill='none' stroke='%23fdf3e1' stroke-width='1.6' transform='rotate(60 12 12)'/%3E%3Cellipse cx='12' cy='12' rx='10.5' ry='4' fill='none' stroke='%23fdf3e1' stroke-width='1.6' transform='rotate(120 12 12)'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='%23e9b44c'/%3E%3C/svg%3E");
+  --check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.4 6.4l2.4 2.4 4.8-5.4' fill='none' stroke='%23fff' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1.5 1.5l4.5 4.5 4.5-4.5' fill='none' stroke='%230e6f7d' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  --burst: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12.0 1.0L13.8 7.7L19.8 4.2L16.3 10.2L23.0 12.0L16.3 13.8L19.8 19.8L13.8 16.3L12.0 23.0L10.2 16.3L4.2 19.8L7.7 13.8L1.0 12.0L7.7 10.2L4.2 4.2L10.2 7.7Z' fill='%23e9b44c'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%23e2504a'/%3E%3C/svg%3E");
+}
+/* the sky at twilight, the planet, and the skyline along the bottom */
+:root[data-theme="retro"] body {
+  background:
+    var(--skyline) left bottom / 1600px 320px repeat-x,
+    var(--planet) right 6vw top 96px / 170px 110px no-repeat,
+    linear-gradient(#0f1a33 0%, #1b3456 32%, #2d6a83 60%, #e88a6a 85%, #f4c27a 100%);
+  background-attachment: fixed;
+}
+/* atomic starbursts twinkling, and the monorail gliding along its beam */
+:root[data-theme="retro"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--starbursts) 0 0 / 700px 420px;
+  animation: retro-twinkle 3.6s ease-in-out infinite alternate;
+}
+:root[data-theme="retro"] body::after {
+  content: ''; position: fixed; left: 0; bottom: 112px; width: 300px; height: 36px; z-index: -1; pointer-events: none;
+  background: var(--train) 0 0 / 300px 36px no-repeat;
+  animation: retro-monorail 26s linear infinite;
+}
+@keyframes retro-twinkle { from { opacity: .45; } to { opacity: 1; } }
+@keyframes retro-monorail { from { transform: translateX(-320px); } to { transform: translateX(calc(100vw + 20px)); } }
+:root[data-theme="retro"] * { text-shadow: none !important; }
+:root[data-theme="retro"] :is(h1, h2, h3, h4) { font-family: var(--font-wide); font-weight: 700; color: #fdf3e1; letter-spacing: .03em; text-transform: uppercase; }
+:root[data-theme="retro"] :is(.panel, .dialog-card, .modal-card) :is(h1, h2, h3, h4) { color: #10535c; }
+:root[data-theme="retro"] .dh-name h1 { text-transform: none; }
+:root[data-theme="retro"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title)::before {
+  content: ''; display: inline-block; width: 1.05em; height: 1.05em; margin-right: .45em; vertical-align: -.16em; background: var(--atom) center / contain no-repeat;
+}
+/* headings and labels out on the sky stand on plates, since the sky runs from night to sunset */
+:root[data-theme="retro"] :is(h2.area-title, h3.year-head) { display: inline-block; width: fit-content; padding: 6px 18px 5px 12px; color: #fdf3e1; background: linear-gradient(#2c8f9a, var(--teal)); border-radius: 999px; box-shadow: var(--chrome-ring), var(--shadow-sm); }
+:root[data-theme="retro"] :is(h2.area-title, h3.year-head)::before { background-image: var(--atom-light); }
+:root[data-theme="retro"] :is(.result-count, .sort-caption) { display: inline-block; padding: 3px 12px; color: #fdf3e1; background: rgba(19, 33, 61, .78); border-radius: 999px; }
+:root[data-theme="retro"] :is(.result-count .muted, .result-count b) { color: #fdf3e1; }
+:root[data-theme="retro"] ::selection { background: var(--teal-deep); color: #ffffff; }
+:root[data-theme="retro"] :focus-visible { outline: 3px solid #e9b44c; outline-offset: 2px; }
+:root[data-theme="retro"] a { color: #0e6f7d; }
+
+/* the top bar: turquoise enamel over a band of chrome, the name in a diner's script */
+:root[data-theme="retro"] .topbar { background: linear-gradient(#2c8f9a, var(--teal) 60%, #175a63); border-bottom: 0; box-shadow: 0 8px 18px rgba(10, 20, 40, .45); padding-bottom: 18px; }
+:root[data-theme="retro"] .topbar::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: var(--chrome-band); pointer-events: none; }
+:root[data-theme="retro"] .logo-text .l2 { font-family: var(--font-script); font-weight: 400; font-size: 1.7rem; color: #fdf3e1; letter-spacing: 0; }
+:root[data-theme="retro"] .logo-text .l2-card { color: #ffcf7a; }
+@media (max-width: 700px) { :root[data-theme="retro"] .logo-text .l2 { font-size: 1.35rem; } }
+:root[data-theme="retro"] .header-stats { color: #cfeceb; font-family: var(--font-label); font-weight: 700; letter-spacing: .03em; }
+:root[data-theme="retro"] .header-stats b { color: #ffcf7a; }
+:root[data-theme="retro"] .bell { background: linear-gradient(#fffaf0, #f1e2c4); border: 0; border-radius: 50%; box-shadow: var(--chrome-ring), 0 4px 0 rgba(10, 20, 40, .35); }
+:root[data-theme="retro"] :is(.bell, .bell.gear):hover { transform: translateY(-1px); box-shadow: var(--chrome-ring), 0 0 14px rgba(255, 207, 122, .7); }
+:root[data-theme="retro"] .bell[aria-current] { background: radial-gradient(circle at 40% 35%, #f07a62, var(--coral)); }
+
+/* tabs: chrome-ringed enamel pills; the open page's is lit coral */
+:root[data-theme="retro"] :is(.tabs > a, .tools-btn) {
+  background: linear-gradient(#fffaf0, #f1e2c4); color: #10535c; border: 0; border-radius: 999px;
+  box-shadow: var(--chrome-ring), 0 3px 0 3px rgba(10, 20, 40, .3), inset 0 1px 0 #ffffff; filter: none;
+  font-family: var(--font-label); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; padding: 7px 16px;
+}
+:root[data-theme="retro"] :is(.tabs > a, .tools-btn):hover { background: linear-gradient(#ffffff, #f6ead2); color: #10535c; transform: translateY(-1px); box-shadow: var(--chrome-ring), 0 0 14px rgba(255, 207, 122, .6); }
+:root[data-theme="retro"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on) {
+  background: radial-gradient(ellipse at 50% 30%, #e86a52, var(--coral) 70%); color: #ffffff; box-shadow: var(--chrome-ring), 0 0 16px rgba(226, 80, 74, .7);
+}
+
+/* panels: cream enamel in a chrome rim, a turquoise band across the top */
+:root[data-theme="retro"] :is(.panel, .dialog-card, .modal-card) {
+  border: 3px solid transparent; border-radius: 26px; box-shadow: var(--shadow);
+  background: linear-gradient(#2c8f9a, var(--teal)) top / 100% 10px no-repeat padding-box, linear-gradient(var(--panel), var(--panel)) padding-box, var(--chrome) border-box;
+}
+:root[data-theme="retro"] :is(.panel, .dialog-card) { padding-top: 24px; }
+:root[data-theme="retro"] .modal-top { background: linear-gradient(#2c8f9a, var(--teal)); border-bottom: 0; color: #fdf3e1; box-shadow: 0 4px 0 #c4ccd4; }
+:root[data-theme="retro"] .modal-top .nav-count { color: #fdf3e1; }
+:root[data-theme="retro"] .modal-backdrop { background: rgba(10, 18, 36, .78); }
+
+/* buttons: enamel pills; go is turquoise; a chosen one is lit coral */
+:root[data-theme="retro"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  background: linear-gradient(#fffaf0, #f1e2c4); color: #10535c; border: 0; border-radius: 999px;
+  box-shadow: var(--chrome-ring), 0 3px 0 3px rgba(10, 20, 40, .22); filter: none; font-family: var(--font-label); font-weight: 700; letter-spacing: .04em;
+}
+:root[data-theme="retro"] .shape-tile { border-radius: 18px; }
+:root[data-theme="retro"] .icon-btn { border-radius: 50%; }
+:root[data-theme="retro"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover { background: linear-gradient(#ffffff, #f6ead2); color: #10535c; transform: translateY(-1px); box-shadow: var(--chrome-ring), 0 0 14px rgba(255, 207, 122, .55); filter: none; }
+:root[data-theme="retro"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):active { transform: translateY(2px); box-shadow: var(--chrome-ring); }
+:root[data-theme="retro"] .btn.go, :root[data-theme="retro"] .btn.go:hover { background: linear-gradient(#1d8a98, var(--teal-deep)); color: #ffffff; }
+:root[data-theme="retro"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open, .icon-btn.star.on, .btn.on) { background: radial-gradient(ellipse at 50% 30%, #e86a52, var(--coral) 70%); color: #ffffff; outline: 0; }
+:root[data-theme="retro"] .seg { background: #fffaf0; border: 0; border-radius: 999px; box-shadow: var(--chrome-ring); padding: 2px; gap: 2px; }
+:root[data-theme="retro"] .seg-btn { color: #10535c; border-radius: 999px; font-family: var(--font-label); font-weight: 700; }
+:root[data-theme="retro"] .seg-btn:hover { background: #f6ead2; }
+:root[data-theme="retro"] .seg-btn + .seg-btn { border-left: 0; }
+:root[data-theme="retro"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #fffaf0; color: var(--text); border: 0; border-radius: 14px; box-shadow: inset 0 2px 4px rgba(10, 20, 40, .12), var(--chrome-ring);
+}
+:root[data-theme="retro"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]):focus-visible { outline: 3px solid #e9b44c; outline-offset: 2px; }
+:root[data-theme="retro"] .select { background-image: var(--chevron); background-position: right 12px center; background-size: 12px 8px; background-repeat: no-repeat; }
+:root[data-theme="retro"] input[type="checkbox"] { appearance: none; width: 18px; height: 18px; flex: none; cursor: pointer; background: #fffaf0; border: 0; border-radius: 6px; box-shadow: inset 0 1px 2px rgba(10, 20, 40, .2), var(--chrome-ring); }
+:root[data-theme="retro"] input[type="checkbox"]:checked { background: var(--check) center / 12px 12px no-repeat, var(--teal-deep); }
+
+/* the rest: enamel totals and tiles, a control-panel menu, a capsule for messages, the spinning atom */
+:root[data-theme="retro"] .bignum { border: 0; border-radius: 18px; background-image: linear-gradient(rgba(255, 255, 255, .4), rgba(255, 255, 255, 0) 55%); box-shadow: var(--chrome-ring), var(--shadow-sm); }
+:root[data-theme="retro"] :is(.tile, .deck-tile) { border: 0; border-radius: 14px; box-shadow: var(--chrome-ring), var(--shadow-sm); }
+:root[data-theme="retro"] .tile:is(:hover, :focus-within), :root[data-theme="retro"] .deck-tile:hover { box-shadow: var(--chrome-ring), 0 0 0 6px rgba(18, 137, 154, .5), var(--shadow-sm); }
+:root[data-theme="retro"] .deck-tile:hover { transform: translateY(-3px); }
+:root[data-theme="retro"] .ring { background: var(--well); }
+:root[data-theme="retro"] :is(.page-nav, .select-bar, .job-banner:not(.good, .bad)) { background: linear-gradient(#2c8f9a, var(--teal)); color: #fdf3e1; border: 0; border-radius: 999px; box-shadow: var(--chrome-ring), var(--shadow-sm); }
+:root[data-theme="retro"] .job-banner:not(.good, .bad) .link-btn { color: #ffcf7a; }
+:root[data-theme="retro"] .job-banner:is(.good, .bad) { border: 0; border-radius: 999px; box-shadow: var(--chrome-ring); }
+:root[data-theme="retro"] .spinner { border: 0; border-radius: 0; background: var(--atom) center / contain no-repeat; animation: retro-spin 1.4s linear infinite; }
+@keyframes retro-spin { to { transform: rotate(360deg); } }
+:root[data-theme="retro"] .tools-list {
+  border: 3px solid transparent; border-radius: 22px; box-shadow: var(--shadow);
+  background: linear-gradient(var(--panel), var(--panel)) padding-box, var(--chrome) border-box; padding: 8px; gap: 2px;
+}
+:root[data-theme="retro"] .tools-list :is(a, button) { background: transparent; border: 0; border-radius: 14px; box-shadow: none; color: var(--text); }
+:root[data-theme="retro"] .tools-list :is(a, button) b { font-family: var(--font-label); font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+:root[data-theme="retro"] .tools-list :is(a, button) span { color: var(--muted); }
+:root[data-theme="retro"] .tools-list :is(a, button):is(:hover, :focus-visible), :root[data-theme="retro"] .tools-list a[aria-current="page"] { background: var(--teal-deep); color: #ffffff; outline: 0; }
+:root[data-theme="retro"] .tools-list :is(a, button):is(:hover, :focus-visible) span, :root[data-theme="retro"] .tools-list a[aria-current="page"] span { color: #d8f0ef; }
+:root[data-theme="retro"] .tools-sep { height: 4px; margin: 4px 10px; border: 0; border-radius: 2px; background: var(--chrome-band); }
+:root[data-theme="retro"] .toast {
+  background: var(--burst) 14px 50% / 26px 26px no-repeat, linear-gradient(#22345a, var(--navy)); color: #fdf3e1;
+  border: 0; border-radius: 999px; box-shadow: var(--chrome-ring), var(--shadow-sm); font-family: var(--font-label); font-weight: 700; letter-spacing: .02em; padding: 11px 22px 11px 50px;
+}
+:root[data-theme="retro"] .site-footer {
+  border: 3px solid transparent; border-radius: 22px; color: var(--muted); box-shadow: var(--shadow-sm);
+  background: linear-gradient(var(--panel), var(--panel)) padding-box, var(--chrome) border-box;
+}
+
+/* scroll bars: a chrome thumb on a night-sky track, or on cream inside panels */
+:root[data-theme="retro"]::-webkit-scrollbar, :root[data-theme="retro"] ::-webkit-scrollbar { width: 13px; height: 13px; }
+:root[data-theme="retro"]::-webkit-scrollbar-track { background: var(--navy); }
+:root[data-theme="retro"] ::-webkit-scrollbar-track { background: var(--panel-2); }
+:root[data-theme="retro"]::-webkit-scrollbar-thumb, :root[data-theme="retro"] ::-webkit-scrollbar-thumb { background: var(--chrome); border: 3px solid transparent; border-radius: 999px; background-clip: padding-box; }
 
 /* ==== Hokkaido ====================================================================================
    Winter in the north, and the theme the others were measured against. Snow falls over pale
