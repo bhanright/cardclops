@@ -11,6 +11,7 @@ Spellbook's bracket tags say which bracket a combo is at home in:
 Combos that need a card described rather than named ("a sacrifice outlet") are left out: a deck
 can't be checked for them by name.
 """
+import contextlib
 import gzip
 import hashlib
 import json
@@ -196,6 +197,20 @@ def update(connection, log=print):
 
 # ---- a deck's combos ------------------------------------------------------------------------------
 
+@contextlib.contextmanager
+def read_snapshot(connection):
+    """Several reads that see one moment of the database. A refresh installs new combos on its own
+    connection, numbering cards and results afresh; reads spread across that would mix numbers
+    from the old copy with names from the new one."""
+    began = not connection.in_transaction
+    if began:
+        connection.execute("BEGIN")
+    try:
+        yield
+    finally:
+        if began:
+            connection.rollback()           # nothing was written; this just ends the read
+
 class ComboBook:
     """Looks up a deck's combos in the cache's copy."""
 
@@ -214,6 +229,10 @@ class ComboBook:
         be the commander is one); a near miss lacks one piece that would fit the deck's colors."""
         if not oracle_ids or not self.available():
             return None
+        with read_snapshot(self.connection):
+            return self._find(oracle_ids, commander_ids, identity, owned)
+
+    def _find(self, oracle_ids, commander_ids, identity, owned):
         marks = ",".join("?" * len(oracle_ids))
         pieces = {piece: oracle_id for piece, oracle_id in self.connection.execute(
             f"SELECT piece, oracle_id FROM combo_pieces WHERE oracle_id IN ({marks})", tuple(oracle_ids))}

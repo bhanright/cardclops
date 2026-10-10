@@ -7,6 +7,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from gallery import combos, db, deckstats
@@ -84,6 +85,28 @@ class ComboTests(unittest.TestCase):
         self.assertEqual(self.find([LEADER, ENGINE])["included"], [])
         self.assertEqual(len(self.find([LEADER, ENGINE], commanders=[LEADER])["included"]), 1)
         self.assertEqual(self.find([ENGINE])["near_misses"], [])        # you can't just add your commander
+
+    def test_a_refresh_reinstalling_combos_mid_lookup_does_not_mix_them(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "cache.sqlite"
+            reader, writer = (sqlite3.connect(path, check_same_thread=False) for _ in range(2))
+            for connection in (reader, writer):
+                connection.row_factory = sqlite3.Row
+                connection.execute("PRAGMA journal_mode=WAL")              # as the apps run
+            writer.executescript(db.CARD_CACHE_SCHEMA.replace("{schema}", "main"))
+            combos.install(writer, published())
+            book = combos.ComboBook(reader)
+            other = [variant("99-1", [HELIOD, BALLISTA, SCEPTER], tag="E", results=(f"Result {n}",)) for n in range(300)]
+            names = book._names
+
+            def reinstall_then_name(rows):                # the refresh lands between the lookup's reads
+                combos.install(writer, published(other))
+                return names(rows)
+            with mock.patch.object(book, "_names", side_effect=reinstall_then_name):
+                found = book.find({ORACLE["oracle_id"], CONSULT["oracle_id"]}, set(), "UB")
+            self.assertEqual([c["cards"] for c in found["included"]], [["Thassa's Oracle", "Demonic Consultation"]])
+            reader.close()
+            writer.close()
 
     def test_no_data_means_none(self):
         empty = sqlite3.connect(":memory:")

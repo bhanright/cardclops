@@ -649,8 +649,9 @@ class Gallery:
     def decks_list(self, query=""):
         """Every deck's summary, or those matching `query` (gallery/decksearch.py); totals are for all."""
         book = self.deckbook
-        summaries = [book.summary(d["deck_id"]) for d in book.ordered_decks()]
-        result = {"decks": summaries, "totals": book.totals(), "folders": book.folder_list()}
+        with self.lock:                     # summaries compute statistics, which read the shared connection
+            summaries = [book.summary(d["deck_id"]) for d in book.ordered_decks()]
+            result = {"decks": summaries, "totals": book.totals(), "folders": book.folder_list()}
         if query.strip():
             from .decks import fold
             from .decksearch import search
@@ -660,7 +661,8 @@ class Gallery:
         return result
 
     def deck_detail(self, deck_id):
-        return self.deckbook.detail(deck_id, self.summarize)
+        with self.lock:
+            return self.deckbook.detail(deck_id, self.summarize)
 
     def deck_value_history(self, deck_id):
         with self.lock:
