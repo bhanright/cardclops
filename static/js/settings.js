@@ -11,24 +11,25 @@ import { backupPanel } from './backup.js';
 export const SETTINGS_KEY = 'gallery.settings';     // index.html reads the same key
 const DEFAULTS = { theme: 'neon', textScale: 100, motion: 'system', foil: true, hoverPreview: true };
 // The top row is the default and the two plain themes; "More themes" holds every other palette
-// (future ones included). The palettes themselves are in styles.css, under :root[data-theme].
+// (future ones included). Neon, Light and Dark are drawn in styles.css; every other theme is in
+// themes.css, each under its own :root[data-theme].
 const THEMES = [
   { id: 'neon', name: 'Neon', note: 'The original: saturated color on deep violet', swatch: ['#140a24', '#ff3fa4', '#b8ff3c', '#2ee6ff'] },
   { id: 'light', name: 'Light', note: 'Warm paper and deeper inks', swatch: ['#f6f0e4', '#e0237f', '#5b9e00', '#0a8aab'], light: true },
   { id: 'dark', name: 'Dark', note: 'Softer colors on charcoal', swatch: ['#131317', '#f06aa6', '#b7e06e', '#72d0e6'] },
 ];
 const MORE_THEMES = [
-  { id: 'lollipop', name: 'Lollipop', note: 'A candy shop: cherry, green apple and blue raspberry on bubblegum', swatch: ['#ffd9ec', '#ec1a78', '#459600', '#0b8fd0'], light: true },
-  { id: 'astronaut', name: 'Astronaut', note: 'A spacesuit in deep space: safety orange, HUD cyan and visor gold', swatch: ['#070b17', '#ff6b2c', '#4fd3ff', '#f4c542'] },
-  { id: 'necronomicon', name: 'Necronomicon', note: 'Bound in something it shouldn’t be: bone, blood and a sickly glow', swatch: ['#110807', '#e0314a', '#9ad14a', '#d8b25c'] },
-  { id: 'stovepipe', name: 'Stovepipe', note: 'A cast-iron wood stove: soot, ember, brass and copper', swatch: ['#12100e', '#f08a2b', '#d9aa4a', '#7fb3c9'] },
-  { id: 'gamma', name: 'Gamma', note: 'Gamma radiation: a green glow, hazard yellow and a purple lab-accident', swatch: ['#07110b', '#7dff3a', '#ffe23d', '#b077ff'] },
-  { id: 'galactus', name: 'Galactus', note: 'The Devourer of Worlds: cosmic indigo, helmet purple and the Power Cosmic’s gold', swatch: ['#0a0720', '#a77bff', '#ff4fb8', '#ffd23f'] },
-  { id: 'unicorn', name: 'Unicorn', note: 'A pastel rainbow with sparkles', swatch: ['#f4ecff', '#e2449c', '#9d62e6', '#1c8fc4'], light: true },
-  { id: 'lemonhead', name: 'Lemonhead', note: 'The candy box: lemon yellow, the box’s red, sour green', swatch: ['#fff5b3', '#e0312c', '#4f9a00', '#a88000'], light: true },
-  { id: 'olympic', name: 'Olympic', note: 'The five rings on white: blue, yellow, black, green and red', swatch: ['#ffffff', '#0085c7', '#a88400', '#009f3d', '#e8173a'], light: true },
-  { id: 'spqr', name: 'SPQR', note: 'Imperial Rome: marble, Tyrian purple, legion crimson and gold', swatch: ['#f1ebe0', '#a855c0', '#e03a50', '#a88418'], light: true },
-  { id: 'sasquatch', name: 'Sasquatch', note: 'A Pacific Northwest forest at dusk: pine, russet fur and moss', swatch: ['#0d130e', '#c9793c', '#8cc063', '#e0bd52'] },
+  { id: 'lollipop', name: 'Lollipop', note: 'A candy shop: a striped awning, gumdrop tabs, sprinkles and rising bubbles', swatch: ['#ffd9ec', '#ec1a78', '#459600', '#0b8fd0'], light: true },
+  { id: 'astronaut', name: 'Astronaut', note: 'Orbit at night: a twinkling starfield, Earth’s edge, HUD brackets and a mission patch', swatch: ['#070b17', '#ff6b2c', '#4fd3ff', '#f4c542'] },
+  { id: 'necronomicon', name: 'Necronomicon', note: 'Bound in something it shouldn’t be: stitched leather, a ritual circle, candlelight and blood', swatch: ['#110807', '#e0314a', '#9ad14a', '#d8b25c'] },
+  { id: 'stovepipe', name: 'Stovepipe', note: 'A cast-iron wood stove: brick, riveted iron, brass nameplates and drifting embers', swatch: ['#12100e', '#f08a2b', '#d9aa4a', '#7fb3c9'] },
+  { id: 'gamma', name: 'Gamma', note: 'A lab accident: hazard tape, warning labels, the trefoil and a pulsing green glow', swatch: ['#07110b', '#7dff3a', '#ffe23d', '#b077ff'] },
+  { id: 'galactus', name: 'Galactus', note: 'The Devourer of Worlds: cosmic crackle, a consumed planet, caption boxes and halftone panels', swatch: ['#0a0720', '#a77bff', '#ff4fb8', '#ffd23f'] },
+  { id: 'unicorn', name: 'Unicorn', note: 'A pastel sky: clouds, a rainbow arc, rainbow-ringed buttons and twinkling sparkles', swatch: ['#f4ecff', '#e2449c', '#9d62e6', '#1c8fc4'], light: true },
+  { id: 'lemonhead', name: 'Lemonhead', note: 'The candy box: lemon slices, sugar, a scalloped red lid, polka dots and a sunburst', swatch: ['#fff5b3', '#e0312c', '#4f9a00', '#a88000'], light: true },
+  { id: 'olympic', name: 'Olympic', note: 'Race day: a running track, the five-color ribbon, race-bib tabs and a gold medal', swatch: ['#ffffff', '#0085c7', '#a88400', '#009f3d', '#e8173a'], light: true },
+  { id: 'spqr', name: 'SPQR', note: 'Imperial Rome: veined marble, Ionic columns, a gold meander, stone tablets and laurels', swatch: ['#f1ebe0', '#a855c0', '#e03a50', '#a88418'], light: true },
+  { id: 'sasquatch', name: 'Sasquatch', note: 'A Pacific Northwest forest at dusk: pines, fog, fireflies and carved trail signs', swatch: ['#0d130e', '#c9793c', '#8cc063', '#e0bd52'] },
   { id: 'win95', name: 'Windows 95', note: 'The teal desktop, gray beveled buttons and navy title bars', swatch: ['#008080', '#c0c0c0', '#000080', '#ffffff'], light: true },
   { id: 'mac8', name: 'Mac OS 8', note: 'Platinum: pinstriped title bars, rounded gray buttons, the purple-gray desktop', swatch: ['#66669a', '#dddddd', '#333399', '#ffffff'], light: true },
   { id: 'mac27', name: 'macOS 27', note: 'Liquid Glass: frosted panels over a bright wallpaper', swatch: ['#6f8cff', '#b88cff', '#ff9cc2', '#ffffff'], light: true },
