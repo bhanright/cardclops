@@ -23,7 +23,7 @@ self.addEventListener('fetch', event => {
   else if (event.request.mode === 'navigate' || OWN_CODE.test(url.pathname)) event.respondWith(fresh(event.request, url));
 });
 
-const OWN_CODE = /^\/(app\.js|styles\.css|js\/[\w-]+\.js|engine\/[\w.-]+|fonts\/fonts\.css)$/;
+const OWN_CODE = /^\/(app\.js|styles\.css|themes\.css|js\/[\w-]+\.js|engine\/[\w.-]+|fonts\/fonts\.css)$/;
 
 function fresh(request, url) {
   // A navigation's Request can't be copied with new options, so it's fetched by its URL.

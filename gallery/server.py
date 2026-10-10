@@ -1085,7 +1085,7 @@ class Handler(SimpleHTTPRequestHandler):
     # The page's stylesheets and script, stamped with each file's change time: a browser restoring a
     # tab can reuse cached files without asking (Chrome on Android did, running an old app.js under a
     # new page), and a new address is one it can't have cached.
-    STAMPED = ("styles.css", "fonts/fonts.css", "app.js")
+    STAMPED = ("styles.css", "themes.css", "fonts/fonts.css", "app.js")
 
     def _page(self):
         html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")

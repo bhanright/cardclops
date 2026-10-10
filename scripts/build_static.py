@@ -79,7 +79,7 @@ def headers(html, data_url):
              "  Referrer-Policy: strict-origin-when-cross-origin"]
     # The service worker, the engine and the page's own scripts are always revalidated, so a release
     # never runs next to stale files; Pyodide's are named by version and can be kept.
-    for path in ("/sw.js", "/engine/*", "/app.js", "/js/*", "/styles.css", "/index.html", "/",
+    for path in ("/sw.js", "/engine/*", "/app.js", "/js/*", "/styles.css", "/themes.css", "/index.html", "/",
                  "/pack/manifest.json", "/pack/prices/*"):
         lines += [path, "  Cache-Control: no-cache"]
     return "\n".join(lines) + "\n"
