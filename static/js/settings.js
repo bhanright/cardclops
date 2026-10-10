@@ -29,6 +29,7 @@ const MORE_THEMES = [
   { id: 'olympic', name: 'Olympic', note: 'The five rings on white: blue, yellow, black, green and red', swatch: ['#ffffff', '#0085c7', '#a88400', '#009f3d', '#e8173a'], light: true },
   { id: 'spqr', name: 'SPQR', note: 'Imperial Rome: marble, Tyrian purple, legion crimson and gold', swatch: ['#f1ebe0', '#a855c0', '#e03a50', '#a88418'], light: true },
   { id: 'sasquatch', name: 'Sasquatch', note: 'A Pacific Northwest forest at dusk: pine, russet fur and moss', swatch: ['#0d130e', '#c9793c', '#8cc063', '#e0bd52'] },
+  { id: 'win95', name: 'Windows 95', note: 'The teal desktop, gray beveled buttons and navy title bars', swatch: ['#008080', '#c0c0c0', '#000080', '#ffffff'], light: true },
 ];
 const LIGHT_THEMES = new Set([...THEMES, ...MORE_THEMES].filter(t => t.light).map(t => t.id));
 const SIZES = [[90, 'Smaller'], [100, 'Normal'], [112.5, 'Larger'], [125, 'Largest']];

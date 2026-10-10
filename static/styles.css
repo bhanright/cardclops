@@ -289,6 +289,118 @@
 :root[data-theme="galactus"] .dh-name h1 { text-shadow: 0 0 14px rgba(167, 123, 255, .6), 3px 3px 0 #000; }
 :root[data-theme="sasquatch"] .dh-name h1 { text-shadow: 3px 3px 0 #3a2410; }
 
+/* ---- Windows 95 (More themes) ----
+   The teal desktop, silver chrome with bevels, navy title bars, square corners and the system font.
+   Panels are white like an Explorer window: the accents are both fills behind black text and text
+   on panels, and on silver no color can be both (each accent here keeps 3:1 against white and
+   4.5:1 against black, as in Light). The look needs more than colors, so the block after the
+   palette restyles the chrome for this theme only. */
+:root[data-theme="win95"] {
+  --bg: #008080; --bg-deep: #c0c0c0; --bg-blob: #008080;
+  --panel: #ffffff; --panel-2: #f4f4f4; --panel-3: #e0e0e0; --well: #ffffff;
+  --text: #000000; --muted: #404040; --faint: #707070; --paper: #ffffff; --paper-ink: #000000;
+  --pink: #e0237f; --lime: #3a8a00; --cyan: #4a7ab8; --violet: #9068e0;
+  --orange: #d05800; --yellow: #9a7a00; --mint: #008a6a; --peach: #c8603a;
+  --pink-text: #b0136f; --pink-soft: #a0105f; --flat: #d4d4d4;
+  --mana-W: #f3e27a; --mana-C: #c9c9c9; --mana-N: #d3d3d3;
+  --r-common: #c8c8c8; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --tile-uncommon: #eef3fb; --tile-rare: #fbf4e0; --tile-mythic: #fbeae0;
+  --zebra: #f4f4f4; --grid: #dcdcdc; --grid-2: #c0c0c0; --drop: #eaeaea; --hatch: #d0d0d0;
+  --tint-pink: #fbdaea; --tint-magenta: #f5d7ee; --tint-green: #ddf2c9; --legend-miss: #d0d0d0;
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  /* the chrome: bevels instead of ink, no rounding, no offset shadows */
+  --line: 2px outset #dfdfdf;
+  --line-thick: 3px outset #dfdfdf;
+  --shadow: 1px 1px 0 #000;
+  --shadow-sm: 1px 1px 0 #000;
+  --blob: 0; --blob-sm: 0; --pill: 0;
+  --font-display: Tahoma, 'MS Sans Serif', 'Microsoft Sans Serif', Geneva, Verdana, sans-serif;
+  --font-body: Tahoma, 'MS Sans Serif', 'Microsoft Sans Serif', Geneva, Verdana, sans-serif;
+  --raised: inset -1px -1px #0a0a0a, inset 1px 1px #ffffff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  --sunken: inset -1px -1px #ffffff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+  --dither: repeating-conic-gradient(#c0c0c0 0 25%, #ffffff 0 50%) 0 0 / 2px 2px;
+}
+:root[data-theme="win95"] *, :root[data-theme="win95"] *::before, :root[data-theme="win95"] *::after {
+  border-radius: 0 !important; text-shadow: none !important;
+}
+:root[data-theme="win95"] h1, :root[data-theme="win95"] h2, :root[data-theme="win95"] h3,
+:root[data-theme="win95"] h4 { font-weight: 700; color: #000080; letter-spacing: 0; }
+:root[data-theme="win95"] ::selection { background: #000080; color: #fff; }
+:root[data-theme="win95"] :focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
+:root[data-theme="win95"] a { color: #0000c0; }
+:root[data-theme="win95"] a:hover { color: #000080; }
+
+/* The top bar is the taskbar. */
+:root[data-theme="win95"] .topbar { background: #c0c0c0; border-bottom: 0; box-shadow: var(--raised); }
+:root[data-theme="win95"] .logo-text .l2 { color: #000; }
+:root[data-theme="win95"] .logo-text .l2-card, :root[data-theme="win95"] .logo-text .l1 { color: #000080; }
+:root[data-theme="win95"] .header-stats { color: #000; }
+:root[data-theme="win95"] .header-stats b { color: #000080; }
+
+/* Buttons, tabs, chips: raised gray; pressed or chosen: sunken, with the checked dither. */
+:root[data-theme="win95"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .seg, .page-chip, .mini-chip, .bell, .shape-tile) {
+  background: #c0c0c0; color: #000; border: 0; box-shadow: var(--raised); filter: none; font-weight: 700;
+}
+:root[data-theme="win95"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):hover {
+  background: #c0c0c0; color: #000; transform: none; box-shadow: var(--raised); filter: none;
+}
+:root[data-theme="win95"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):active {
+  transform: none; box-shadow: var(--sunken);
+}
+:root[data-theme="win95"] .btn.go { outline: 1px solid #000; outline-offset: -1px; }   /* the default button */
+:root[data-theme="win95"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on,
+  .seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open, .icon-btn.star.on) {
+  background: var(--dither); color: #000; box-shadow: var(--sunken);
+}
+:root[data-theme="win95"] .seg { padding: 2px; gap: 2px; }
+:root[data-theme="win95"] .seg-btn { background: #c0c0c0; color: #000; box-shadow: var(--raised); border: 0 !important; }
+:root[data-theme="win95"] .icon-btn.close { background: #c0c0c0; color: #000; }
+
+/* Text boxes and lists: white and sunken. */
+:root[data-theme="win95"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #fff; color: #000; border: 0; box-shadow: var(--sunken);
+}
+
+/* Windows: a raised frame. A panel's heading is its title bar, full width; the controls that share
+   its heading row drop below it, like a window's toolbar. */
+:root[data-theme="win95"] :is(.panel, .dialog-card, .tools-list, .toast, .page-nav) {
+  box-shadow: var(--raised), 1px 1px 0 #000; padding: 4px 6px 10px;
+  border: 3px solid #c0c0c0;
+}
+:root[data-theme="win95"] :is(.panel, .dialog-card) > .panel-head { margin: 0 0 10px; }
+:root[data-theme="win95"] :is(.panel, .dialog-card) > .panel-head > :is(h1, h2, h3) {
+  flex: 1 0 100%; padding: 3px 6px; color: #fff; font-size: .95rem;
+  background: linear-gradient(90deg, #000080, #1084d0);
+}
+:root[data-theme="win95"] .panel > .panel-head > :not(h1, h2, h3) { margin-left: 6px; }
+:root[data-theme="win95"] .stat-panel > h3 {
+  margin: 0 0 10px; padding: 3px 6px; color: #fff; font-size: .95rem;
+  background: linear-gradient(90deg, #000080, #1084d0);
+}
+:root[data-theme="win95"] .panel > :not(.panel-head):not(h3) { margin-left: 6px; margin-right: 6px; }
+:root[data-theme="win95"] .page-nav { background: #c0c0c0; }
+:root[data-theme="win95"] .modal-backdrop { background: rgba(0, 0, 0, .35); }
+
+/* The More menu is a Windows menu: plain rows on gray, the hovered one in navy. */
+:root[data-theme="win95"] .tools-list { background: #c0c0c0; padding: 3px; }
+:root[data-theme="win95"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; color: #000; }
+:root[data-theme="win95"] .tools-list :is(a, button) span { color: #404040; }
+:root[data-theme="win95"] .tools-list :is(a, button):is(:hover, :focus-visible), :root[data-theme="win95"] .tools-list a[aria-current="page"] {
+  background: #000080; color: #fff;
+}
+:root[data-theme="win95"] .tools-list :is(a, button):is(:hover, :focus-visible) span,
+:root[data-theme="win95"] .tools-list a[aria-current="page"] span { color: #e8e8ff; }
+:root[data-theme="win95"] .tools-sep { border: 0; border-top: 1px solid #808080; border-bottom: 1px solid #fff; }
+
+/* Number tiles: little windows with their color as a title stripe. */
+:root[data-theme="win95"] .bignum { background: #fff; color: #000; box-shadow: var(--raised); border: 0; border-top: 6px solid currentColor; }
+
+/* Scrollbars, where the browser lets a page draw them (Chrome, Edge and the Windows app). */
+:root[data-theme="win95"] ::-webkit-scrollbar { width: 16px; height: 16px; }
+:root[data-theme="win95"] ::-webkit-scrollbar-track { background: var(--dither); }
+:root[data-theme="win95"] ::-webkit-scrollbar-thumb { background: #c0c0c0; box-shadow: var(--raised); }
+:root[data-theme="win95"] ::-webkit-scrollbar-corner { background: #c0c0c0; }
+
 /* Settings → Appearance: reduce motion (as the system setting does), no foil shimmer. */
 :root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
   animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;
