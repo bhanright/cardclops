@@ -12,13 +12,16 @@
 
 /* Moving scenery (snow, embers, stars) stands still when motion is reduced, in Settings or on the
    device. */
-
 :root[data-motion="reduce"] body::before, :root[data-motion="reduce"] body::after { animation: none !important; }
 
 @media (prefers-reduced-motion: reduce) { body::before, body::after { animation: none !important; } }
 
 /* The footer sits on a plate of panel color in every More theme, so scenery at the foot of the
    screen (a hill, a running track, a forest) never sits under its text. */
+:root:not([data-theme="neon"], [data-theme="light"], [data-theme="dark"]) .site-footer {
+  margin: 28px max(var(--gutter), calc((100% - 900px) / 2)) 22px; padding: 12px 18px;
+  background: var(--panel); border: var(--line); border-radius: var(--blob-sm); color: var(--muted);
+}
 
 /* ==== Lollipop ====================================================================================
    A candy shop. Bubblegum walls hung with lollipops and wrapped sweets, bubbles drifting up, a
@@ -1262,10 +1265,6 @@
 :root[data-theme="sasquatch"] .toast { background: var(--wood), #5e3b20; color: var(--routed); border: 2px solid #3b2412; border-radius: 6px; font-family: var(--font-display); font-weight: 700; }
 
 /* ---- themes not yet redone ---- */
-:root:not([data-theme="neon"], [data-theme="light"], [data-theme="dark"]) .site-footer {
-  margin: 28px max(var(--gutter), calc((100% - 900px) / 2)) 22px; padding: 12px 18px;
-  background: var(--panel); border: var(--line); border-radius: var(--blob-sm); color: var(--muted);
-}
 :root[data-theme="win95"] {
   --bg: #008080; --bg-deep: #c0c0c0; --bg-blob: #008080;
   --panel: #ffffff; --panel-2: #f4f4f4; --panel-3: #e0e0e0; --well: #ffffff;
@@ -2028,8 +2027,3 @@
 :root[data-theme="hokkaido"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
 :root[data-theme="hokkaido"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: var(--indigo); color: #fff; }
 :root[data-theme="hokkaido"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #d5deea; }
-:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
-  animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;
-}
-:root[data-motion="reduce"] .foil-sheen { background-position: 50% 50%; }
-:root[data-foil="off"] .foil-sheen { display: none; }
