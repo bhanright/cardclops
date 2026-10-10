@@ -12,15 +12,18 @@
 
 /* Moving scenery (snow, embers, stars) stands still when motion is reduced, in Settings or on the
    device. */
+
 :root[data-motion="reduce"] body::before, :root[data-motion="reduce"] body::after { animation: none !important; }
+
 @media (prefers-reduced-motion: reduce) { body::before, body::after { animation: none !important; } }
 
-/* ---- More themes (Settings → Appearance → More themes) ----
-   Lollipop: a candy shop on bubblegum paper (light).
-   Astronaut: a spacesuit in deep space.
-   Necronomicon: a book bound in something it shouldn't be: bone, blood and a sickly glow. */
+/* ==== Lollipop ====================================================================================
+   A candy shop. Bubblegum walls hung with lollipops and wrapped sweets, bubbles drifting up, a
+   raspberry awning with a candy-cane edge, gumdrop tabs in five flavors, glossy candy buttons that
+   sit on a sugar shadow, sprinkles along the top of every panel, a lollipop before each heading,
+   piped-icing text boxes and rounded type. Light: the accents keep Light's contrast. */
 :root[data-theme="lollipop"] {
-  --bg: #ffd9ec; --bg-deep: #ffc4e0; --bg-blob: #ffe6f2;
+  --bg: #ffd9ec; --bg-deep: #c4115f; --bg-blob: #ffe6f2;
   --panel: #fff7fb; --panel-2: #ffeaf4; --panel-3: #ffd3e8; --well: #fffafd;
   --text: #44092f; --muted: #7f3f68; --faint: #b07a9c;
   --pink: #ec1a78; --lime: #459600; --cyan: #0b8fd0; --violet: #a05cec;
@@ -29,11 +32,104 @@
   --tile-uncommon: #e6f3ff; --tile-rare: #fff3d6; --tile-mythic: #ffe4d6;
   --zebra: #fff0f7; --grid: #ffd1e6; --grid-2: #f5b6d4; --drop: #ffe1ef; --hatch: #f7c6de;
   --tint-pink: #ffd0e5; --tint-magenta: #f8d2f0; --tint-green: #dcf5c4; --legend-miss: #ecc9da;
-  --glow-a: #fff1a8; --glow-b: #c9f3ff;
-  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23ffc8e1' stroke-width='7' stroke-linecap='round'%3E%3Cpath d='M60 60m-26 0a26 26 0 1 0 52 0a18 18 0 1 0 -36 0a10 10 0 1 0 20 0'/%3E%3Cpath d='M190 170m-22 0a22 22 0 1 0 44 0a14 14 0 1 0 -28 0a7 7 0 1 0 14 0'/%3E%3C/g%3E%3Cg stroke='%23ffc0dd' stroke-width='6' stroke-linecap='round'%3E%3Cpath d='M150 40l14 8M40 190l6 14M220 90l-4 14M110 230l14-4'/%3E%3C/g%3E%3C/svg%3E");
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
   --mana-W: #f3e27a; --mana-C: #d9c4d3; --mana-N: #e2cfdb;
   --r-common: #e2c3d6; --r-uncommon: #57c7e8; --r-rare: #e0b21a; --r-mythic: #ef6a0c;
+  --line: 2px solid #44092f; --line-thick: 3px solid #44092f;
+  --shadow: 0 6px 0 #f0a3c6; --shadow-sm: 0 3px 0 #f0a3c6;
+  --blob: 26px; --blob-sm: 16px; --pill: 999px;
+  --font-display: 'Arial Rounded MT Bold', 'Varela Round', Nunito, 'Trebuchet MS', sans-serif;
+  --font-body: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --gloss: radial-gradient(ellipse 70% 55% at 30% 18%, rgba(255, 255, 255, .8), rgba(255, 255, 255, 0) 62%);
+  --sugar: 0 3px 0 #8a1048;
 }
+:root[data-theme="lollipop"] body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='340'%3E%3Cg stroke-linecap='round'%3E%3Cpath d='M70 112V200' stroke='%23fff3f9' stroke-width='7'/%3E%3Ccircle cx='70' cy='80' r='34' fill='%23ffbfdc'/%3E%3Cpath d='M70 80m-22 0a22 22 0 1 0 44 0a15 15 0 1 0 -30 0a8 8 0 1 0 16 0' fill='none' stroke='%23ffe3f0' stroke-width='5'/%3E%3Cpath d='M250 262V330' stroke='%23fff3f9' stroke-width='7'/%3E%3Ccircle cx='250' cy='235' r='28' fill='%23c4ecdf'/%3E%3Cpath d='M250 235m-18 0a18 18 0 1 0 36 0a12 12 0 1 0 -24 0a6 6 0 1 0 12 0' fill='none' stroke='%23e6f8f2' stroke-width='4'/%3E%3C/g%3E%3Cg fill='%23fff0a3'%3E%3Cellipse cx='240' cy='80' rx='22' ry='14'/%3E%3Cpath d='M218 80l-16-12v24zM262 80l16-12v24z'/%3E%3C/g%3E%3Cg fill='%23e3d6ff'%3E%3Cellipse cx='96' cy='272' rx='18' ry='12'/%3E%3Cpath d='M78 272l-13-10v20zM114 272l13-10v20z'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 340px 340px,
+    radial-gradient(ellipse 60% 45% at 88% 0%, #fff1a8, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 0% 100%, #c9f3ff, transparent 70%),
+    #ffd9ec;
+  background-attachment: fixed;
+}
+/* bubbles rising past the shelves */
+:root[data-theme="lollipop"] body::before {
+  content: ''; position: fixed; inset: 0 0 -320px; z-index: -1; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cg fill='%23ffffff' fill-opacity='.28' stroke='%23ffffff' stroke-opacity='.85' stroke-width='2'%3E%3Ccircle cx='40' cy='60' r='10'/%3E%3Ccircle cx='150' cy='200' r='16'/%3E%3Ccircle cx='262' cy='92' r='7'/%3E%3Ccircle cx='212' cy='292' r='12'/%3E%3Ccircle cx='92' cy='252' r='6'/%3E%3C/g%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='36' cy='56' r='2.5'/%3E%3Ccircle cx='144' cy='194' r='4'/%3E%3Ccircle cx='207' cy='287' r='3'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 320px 320px;
+  animation: lollipop-bubbles 46s linear infinite;
+}
+@keyframes lollipop-bubbles { to { transform: translateY(-320px); } }
+:root[data-theme="lollipop"] * { text-shadow: none !important; }
+:root[data-theme="lollipop"] :is(h1, h2, h3, h4) { font-family: var(--font-display); font-weight: 700; color: #c4115f; letter-spacing: 0; }
+:root[data-theme="lollipop"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #c4115f; }
+:root[data-theme="lollipop"] .dh-name h1 { color: #44092f; text-shadow: 3px 3px 0 #ffb3d1 !important; }
+:root[data-theme="lollipop"] ::selection { background: #ec1a78; color: #fff; }
+:root[data-theme="lollipop"] :focus-visible { outline: 3px solid #0b8fd0; outline-offset: 2px; }
+:root[data-theme="lollipop"] a { color: #0a6ea8; }
+
+/* the awning: raspberry with a candy-cane edge */
+:root[data-theme="lollipop"] .topbar {
+  background:
+    repeating-linear-gradient(135deg, #ffffff 0 9px, #ec1a78 9px 18px) bottom / 100% 10px no-repeat,
+    linear-gradient(rgba(255, 255, 255, .22), rgba(255, 255, 255, 0) 60%),
+    #c4115f;
+  border-bottom: 0; box-shadow: 0 4px 0 #f0a3c6; padding-bottom: 20px;
+}
+:root[data-theme="lollipop"] .logo-text .l2 { color: #ffffff; font-family: var(--font-display); }
+:root[data-theme="lollipop"] .logo-text .l2-card { color: #ffe066; }
+:root[data-theme="lollipop"] .header-stats { color: #ffe3f0; }
+:root[data-theme="lollipop"] .header-stats b { color: #ffffff; }
+:root[data-theme="lollipop"] .bell { background: var(--gloss), #fff7fb; border: 2px solid #44092f; box-shadow: var(--sugar); }
+
+/* gumdrop tabs, five flavors; the open page is the cherry */
+:root[data-theme="lollipop"] :is(.tabs > a, .tools-btn) {
+  background: var(--gloss), #ffb3d1; color: #44092f; border: 2px solid #44092f; border-radius: 999px;
+  box-shadow: var(--sugar); font-family: var(--font-display);
+}
+:root[data-theme="lollipop"] .tabs > a:nth-child(5n+2) { background: var(--gloss), #c9f3e6; }
+:root[data-theme="lollipop"] .tabs > a:nth-child(5n+3) { background: var(--gloss), #fff1a8; }
+:root[data-theme="lollipop"] .tabs > a:nth-child(5n+4) { background: var(--gloss), #e3d6ff; }
+:root[data-theme="lollipop"] .tabs > a:nth-child(5n) { background: var(--gloss), #ffd1b3; }
+:root[data-theme="lollipop"] :is(.tabs > a, .tools-btn):hover { color: #44092f; transform: translateY(-2px); box-shadow: 0 5px 0 #8a1048; }
+:root[data-theme="lollipop"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on) { background: var(--gloss), #c4115f; color: #ffffff; }
+
+/* panels: a strip of sprinkles across the top */
+:root[data-theme="lollipop"] :is(.panel, .dialog-card) {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='16'%3E%3Cg stroke-width='4' stroke-linecap='round'%3E%3Cpath d='M6 10l8-4' stroke='%23ec1a78'/%3E%3Cpath d='M26 5l7 6' stroke='%230b8fd0'/%3E%3Cpath d='M46 12l9-3' stroke='%23459600'/%3E%3Cpath d='M68 4l6 7' stroke='%23f0650c'/%3E%3Cpath d='M88 11l8-5' stroke='%23a05cec'/%3E%3Cpath d='M108 6l8 5' stroke='%23e8b400'/%3E%3Cpath d='M126 12l7-6' stroke='%23ec1a78'/%3E%3C/g%3E%3C/svg%3E") 14px 10px / 140px 16px repeat-x,
+    var(--panel);
+  padding-top: 34px; border: 2px solid #44092f; box-shadow: 0 6px 0 #f0a3c6;
+}
+:root[data-theme="lollipop"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title)::before {
+  content: ''; display: inline-block; width: 1em; height: 1.25em; margin-right: .4em; vertical-align: -.25em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 25'%3E%3Cpath d='M10 12v12' stroke='%2344092f' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='9' r='8' fill='%23ec1a78' stroke='%2344092f' stroke-width='1.5'/%3E%3Cpath d='M10 9m-4.5 0a4.5 4.5 0 1 0 9 0a3 3 0 1 0 -6 0a1.5 1.5 0 1 0 3 0' fill='none' stroke='%23ffffff' stroke-width='1.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* candy buttons: glossy, on a sugar shadow */
+:root[data-theme="lollipop"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  background-image: var(--gloss); border: 2px solid #44092f; border-radius: 999px; box-shadow: var(--sugar); filter: none;
+}
+:root[data-theme="lollipop"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover { transform: translateY(-2px); box-shadow: 0 5px 0 #8a1048; filter: none; }
+:root[data-theme="lollipop"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile, .tabs > a):active { transform: translateY(2px); box-shadow: 0 1px 0 #8a1048; }
+:root[data-theme="lollipop"] .shape-tile { border-radius: 18px; }
+:root[data-theme="lollipop"] .seg { border: 2px solid #44092f; box-shadow: var(--sugar); }
+:root[data-theme="lollipop"] .seg-btn + .seg-btn { border-left: 2px solid #44092f; }
+/* piped icing */
+:root[data-theme="lollipop"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #fffafd; color: #44092f; border: 2px dashed #ec1a78; border-radius: 16px; box-shadow: none;
+}
+:root[data-theme="lollipop"] :is(.tile, .deck-tile) { border: 2px solid #44092f; border-radius: 22px; box-shadow: 0 5px 0 #f0a3c6; }
+:root[data-theme="lollipop"] :is(.tile, .deck-tile):hover { box-shadow: 0 8px 0 #ec1a78; }
+:root[data-theme="lollipop"] .bignum { border: 2px solid #44092f; border-radius: 22px; box-shadow: 0 5px 0 rgba(68, 9, 47, .35); background-image: var(--gloss); }
+:root[data-theme="lollipop"] .tools-list { background: var(--gloss), #fff7fb; border: 2px solid #44092f; border-radius: 22px; box-shadow: 0 6px 0 #f0a3c6; }
+:root[data-theme="lollipop"] .tools-list :is(a, button) { background: transparent; border: 0; border-radius: 14px; }
+:root[data-theme="lollipop"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #ffd3e8; color: #44092f; }
+:root[data-theme="lollipop"] .toast { background: var(--gloss), #c9f3e6; color: #44092f; border: 2px solid #44092f; border-radius: 999px; box-shadow: var(--sugar); }
+
+/* ==== Astronaut ===================================================================================
+   Out on a spacewalk. A starfield that twinkles, a violet nebula, and Earth's blue limb glowing
+   along the bottom of the screen; the logo worn as a mission patch; a heads-up display for the
+   rest: a ruled HUD bar, tabs and panels framed by targeting brackets, a faint grid, monospace
+   readouts, an orbit before each heading, and the suit's safety orange for whatever is chosen. */
 :root[data-theme="astronaut"] {
   --bg: #070b17; --bg-deep: #04060e; --bg-blob: #0c1326;
   --panel: #121b33; --panel-2: #0e1529; --panel-3: #1c2847; --well: #0a1022;
@@ -44,9 +140,124 @@
   --tile-uncommon: #132444; --tile-rare: #221f33; --tile-mythic: #2a1a26;
   --zebra: #101830; --grid: #1b2645; --grid-2: #28365e; --drop: #152040; --hatch: #060a15;
   --tint-pink: #3a1622; --tint-magenta: #2c1a3e; --tint-green: #123024; --legend-miss: #39456a;
-  --glow-a: #101a38; --glow-b: #140f2e;
-  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%2322305a'%3E%3Ccircle cx='20' cy='30' r='1.6'/%3E%3Ccircle cx='70' cy='140' r='1.2'/%3E%3Ccircle cx='130' cy='60' r='2'/%3E%3Ccircle cx='210' cy='20' r='1.3'/%3E%3Ccircle cx='240' cy='150' r='1.8'/%3E%3Ccircle cx='160' cy='230' r='1.4'/%3E%3Ccircle cx='40' cy='220' r='2.2'/%3E%3Ccircle cx='100' cy='200' r='1'/%3E%3Ccircle cx='190' cy='110' r='1.1'/%3E%3C/g%3E%3Cg fill='none' stroke='%231a2446' stroke-width='5'%3E%3Ccircle cx='205' cy='205' r='18'/%3E%3Cellipse cx='205' cy='205' rx='34' ry='9'/%3E%3C/g%3E%3C/svg%3E");
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 1px solid rgba(79, 211, 255, .35); --line-thick: 1px solid rgba(79, 211, 255, .55);
+  --shadow: 0 10px 30px rgba(0, 0, 0, .55); --shadow-sm: 0 3px 10px rgba(0, 0, 0, .5);
+  --blob: 4px; --blob-sm: 3px; --pill: 3px;
+  --font-display: Bahnschrift, Eurostile, 'DIN Alternate', 'Segoe UI', sans-serif;
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-readout: Consolas, 'Lucida Console', 'Courier New', monospace;
+  --hud: #4fd3ff; --suit: #ff6b2c;
+  /* targeting brackets at the four corners of a box, large and small, cyan and orange */
+  --brackets:
+    linear-gradient(var(--hud), var(--hud)) top left / 16px 2px no-repeat, linear-gradient(var(--hud), var(--hud)) top left / 2px 16px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) top right / 16px 2px no-repeat, linear-gradient(var(--hud), var(--hud)) top right / 2px 16px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) bottom left / 16px 2px no-repeat, linear-gradient(var(--hud), var(--hud)) bottom left / 2px 16px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) bottom right / 16px 2px no-repeat, linear-gradient(var(--hud), var(--hud)) bottom right / 2px 16px no-repeat;
+  --brackets-sm:
+    linear-gradient(var(--hud), var(--hud)) top left / 7px 1.5px no-repeat, linear-gradient(var(--hud), var(--hud)) top left / 1.5px 7px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) bottom right / 7px 1.5px no-repeat, linear-gradient(var(--hud), var(--hud)) bottom right / 1.5px 7px no-repeat;
+  --brackets-suit:
+    linear-gradient(var(--suit), var(--suit)) top left / 7px 2px no-repeat, linear-gradient(var(--suit), var(--suit)) top left / 2px 7px no-repeat,
+    linear-gradient(var(--suit), var(--suit)) bottom right / 7px 2px no-repeat, linear-gradient(var(--suit), var(--suit)) bottom right / 2px 7px no-repeat;
 }
+:root[data-theme="astronaut"] body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='12' cy='22' r='.9' fill-opacity='.7'/%3E%3Ccircle cx='58' cy='140' r='.7' fill-opacity='.5'/%3E%3Ccircle cx='128' cy='48' r='1.1' fill-opacity='.8'/%3E%3Ccircle cx='206' cy='14' r='.8' fill-opacity='.6'/%3E%3Ccircle cx='246' cy='158' r='1' fill-opacity='.7'/%3E%3Ccircle cx='164' cy='236' r='.8' fill-opacity='.5'/%3E%3Ccircle cx='36' cy='232' r='1.2' fill-opacity='.8'/%3E%3Ccircle cx='98' cy='206' r='.6' fill-opacity='.5'/%3E%3Ccircle cx='188' cy='112' r='.7' fill-opacity='.6'/%3E%3Ccircle cx='280' cy='276' r='.9' fill-opacity='.7'/%3E%3Ccircle cx='270' cy='70' r='.6' fill-opacity='.5'/%3E%3Ccircle cx='80' cy='86' r='.5' fill-opacity='.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 300px 300px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg fill='%23cfe9ff'%3E%3Ccircle cx='30' cy='60' r='.6' fill-opacity='.45'/%3E%3Ccircle cx='150' cy='30' r='.5' fill-opacity='.4'/%3E%3Ccircle cx='190' cy='170' r='.6' fill-opacity='.45'/%3E%3Ccircle cx='90' cy='150' r='.5' fill-opacity='.35'/%3E%3C/g%3E%3C/svg%3E") 40px 70px / 220px 220px,
+    radial-gradient(ellipse 140% 55% at 50% 138%, #0b2552 0 54%, #2a7fd4 57%, #9be3ff 58.2%, rgba(79, 211, 255, .3) 59.6%, transparent 64%),
+    radial-gradient(ellipse 50% 35% at 82% 14%, rgba(157, 140, 255, .2), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 12% 34%, rgba(255, 107, 44, .07), transparent 70%),
+    #070b17;
+  background-attachment: fixed;
+}
+/* the brighter stars twinkle */
+:root[data-theme="astronaut"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cg fill='%23ffffff'%3E%3Ccircle cx='60' cy='90' r='1.6'/%3E%3Ccircle cx='300' cy='40' r='1.4'/%3E%3Ccircle cx='220' cy='260' r='1.8'/%3E%3Ccircle cx='380' cy='330' r='1.3'/%3E%3Ccircle cx='110' cy='360' r='1.5'/%3E%3C/g%3E%3Cg stroke='%23ffffff' stroke-opacity='.5' stroke-width='.8'%3E%3Cpath d='M220 252v16M212 260h16'/%3E%3Cpath d='M60 83v14M53 90h14'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 420px 420px;
+  animation: astronaut-twinkle 5s ease-in-out infinite;
+}
+@keyframes astronaut-twinkle { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+:root[data-theme="astronaut"] * { text-shadow: none !important; }
+:root[data-theme="astronaut"] :is(h1, h2, h3, h4) { font-family: var(--font-display); font-weight: 600; text-transform: uppercase; letter-spacing: .12em; color: #eef3ff; }
+:root[data-theme="astronaut"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #eef3ff; }
+:root[data-theme="astronaut"] .dh-name h1 { text-transform: none; letter-spacing: .04em; }
+:root[data-theme="astronaut"] ::selection { background: rgba(79, 211, 255, .45); color: #fff; }
+:root[data-theme="astronaut"] :focus-visible { outline: 1px solid var(--hud); outline-offset: 3px; }
+:root[data-theme="astronaut"] a { color: #8fe2ff; }
+
+/* the HUD bar, ruled along its foot; the logo is the mission patch */
+:root[data-theme="astronaut"] .topbar {
+  background:
+    repeating-linear-gradient(90deg, rgba(79, 211, 255, .6) 0 1px, transparent 1px 14px) bottom / 100% 6px no-repeat,
+    linear-gradient(rgba(79, 211, 255, .6), rgba(79, 211, 255, .6)) bottom / 100% 1px no-repeat,
+    rgba(4, 6, 14, .86);
+  border-bottom: 0; box-shadow: 0 0 26px rgba(79, 211, 255, .12); padding-bottom: 16px;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+:root[data-theme="astronaut"] .logo-mark { border-radius: 50%; background: #0a1022; padding: 3px; box-shadow: 0 0 0 3px #f4c542, 0 0 0 5px #04060e, 0 0 0 7px var(--hud); }
+:root[data-theme="astronaut"] .logo-text .l2 { color: #eef3ff; font-family: var(--font-display); text-transform: uppercase; letter-spacing: .14em; font-size: 1.2rem; }
+:root[data-theme="astronaut"] .logo-text .l2-card { color: var(--suit); }
+:root[data-theme="astronaut"] .header-stats { font-family: var(--font-readout); text-transform: uppercase; font-size: .8rem; letter-spacing: .06em; color: #aab7d6; }
+:root[data-theme="astronaut"] .header-stats b { color: #f4c542; }
+:root[data-theme="astronaut"] .bell { background: var(--brackets-sm), rgba(10, 16, 34, .9); border: 1px solid rgba(79, 211, 255, .35); box-shadow: none; }
+
+/* tabs are HUD readouts in brackets; the open page is marked in suit orange */
+:root[data-theme="astronaut"] :is(.tabs > a, .tools-btn) {
+  background: var(--brackets-sm), rgba(18, 27, 51, .55); color: #cfe9ff; border: 0; box-shadow: none;
+  font-family: var(--font-readout); font-size: .88rem; text-transform: uppercase; letter-spacing: .1em;
+}
+:root[data-theme="astronaut"] :is(.tabs > a, .tools-btn):hover { background: var(--brackets-sm), rgba(79, 211, 255, .14); color: #ffffff; transform: none; box-shadow: none; }
+:root[data-theme="astronaut"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on) {
+  background: var(--brackets-suit), rgba(255, 107, 44, .16); color: #ffd2bd; text-shadow: 0 0 8px rgba(255, 107, 44, .75) !important;
+}
+
+/* panels: bracketed HUD frames over a faint grid */
+:root[data-theme="astronaut"] :is(.panel, .dialog-card) {
+  background:
+    var(--brackets),
+    repeating-linear-gradient(0deg, rgba(79, 211, 255, .045) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg, rgba(79, 211, 255, .045) 0 1px, transparent 1px 28px),
+    rgba(18, 27, 51, .9);
+  border: 1px solid rgba(79, 211, 255, .18);
+  -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+}
+:root[data-theme="astronaut"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title)::before {
+  content: ''; display: inline-block; width: 1.15em; height: 1.15em; margin-right: .5em; vertical-align: -.2em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='12' rx='11' ry='4.5' fill='none' stroke='%234fd3ff' stroke-width='1.6' transform='rotate(-20 12 12)'/%3E%3Ccircle cx='12' cy='12' r='5' fill='%23ff6b2c'/%3E%3Ccircle cx='21.5' cy='8.6' r='1.6' fill='%23f4c542'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* controls: bracketed readouts; the go button is the suit's safety orange */
+:root[data-theme="astronaut"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  background: var(--brackets-sm), rgba(10, 16, 34, .85); color: #cfe9ff; border: 1px solid rgba(79, 211, 255, .3);
+  box-shadow: none; filter: none; letter-spacing: .05em;
+}
+:root[data-theme="astronaut"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover {
+  background: var(--brackets-sm), rgba(79, 211, 255, .12); color: #ffffff; border-color: var(--hud); transform: none; box-shadow: 0 0 12px rgba(79, 211, 255, .35);
+}
+:root[data-theme="astronaut"] .btn.go, :root[data-theme="astronaut"] .btn.go:hover { background: var(--suit); color: #000; border-color: #ffa070; }
+:root[data-theme="astronaut"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open) { background: var(--brackets-suit), rgba(255, 107, 44, .2); color: #ffffff; border-color: var(--suit); }
+:root[data-theme="astronaut"] .seg { border: 1px solid rgba(79, 211, 255, .3); box-shadow: none; background: rgba(10, 16, 34, .85); }
+:root[data-theme="astronaut"] .seg-btn { color: #cfe9ff; }
+:root[data-theme="astronaut"] .seg-btn + .seg-btn { border-left: 1px solid rgba(79, 211, 255, .3); }
+:root[data-theme="astronaut"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: rgba(4, 6, 14, .92); color: #eef3ff; border: 0; border-bottom: 2px solid var(--hud);
+  box-shadow: inset 3px 0 0 rgba(79, 211, 255, .45); font-family: var(--font-readout); caret-color: var(--suit);
+}
+:root[data-theme="astronaut"] :is(.tile, .deck-tile) { border: 1px solid rgba(79, 211, 255, .22); border-radius: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, .5); }
+:root[data-theme="astronaut"] :is(.tile, .deck-tile):hover { box-shadow: 0 0 0 1px var(--hud), 0 0 18px rgba(79, 211, 255, .35); }
+:root[data-theme="astronaut"] .bignum { border: 1px solid rgba(0, 0, 0, .4); border-radius: 4px; box-shadow: 0 0 16px rgba(79, 211, 255, .12); }
+:root[data-theme="astronaut"] .tools-list { background: var(--brackets), rgba(10, 16, 34, .96); border: 1px solid rgba(79, 211, 255, .35); border-radius: 4px; box-shadow: 0 0 30px rgba(79, 211, 255, .15); }
+:root[data-theme="astronaut"] .tools-list :is(a, button) { background: transparent; border: 0; border-radius: 2px; }
+:root[data-theme="astronaut"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: rgba(79, 211, 255, .12); }
+:root[data-theme="astronaut"] .toast { background: #f4c542; color: #000; border: 0; border-radius: 3px; font-family: var(--font-readout); }
+
+/* ==== Necronomicon ================================================================================
+   A grimoire bound in something it shouldn't be. Grained dark leather, a ritual circle scratched
+   faintly behind everything, candlelight guttering in two corners, a stitched leather band for the
+   top bar, tabs that hang like the book's blood-red ribbon markers, pages framed in a double rule
+   with brass studs at the corners, a drop of blood before each heading, blackletter headings where
+   the computer has a blackletter face, stitched leather buttons, and bone-white old-book type. */
 :root[data-theme="necronomicon"] {
   --bg: #110807; --bg-deep: #0a0404; --bg-blob: #1a0d0b;
   --panel: #23140f; --panel-2: #1c100c; --panel-3: #342019; --well: #140a08;
@@ -57,13 +268,114 @@
   --tile-uncommon: #1e1c1a; --tile-rare: #2a1d12; --tile-mythic: #2e1414;
   --zebra: #1d110d; --grid: #2e1c16; --grid-2: #44291f; --drop: #261611; --hatch: #0a0504;
   --tint-pink: #3d1216; --tint-magenta: #33142a; --tint-green: #1d2a12; --legend-miss: #4a3a30;
-  --glow-a: #2a0b0b; --glow-b: #16100a;
-  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23241410' stroke-width='5' stroke-linecap='round'%3E%3Ccircle cx='70' cy='70' r='42'/%3E%3Ccircle cx='70' cy='70' r='32'/%3E%3Cpath d='M70 40L98 86H42Z'/%3E%3Cpath d='M160 190q30-26 60 0q-30 26-60 0Z'/%3E%3Ccircle cx='190' cy='190' r='7'/%3E%3Cpath d='M190 40v36M178 52h24M40 190l18 30M58 190l-18 30'/%3E%3C/g%3E%3C/svg%3E");
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 1px solid #5a4636; --line-thick: 2px solid #6b5440;
+  --shadow: 0 10px 28px rgba(0, 0, 0, .7); --shadow-sm: 0 3px 8px rgba(0, 0, 0, .6);
+  --blob: 4px; --blob-sm: 3px; --pill: 3px;
+  --font-display: 'Old English Text MT', UnifrakturCook, 'Luminari', 'Palatino Linotype', 'Book Antiqua', serif;
+  --font-body: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+  --bone: #eadcbf; --blood: #8a1020;
+  --leather: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25  0 0 0 0 .13  0 0 0 0 .1  0 0 0 .32 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
+  --studs:
+    radial-gradient(circle, #e6c46e 0 1.6px, #8a6a26 2.6px 3.6px, #2a1a0c 4px, transparent 5px) 6px 6px / 12px 12px no-repeat,
+    radial-gradient(circle, #e6c46e 0 1.6px, #8a6a26 2.6px 3.6px, #2a1a0c 4px, transparent 5px) calc(100% - 6px) 6px / 12px 12px no-repeat,
+    radial-gradient(circle, #e6c46e 0 1.6px, #8a6a26 2.6px 3.6px, #2a1a0c 4px, transparent 5px) 6px calc(100% - 6px) / 12px 12px no-repeat,
+    radial-gradient(circle, #e6c46e 0 1.6px, #8a6a26 2.6px 3.6px, #2a1a0c 4px, transparent 5px) calc(100% - 6px) calc(100% - 6px) / 12px 12px no-repeat;
 }
-:root[data-theme="lollipop"] .dh-name h1 { text-shadow: 3px 3px 0 var(--pink); color: var(--paper); }
-:root[data-theme="necronomicon"] .dh-name h1 { text-shadow: 3px 3px 0 #5a0d16; }
+:root[data-theme="necronomicon"] body {
+  background:
+    radial-gradient(ellipse 75% 70% at 50% 45%, transparent 40%, rgba(0, 0, 0, .7)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%232e1813' stroke-width='1.4'%3E%3Ccircle cx='100' cy='100' r='95'/%3E%3Ccircle cx='100' cy='100' r='82'/%3E%3Ccircle cx='100' cy='100' r='30'/%3E%3Cpath d='M100 18L171 141H29Z'/%3E%3Cpath d='M100 182L29 59H171Z'/%3E%3Cpath d='M100 5v10M100 185v10M5 100h10M185 100h10M33 33l7 7M160 160l7 7M167 33l-7 7M40 160l-7 7'/%3E%3C/g%3E%3C/svg%3E") center / min(80vmin, 760px) no-repeat,
+    var(--leather) 0 0 / 220px 220px,
+    #110807;
+  background-attachment: fixed;
+}
+/* candlelight, guttering */
+:root[data-theme="necronomicon"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(circle at 7% 10%, rgba(229, 138, 44, .2), transparent 30%),
+    radial-gradient(circle at 93% 90%, rgba(229, 138, 44, .15), transparent 32%);
+  animation: necronomicon-candle 3.4s infinite;
+}
+@keyframes necronomicon-candle {
+  0%, 100% { opacity: .85; } 12% { opacity: .6; } 20% { opacity: .95; } 34% { opacity: .7; }
+  50% { opacity: 1; } 63% { opacity: .72; } 78% { opacity: .92; }
+}
+:root[data-theme="necronomicon"] * { text-shadow: none !important; }
+:root[data-theme="necronomicon"] :is(h1, h2, h3, h4) { font-family: var(--font-display); font-weight: 400; color: var(--bone); letter-spacing: .01em; }
+:root[data-theme="necronomicon"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: var(--bone); }
+:root[data-theme="necronomicon"] :is(.bn-value, .shape-count, .combo-count b) { font-family: var(--font-body); font-weight: 700; }   /* blackletter numbers are hard to read */
+:root[data-theme="necronomicon"] .dh-name h1 { text-shadow: 2px 2px 0 #5a0d16 !important; }
+:root[data-theme="necronomicon"] ::selection { background: var(--blood); color: var(--bone); }
+:root[data-theme="necronomicon"] :focus-visible { outline: 2px solid #d8b25c; outline-offset: 2px; }
+:root[data-theme="necronomicon"] a { color: #e6c46e; }
 
-/* Stovepipe: a cast-iron wood stove and its pipe. Gamma: gamma radiation, lab-accident style. */
+/* the top bar: a band of stitched leather */
+:root[data-theme="necronomicon"] .topbar {
+  background:
+    linear-gradient(90deg, rgba(234, 220, 191, .5) 0 10px, transparent 10px 18px) 0 7px / 18px 2px repeat-x,
+    linear-gradient(90deg, rgba(234, 220, 191, .5) 0 10px, transparent 10px 18px) 0 calc(100% - 7px) / 18px 2px repeat-x,
+    var(--leather) 0 0 / 220px 220px,
+    linear-gradient(#2a1510, #170a07);
+  border-bottom: 3px solid #3d2a22; box-shadow: 0 6px 18px rgba(0, 0, 0, .65);
+}
+:root[data-theme="necronomicon"] .logo-text .l2 { color: var(--bone); font-family: var(--font-display); font-weight: 400; }
+:root[data-theme="necronomicon"] .logo-text .l2-card { color: #e0314a; }
+:root[data-theme="necronomicon"] .header-stats { color: #b9a582; font-family: var(--font-body); }
+:root[data-theme="necronomicon"] .header-stats b { color: #e6c46e; }
+:root[data-theme="necronomicon"] .bell { background: var(--leather), #2a1712; border: 1px solid #5a4636; box-shadow: 0 3px 8px rgba(0, 0, 0, .6); }
+
+/* tabs hang like the book's ribbon markers; the open page's ribbon is gilt */
+:root[data-theme="necronomicon"] :is(.tabs > a, .tools-btn) {
+  background: linear-gradient(#a0182a, #6a0b17); color: #f4e8d0; border: 0; border-radius: 0; box-shadow: none;
+  padding: 7px 14px 17px; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  font-family: var(--font-body); font-weight: 700; letter-spacing: .03em;
+}
+:root[data-theme="necronomicon"] :is(.tabs > a, .tools-btn):hover { background: linear-gradient(#c02035, #7e101c); color: #fff4e0; transform: translateY(2px); box-shadow: none; }
+:root[data-theme="necronomicon"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on) { background: linear-gradient(#ecc970, #8a6a26); color: #1a0c09; }
+
+/* pages: double-ruled, with brass studs at the corners */
+:root[data-theme="necronomicon"] :is(.panel, .dialog-card) {
+  background: var(--studs), var(--leather) 0 0 / 220px 220px, var(--panel);
+  border: 1px solid #050202;
+  box-shadow: inset 0 0 0 5px var(--panel), inset 0 0 0 6px #6b5440, inset 0 0 0 9px var(--panel), inset 0 0 0 10px #4a3828, 0 10px 28px rgba(0, 0, 0, .7);
+}
+:root[data-theme="necronomicon"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title)::before {
+  content: ''; display: inline-block; width: .7em; height: 1em; margin-right: .45em; vertical-align: -.1em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 22'%3E%3Cpath d='M8 1C8 1 2 10 2 14a6 6 0 0 0 12 0C14 10 8 1 8 1Z' fill='%23b0162a'/%3E%3Cpath d='M5.2 14.2a2.8 2.8 0 0 0 2.8 2.8' stroke='%23f59aa6' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* buttons: stitched leather; the go button is blood */
+:root[data-theme="necronomicon"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  background: linear-gradient(#3a2219, #24140f); color: var(--bone); border: 1px solid #050202;
+  outline: 1px dashed rgba(234, 220, 191, .38); outline-offset: -5px; box-shadow: 0 2px 6px rgba(0, 0, 0, .6); filter: none;
+  font-family: var(--font-body); font-weight: 700;
+}
+:root[data-theme="necronomicon"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover { background: linear-gradient(#4a2a1f, #2c1812); color: #fff4e0; transform: none; box-shadow: 0 0 14px rgba(224, 49, 74, .3); }
+:root[data-theme="necronomicon"] .btn.go, :root[data-theme="necronomicon"] .btn.go:hover { background: linear-gradient(#a0182a, #6a0b17); color: #f4e8d0; }
+:root[data-theme="necronomicon"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open) { background: linear-gradient(#ecc970, #8a6a26); color: #1a0c09; }
+:root[data-theme="necronomicon"] .seg { border: 1px solid #050202; box-shadow: none; background: #1c100c; }
+:root[data-theme="necronomicon"] .seg-btn { color: var(--bone); }
+:root[data-theme="necronomicon"] .seg-btn + .seg-btn { border-left: 1px solid #5a4636; }
+:root[data-theme="necronomicon"] :focus-visible:is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) { outline: 2px solid #d8b25c; outline-offset: 2px; }
+:root[data-theme="necronomicon"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #140a08; color: var(--bone); border: 1px solid #5a4636; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6);
+  font-family: var(--font-body);
+}
+:root[data-theme="necronomicon"] :is(.tile, .deck-tile) { border: 1px solid #5a4636; border-radius: 4px; box-shadow: 0 8px 20px rgba(0, 0, 0, .6); }
+:root[data-theme="necronomicon"] :is(.tile, .deck-tile):hover { box-shadow: 0 0 0 1px #d8b25c, 0 0 22px rgba(224, 49, 74, .35); }
+:root[data-theme="necronomicon"] .bignum { border: 1px solid #050202; border-radius: 3px; box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .25), 0 6px 14px rgba(0, 0, 0, .6); }
+:root[data-theme="necronomicon"] .tools-list { background: var(--studs), var(--leather), #1c100c; border: 1px solid #6b5440; border-radius: 3px; box-shadow: 0 12px 30px rgba(0, 0, 0, .75); }
+:root[data-theme="necronomicon"] .tools-list :is(a, button) { background: transparent; border: 0; outline: 0; }
+:root[data-theme="necronomicon"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #3a2219; color: var(--bone); }
+:root[data-theme="necronomicon"] .toast { background: linear-gradient(#ecc970, #8a6a26); color: #1a0c09; border: 1px solid #050202; border-radius: 3px; font-family: var(--font-body); }
+
+/* ==== Stovepipe ===================================================================================
+   A cast-iron wood stove against a sooty brick wall. The firebox glows at the foot of the screen and
+   embers drift up past the bricks; the top bar is an iron plate with a row of brass rivets and a
+   brass trim; tabs are brass nameplates screwed on at both ends, the open one glowing hot; panels
+   are riveted iron plates under a brass rail; a flame before each heading, and slab-serif type. */
 :root[data-theme="stovepipe"] {
   --bg: #12100e; --bg-deep: #0a0908; --bg-blob: #1a1714;
   --panel: #221e1a; --panel-2: #1b1815; --panel-3: #322c26; --well: #15120f;
@@ -74,9 +386,115 @@
   --tile-uncommon: #1f2427; --tile-rare: #2a2419; --tile-mythic: #2e1d16;
   --zebra: #1e1a17; --grid: #2e2823; --grid-2: #433a31; --drop: #26211c; --hatch: #0c0a09;
   --tint-pink: #3a1a14; --tint-magenta: #33202a; --tint-green: #1e2a1c; --legend-miss: #4a4238;
-  --glow-a: #2a1a0e; --glow-b: #16181b;
-  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23201c18' stroke-width='6' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M40 250V120q0-24 24-24h60'/%3E%3Cpath d='M58 250V120q0-6 6-6h60'/%3E%3Cpath d='M34 170h30M34 200h30'/%3E%3Ccircle cx='49' cy='150' r='6'/%3E%3Cpath d='M170 90q-16-14 0-28t0-28'/%3E%3Cpath d='M196 110q-14-12 0-24t0-26'/%3E%3Cpath d='M210 230q-12-10 0-20t0-20'/%3E%3C/g%3E%3C/svg%3E");
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 2px solid #0c0a09; --line-thick: 3px solid #0c0a09;
+  --shadow: 0 8px 20px rgba(0, 0, 0, .6); --shadow-sm: 0 3px 8px rgba(0, 0, 0, .55);
+  --blob: 6px; --blob-sm: 4px; --pill: 4px;
+  --font-display: Rockwell, 'Rockwell Nova', 'Roboto Slab', 'Sitka Heading', Cambria, Georgia, serif;
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --brass: linear-gradient(#f4d68e, #d9aa4a 45%, #a87a28);
+  --ember: linear-gradient(#ffd27a, #f08a2b 50%, #c2471a);
+  --iron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .22  0 0 0 0 .2  0 0 0 0 .18  0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  --rivet: radial-gradient(circle, #f4d68e 0 1.5px, #a87a28 2.5px 3.5px, #2a1d0c 4px, transparent 5px);
+  --rivets:
+    var(--rivet) 4px 4px / 12px 12px no-repeat, var(--rivet) calc(100% - 4px) 4px / 12px 12px no-repeat,
+    var(--rivet) 4px calc(100% - 4px) / 12px 12px no-repeat, var(--rivet) calc(100% - 4px) calc(100% - 4px) / 12px 12px no-repeat;
 }
+:root[data-theme="stovepipe"] body {
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 115%, rgba(240, 138, 43, .42), rgba(232, 82, 58, .12) 45%, transparent 72%),
+    linear-gradient(rgba(0, 0, 0, .55), rgba(0, 0, 0, .15) 45%, rgba(0, 0, 0, .55)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Crect width='120' height='60' fill='%23120e0c'/%3E%3Cg fill='%231f1613'%3E%3Crect x='1' y='1' width='58' height='27' rx='1.5'/%3E%3Crect x='61' y='1' width='58' height='27' rx='1.5'/%3E%3Crect x='-29' y='31' width='58' height='27' rx='1.5'/%3E%3Crect x='31' y='31' width='58' height='27' rx='1.5'/%3E%3Crect x='91' y='31' width='58' height='27' rx='1.5'/%3E%3C/g%3E%3Cg fill='%23241915'%3E%3Crect x='61' y='1' width='58' height='27' rx='1.5'/%3E%3Crect x='-29' y='31' width='58' height='27' rx='1.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 120px 60px,
+    #120e0c;
+  background-attachment: fixed;
+}
+/* embers rising from the firebox, two drifts at different speeds */
+:root[data-theme="stovepipe"] body::before,
+:root[data-theme="stovepipe"] body::after {
+  content: ''; position: fixed; inset: 0 0 -400px; z-index: -1; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='400'%3E%3Cg fill='%23ffb347'%3E%3Ccircle cx='40' cy='380' r='2'/%3E%3Ccircle cx='150' cy='300' r='1.5'/%3E%3Ccircle cx='250' cy='200' r='2.2'/%3E%3Ccircle cx='90' cy='120' r='1.4'/%3E%3C/g%3E%3Cg fill='%23f0612b'%3E%3Ccircle cx='200' cy='350' r='1.8'/%3E%3Ccircle cx='20' cy='220' r='1.5'/%3E%3Ccircle cx='280' cy='60' r='1.6'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 300px 400px;
+  animation: stovepipe-embers 24s linear infinite;
+}
+:root[data-theme="stovepipe"] body::after { background-position: 150px 120px; opacity: .55; animation-duration: 37s; }
+@keyframes stovepipe-embers { to { transform: translateY(-400px); } }
+:root[data-theme="stovepipe"] * { text-shadow: none !important; }
+:root[data-theme="stovepipe"] :is(h1, h2, h3, h4) { font-family: var(--font-display); font-weight: 700; color: #f1e6d2; letter-spacing: .03em; }
+:root[data-theme="stovepipe"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title) { text-transform: uppercase; }
+:root[data-theme="stovepipe"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #f1e6d2; }
+:root[data-theme="stovepipe"] .dh-name h1 { text-shadow: 2px 2px 0 #6b2a12 !important; }
+:root[data-theme="stovepipe"] ::selection { background: #c2471a; color: #fff6e6; }
+:root[data-theme="stovepipe"] :focus-visible { outline: 2px solid #f4d68e; outline-offset: 2px; }
+:root[data-theme="stovepipe"] a { color: #f4c36e; }
+
+/* the top bar: an iron plate with a row of brass rivets and a brass trim */
+:root[data-theme="stovepipe"] .topbar {
+  background:
+    radial-gradient(circle, #f4d68e 0 1.6px, #a87a28 2.6px 3.4px, #2a1d0c 3.8px, transparent 4.8px) 12px calc(100% - 4px) / 44px 10px repeat-x,
+    var(--iron) 0 0 / 200px 200px,
+    linear-gradient(#2d2823, #171412);
+  border-bottom: 3px solid #d9aa4a; box-shadow: 0 4px 0 #0c0a09, 0 10px 22px rgba(0, 0, 0, .6); padding-bottom: 18px;
+}
+:root[data-theme="stovepipe"] .logo-text .l2 { color: #f1e6d2; font-family: var(--font-display); }
+:root[data-theme="stovepipe"] .logo-text .l2-card { color: #f08a2b; }
+:root[data-theme="stovepipe"] .header-stats b { color: #f4d68e; }
+:root[data-theme="stovepipe"] .bell { background: var(--brass); border: 1px solid #5a4018; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 0 #0c0a09; }
+
+/* tabs: brass nameplates, screwed on; the open page glows hot */
+:root[data-theme="stovepipe"] :is(.tabs > a, .tools-btn) {
+  background:
+    radial-gradient(circle, #5a4018 0 1.5px, transparent 2px) 7px 50% / 6px 6px no-repeat,
+    radial-gradient(circle, #5a4018 0 1.5px, transparent 2px) calc(100% - 7px) 50% / 6px 6px no-repeat,
+    var(--brass);
+  color: #2a1d0c; border: 1px solid #5a4018; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 0 #0c0a09;
+  padding-left: 20px; padding-right: 20px; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+}
+:root[data-theme="stovepipe"] :is(.tabs > a, .tools-btn):hover { color: #2a1d0c; transform: none; filter: brightness(1.08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 0 #0c0a09; }
+:root[data-theme="stovepipe"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on) {
+  background:
+    radial-gradient(circle, #5a2008 0 1.5px, transparent 2px) 7px 50% / 6px 6px no-repeat,
+    radial-gradient(circle, #5a2008 0 1.5px, transparent 2px) calc(100% - 7px) 50% / 6px 6px no-repeat,
+    var(--ember);
+  color: #1a0c04; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4), 0 0 16px rgba(240, 138, 43, .65);
+}
+
+/* panels: riveted iron plates under a brass rail */
+:root[data-theme="stovepipe"] :is(.panel, .dialog-card) {
+  background: var(--rivets), linear-gradient(#d9aa4a, #a87a28) top / 100% 4px no-repeat, var(--iron) 0 0 / 200px 200px, var(--panel);
+  border: 2px solid #0c0a09; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 8px 20px rgba(0, 0, 0, .6);
+}
+:root[data-theme="stovepipe"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title)::before {
+  content: ''; display: inline-block; width: .8em; height: 1em; margin-right: .45em; vertical-align: -.1em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 20'%3E%3Cpath d='M8 1c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 2-6 1 2 2 2 2 2 0-3 1-5 2-7Z' fill='%23f08a2b'/%3E%3Cpath d='M8 9c.5 2 3 3 3 5.5a3 3 0 0 1-6 0c0-1.5 1-2 1-3 .6 1 1 1 1 1 0-1.5.5-2.5 1-3.5Z' fill='%23ffd27a'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* buttons: brass plates; the go button is hot iron */
+:root[data-theme="stovepipe"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  background: var(--brass); color: #2a1d0c; border: 1px solid #5a4018; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 0 #0c0a09; filter: none;
+  font-weight: 700;
+}
+:root[data-theme="stovepipe"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover { color: #2a1d0c; transform: none; filter: brightness(1.08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 0 #0c0a09; }
+:root[data-theme="stovepipe"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):active { transform: translateY(1px); box-shadow: inset 0 2px 4px rgba(0, 0, 0, .45); }
+:root[data-theme="stovepipe"] .btn.go, :root[data-theme="stovepipe"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open) { background: var(--ember); color: #1a0c04; }
+:root[data-theme="stovepipe"] .seg { border: 1px solid #5a4018; box-shadow: 0 2px 0 #0c0a09; background: #1b1815; }
+:root[data-theme="stovepipe"] .seg-btn { color: #f1e6d2; }
+:root[data-theme="stovepipe"] .seg-btn + .seg-btn { border-left: 1px solid #5a4018; }
+:root[data-theme="stovepipe"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #15120f; color: #f1e6d2; border: 2px solid #0c0a09; box-shadow: inset 0 2px 6px rgba(0, 0, 0, .7), 0 0 0 1px #a87a28;
+}
+:root[data-theme="stovepipe"] :is(.tile, .deck-tile) { border: 2px solid #0c0a09; border-radius: 6px; box-shadow: 0 6px 14px rgba(0, 0, 0, .6); }
+:root[data-theme="stovepipe"] :is(.tile, .deck-tile):hover { box-shadow: 0 0 0 2px #d9aa4a, 0 0 20px rgba(240, 138, 43, .4); }
+:root[data-theme="stovepipe"] .bignum { border: 2px solid #0c0a09; border-radius: 4px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 5px 0 #0c0a09; }
+:root[data-theme="stovepipe"] .tools-list { background: var(--rivets), var(--iron), #1b1815; border: 2px solid #0c0a09; border-top: 4px solid #d9aa4a; border-radius: 4px; box-shadow: 0 12px 28px rgba(0, 0, 0, .7); }
+:root[data-theme="stovepipe"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="stovepipe"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #322c26; color: #f4d68e; }
+:root[data-theme="stovepipe"] .toast { background: var(--brass); color: #2a1d0c; border: 1px solid #5a4018; border-radius: 4px; }
+
+/* ==== Gamma =======================================================================================
+   A lab accident in progress. Dark green wall tiles, pools of radioactive glow that pulse slowly, a
+   huge faint trefoil behind everything and hazard tape along the floor; the top bar is a steel lip
+   over hazard tape; tabs are yellow warning labels, the open one glowing green; panels are
+   containment units with a lit inner edge and a strip of hazard tape at the corner; the radiation
+   trefoil before each heading, stencil lettering, and terminal-green text boxes. */
 :root[data-theme="gamma"] {
   --bg: #07110b; --bg-deep: #040a06; --bg-blob: #0c1a11;
   --panel: #0f1f15; --panel-2: #0b1810; --panel-3: #18301f; --well: #08140c;
@@ -87,13 +505,102 @@
   --tile-uncommon: #0e2226; --tile-rare: #1f2412; --tile-mythic: #271820;
   --zebra: #0d1b12; --grid: #173021; --grid-2: #23462f; --drop: #11261a; --hatch: #050c07;
   --tint-pink: #33141d; --tint-magenta: #271733; --tint-green: #123a16; --legend-miss: #2e4a37;
-  --glow-a: #0f2e14; --glow-b: #1a1030;
-  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%23122a19'%3E%3Cpath d='M75.0%2061.3L87.0%2040.6A34%2034%200%200%201%20104.0%2070.0L80.0%2070.0A10%2010%200%200%200%2075.0%2061.3ZM75.0%2078.7L87.0%2099.4A34%2034%200%200%201%2053.0%2099.4L65.0%2078.7A10%2010%200%200%200%2075.0%2078.7ZM60.0%2070.0L36.0%2070.0A34%2034%200%200%201%2053.0%2040.6L65.0%2061.3A10%2010%200%200%200%2060.0%2070.0Z'/%3E%3Ccircle cx='70' cy='70' r='6'/%3E%3C/g%3E%3Cg fill='none' stroke='%23112619' stroke-width='5'%3E%3Cellipse cx='190' cy='190' rx='38' ry='13'/%3E%3Cellipse cx='190' cy='190' rx='38' ry='13' transform='rotate(60 190 190)'/%3E%3Cellipse cx='190' cy='190' rx='38' ry='13' transform='rotate(120 190 190)'/%3E%3C/g%3E%3Ccircle cx='190' cy='190' r='6' fill='%23122a19'/%3E%3C/svg%3E");
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 1px solid rgba(125, 255, 58, .35); --line-thick: 2px solid #ffe23d;
+  --shadow: 0 0 22px rgba(125, 255, 58, .12), 0 10px 24px rgba(0, 0, 0, .6); --shadow-sm: 0 3px 8px rgba(0, 0, 0, .6);
+  --blob: 2px; --blob-sm: 2px; --pill: 2px;
+  --font-display: Stencil, 'Stencil Std', Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-terminal: Consolas, 'Lucida Console', 'Courier New', monospace;
+  --hazard: repeating-linear-gradient(-45deg, #ffe23d 0 10px, #111111 10px 20px);
+  --trefoil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'%3E%3Ccircle cx='70' cy='70' r='66' fill='%23ffe23d' stroke='%23000' stroke-width='6'/%3E%3Cg fill='%23000'%3E%3Cpath d='M76.5 58.7L95 26.6A50 50 0 0 1 120 70L83 70A13 13 0 0 0 76.5 58.7ZM76.5 81.3L95 113.4A50 50 0 0 1 45 113.4L63.5 81.3A13 13 0 0 0 76.5 81.3ZM57 70L20 70A50 50 0 0 1 45 26.6L63.5 58.7A13 13 0 0 0 57 70Z'/%3E%3Ccircle cx='70' cy='70' r='8'/%3E%3C/g%3E%3C/svg%3E");
 }
-:root[data-theme="stovepipe"] .dh-name h1 { text-shadow: 3px 3px 0 #6b2a12; }
-:root[data-theme="gamma"] .dh-name h1 { text-shadow: 0 0 12px rgba(125, 255, 58, .55), 3px 3px 0 #000; }
+:root[data-theme="gamma"] body {
+  background:
+    var(--hazard) bottom / 100% 14px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'%3E%3Cg fill='%23102519'%3E%3Cpath d='M76.5 58.7L95 26.6A50 50 0 0 1 120 70L83 70A13 13 0 0 0 76.5 58.7ZM76.5 81.3L95 113.4A50 50 0 0 1 45 113.4L63.5 81.3A13 13 0 0 0 76.5 81.3ZM57 70L20 70A50 50 0 0 1 45 26.6L63.5 58.7A13 13 0 0 0 57 70Z'/%3E%3Ccircle cx='70' cy='70' r='8'/%3E%3C/g%3E%3C/svg%3E") center / min(70vmin, 640px) no-repeat,
+    radial-gradient(ellipse 40% 30% at 10% 95%, rgba(125, 255, 58, .16), transparent 70%),
+    radial-gradient(ellipse 35% 28% at 92% 70%, rgba(176, 119, 255, .12), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(125, 255, 58, .05) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, rgba(125, 255, 58, .05) 0 1px, transparent 1px 48px),
+    #07110b;
+  background-attachment: fixed;
+}
+/* the glow breathes */
+:root[data-theme="gamma"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 60% 45% at 50% 105%, rgba(125, 255, 58, .3), transparent 70%);
+  animation: gamma-pulse 4s ease-in-out infinite alternate;
+}
+@keyframes gamma-pulse { from { opacity: .35; } to { opacity: 1; } }
+:root[data-theme="gamma"] * { text-shadow: none !important; }
+:root[data-theme="gamma"] :is(h1, h2, h3, h4) { font-family: var(--font-display); font-weight: 400; color: #e6ffe9; letter-spacing: .05em; }
+:root[data-theme="gamma"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title) { text-transform: uppercase; }
+:root[data-theme="gamma"] :is(.dash-grid .panel h2, .area-title, .shape-title, .stat-panel h3, .br-why, .dialog-card h2) { color: #e6ffe9; }
+:root[data-theme="gamma"] .dh-name h1 { text-shadow: 0 0 12px rgba(125, 255, 58, .55) !important; }
+:root[data-theme="gamma"] ::selection { background: #7dff3a; color: #000; }
+:root[data-theme="gamma"] :focus-visible { outline: 2px solid #7dff3a; outline-offset: 2px; }
+:root[data-theme="gamma"] a { color: #9dff6a; }
 
-/* Galactus, Unicorn, Lemonhead, Olympic, SPQR, Sasquatch (see js/settings.js for what each is). */
+/* the top bar: a steel lip over hazard tape */
+:root[data-theme="gamma"] .topbar {
+  background: var(--hazard) bottom / 100% 10px no-repeat, linear-gradient(#1c2a21, #0c140f);
+  border-bottom: 0; padding-bottom: 20px; box-shadow: 0 6px 18px rgba(0, 0, 0, .6);
+}
+:root[data-theme="gamma"] .logo-text .l2 { color: #e6ffe9; font-family: var(--font-display); letter-spacing: .06em; }
+:root[data-theme="gamma"] .logo-text .l2-card { color: #7dff3a; text-shadow: 0 0 10px rgba(125, 255, 58, .7) !important; }
+:root[data-theme="gamma"] .header-stats b { color: #ffe23d; }
+:root[data-theme="gamma"] .bell { background: #101a13; border: 2px solid #ffe23d; box-shadow: none; }
+
+/* tabs: yellow warning labels; the open page glows */
+:root[data-theme="gamma"] :is(.tabs > a, .tools-btn) {
+  background: #ffe23d; color: #000; border: 2px solid #000; box-shadow: 0 0 0 2px #ffe23d, 0 4px 0 #000;
+  font-family: var(--font-display); font-weight: 400; text-transform: uppercase; letter-spacing: .06em;
+}
+:root[data-theme="gamma"] :is(.tabs > a, .tools-btn):hover { background: #fff07a; color: #000; transform: none; box-shadow: 0 0 0 2px #fff07a, 0 4px 0 #000; }
+:root[data-theme="gamma"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on) { background: #7dff3a; color: #000; box-shadow: 0 0 0 2px #7dff3a, 0 0 20px rgba(125, 255, 58, .85); }
+
+/* panels: containment units, lit inside, tape at the corner */
+:root[data-theme="gamma"] :is(.panel, .dialog-card) {
+  background: var(--hazard) 0 0 / 76px 9px no-repeat, var(--panel);
+  border: 1px solid rgba(125, 255, 58, .35); padding-top: 22px;
+  box-shadow: inset 0 0 22px rgba(125, 255, 58, .12), 0 10px 24px rgba(0, 0, 0, .6);
+}
+:root[data-theme="gamma"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title)::before {
+  content: ''; display: inline-block; width: 1em; height: 1em; margin-right: .45em; vertical-align: -.12em;
+  background: var(--trefoil) center / contain no-repeat;
+}
+
+/* controls: dark with a warning-yellow rim; they glow under the pointer */
+:root[data-theme="gamma"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  background: #101a13; color: #e6ffe9; border: 2px solid #ffe23d; box-shadow: none; filter: none;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+}
+:root[data-theme="gamma"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover { color: #ffffff; border-color: #7dff3a; transform: none; box-shadow: 0 0 14px rgba(125, 255, 58, .6); }
+:root[data-theme="gamma"] .btn.go, :root[data-theme="gamma"] .btn.go:hover { background: #ffe23d; color: #000; }
+:root[data-theme="gamma"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open) { background: #7dff3a; color: #000; }
+:root[data-theme="gamma"] .seg { border: 2px solid #ffe23d; box-shadow: none; background: #101a13; }
+:root[data-theme="gamma"] .seg-btn { color: #e6ffe9; }
+:root[data-theme="gamma"] .seg-btn + .seg-btn { border-left: 2px solid #ffe23d; }
+:root[data-theme="gamma"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #020604; color: #7dff3a; border: 1px solid rgba(125, 255, 58, .6); box-shadow: inset 0 0 10px rgba(125, 255, 58, .15);
+  font-family: var(--font-terminal); caret-color: #7dff3a;
+}
+:root[data-theme="gamma"] :is(.tile, .deck-tile) { border: 1px solid rgba(125, 255, 58, .3); border-radius: 2px; box-shadow: 0 8px 18px rgba(0, 0, 0, .6); }
+:root[data-theme="gamma"] :is(.tile, .deck-tile):hover { box-shadow: 0 0 0 1px #7dff3a, 0 0 22px rgba(125, 255, 58, .45); }
+:root[data-theme="gamma"] .bignum { border: 2px solid #000; border-radius: 2px; box-shadow: 0 0 0 2px rgba(255, 226, 61, .5), 0 0 18px rgba(125, 255, 58, .15); }
+:root[data-theme="gamma"] .tools-list { background: #0b1810; border: 2px solid #ffe23d; border-radius: 2px; box-shadow: 0 0 28px rgba(125, 255, 58, .2); }
+:root[data-theme="gamma"] .tools-list :is(a, button) { background: transparent; border: 0; }
+:root[data-theme="gamma"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #18301f; color: #e6ffe9; box-shadow: inset 3px 0 0 #7dff3a; }
+:root[data-theme="gamma"] .toast { background: #ffe23d; color: #000; border: 2px solid #000; border-radius: 2px; }
+
+/* ==== Galactus ====================================================================================
+   A cosmic comic: the Devourer of Worlds' corner of the universe, drawn like 1960s comics. Kirby
+   crackle (black bubbles in cosmic energy) across a deep indigo sky, a world glowing gold as it is
+   consumed, rays of the Power Cosmic turning slowly behind everything; the top bar is helmet-purple
+   metal edged in crackle and gold; tabs, and every heading, are yellow caption boxes; panels are
+   comic panels with heavy black borders, offset shadows and halftone dots; buttons punch out of the
+   page; text boxes are speech balloons; Impact for the lettering. */
 :root[data-theme="galactus"] {
   --bg: #0a0720; --bg-deep: #05040f; --bg-blob: #120d30;
   --panel: #1a1340; --panel-2: #140f33; --panel-3: #2a1f5c; --well: #0f0b27;
@@ -104,9 +611,93 @@
   --tile-uncommon: #16204a; --tile-rare: #2a2040; --tile-mythic: #321a44;
   --zebra: #171138; --grid: #2a2152; --grid-2: #3a2e70; --drop: #1e1648; --hatch: #07051a;
   --tint-pink: #3a1440; --tint-magenta: #301a4a; --tint-green: #12303a; --legend-miss: #3c3464;
-  --glow-a: #2a1060; --glow-b: #0c1a44;
-  --bg-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='%232a2058'%3E%3Cpath d='M60 40a34 34 0 1 0 22 60a16 16 0 1 1 8-40a34 34 0 0 0-30-20Z'/%3E%3Ccircle cx='200' cy='60' r='3'/%3E%3Ccircle cx='230' cy='200' r='2'/%3E%3Ccircle cx='140' cy='170' r='2.5'/%3E%3Ccircle cx='30' cy='210' r='2'/%3E%3Ccircle cx='180' cy='120' r='12'/%3E%3C/g%3E%3Cpath d='M200 200l4-12 4 12 12 4-12 4-4 12-4-12-12-4Z' fill='%232e2360'/%3E%3C/svg%3E");
+  --glow-a: transparent; --glow-b: transparent; --bg-art: none;
+  --line: 3px solid #000; --line-thick: 4px solid #000;
+  --shadow: 6px 6px 0 #000; --shadow-sm: 3px 3px 0 #000;
+  --blob: 4px; --blob-sm: 3px; --pill: 999px;
+  --font-display: Impact, Haettenschweiler, 'Arial Narrow Bold', 'Arial Black', sans-serif;
+  --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --halftone: radial-gradient(circle, rgba(167, 123, 255, .16) 1.1px, transparent 1.6px) 0 0 / 7px 7px;
 }
+:root[data-theme="galactus"] body {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cdefs%3E%3CradialGradient id='e'%3E%3Cstop offset='0' stop-color='%23ff4fb8' stop-opacity='.5'/%3E%3Cstop offset='.6' stop-color='%23a77bff' stop-opacity='.22'/%3E%3Cstop offset='1' stop-color='%23a77bff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='60' cy='70' r='48' fill='url(%23e)'/%3E%3Ccircle cx='200' cy='190' r='42' fill='url(%23e)'/%3E%3Cg fill='%2305040f'%3E%3Ccircle cx='52' cy='62' r='9'/%3E%3Ccircle cx='68' cy='76' r='6'/%3E%3Ccircle cx='60' cy='89' r='4'/%3E%3Ccircle cx='42' cy='80' r='5'/%3E%3Ccircle cx='77' cy='58' r='3'/%3E%3Ccircle cx='38' cy='64' r='2.5'/%3E%3Ccircle cx='196' cy='182' r='8'/%3E%3Ccircle cx='211' cy='198' r='5'/%3E%3Ccircle cx='186' cy='200' r='4'/%3E%3Ccircle cx='215' cy='176' r='3'/%3E%3Ccircle cx='200' cy='208' r='2.5'/%3E%3C/g%3E%3Cg fill='%23ffd23f'%3E%3Ccircle cx='150' cy='40' r='1.5'/%3E%3Ccircle cx='120' cy='150' r='1.2'/%3E%3Ccircle cx='240' cy='90' r='1.4'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 260px 260px,
+    radial-gradient(circle at 84% 86%, #fff2b8 0 1.4%, #ffd23f 3.5%, #ff8f45 6%, rgba(255, 79, 184, .35) 11%, rgba(167, 123, 255, .18) 18%, transparent 28%),
+    radial-gradient(ellipse 70% 60% at 25% 15%, #2a1060, transparent 70%),
+    #0a0720;
+  background-attachment: fixed;
+}
+/* the Power Cosmic, turning slowly */
+:root[data-theme="galactus"] body::before {
+  content: ''; position: fixed; inset: -50%; z-index: -1; pointer-events: none;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(167, 123, 255, .07) 0deg 4deg, transparent 4deg 14deg);
+  animation: galactus-rays 180s linear infinite;
+}
+@keyframes galactus-rays { to { transform: rotate(360deg); } }
+:root[data-theme="galactus"] * { text-shadow: none !important; }
+:root[data-theme="galactus"] :is(h1, h2, h3, h4) { font-family: var(--font-display); font-weight: 400; letter-spacing: .03em; color: #f3efff; }
+:root[data-theme="galactus"] .dh-name h1 { text-shadow: 3px 3px 0 #000, 0 0 16px rgba(167, 123, 255, .6) !important; }
+/* every heading is a caption box */
+:root[data-theme="galactus"] :is(.panel-head h2, .area-title, .stat-panel > h3, .shape-title, .dash-grid .panel h2, .br-why, .dialog-card h2) {
+  display: inline-block; width: fit-content; background: #ffd23f; color: #000 !important; padding: 2px 10px 1px;
+  border: 2px solid #000; box-shadow: 3px 3px 0 #000; text-transform: uppercase; letter-spacing: .05em;
+}
+:root[data-theme="galactus"] ::selection { background: #ffd23f; color: #000; }
+:root[data-theme="galactus"] :focus-visible { outline: 3px solid #ff4fb8; outline-offset: 2px; }
+:root[data-theme="galactus"] a { color: #ffd23f; }
+
+/* the top bar: helmet-purple metal, edged in crackle and gold */
+:root[data-theme="galactus"] .topbar {
+  background:
+    radial-gradient(circle, #05040f 0 4px, transparent 4.5px) 0 calc(100% - 2px) / 22px 12px repeat-x,
+    radial-gradient(circle, #05040f 0 2.5px, transparent 3px) 11px calc(100% - 12px) / 22px 10px repeat-x,
+    linear-gradient(#6a3ad0, #2a1666 62%, #1a1340);
+  border-bottom: 4px solid #000; box-shadow: 0 4px 0 #ffd23f; padding-bottom: 24px;
+}
+:root[data-theme="galactus"] .logo-text .l2 { color: #ffffff; font-family: var(--font-display); letter-spacing: .04em; font-size: 1.6rem; }
+:root[data-theme="galactus"] .logo-text .l2-card { color: #ffd23f; }
+:root[data-theme="galactus"] .header-stats { color: #e2d9ff; }
+:root[data-theme="galactus"] .header-stats b { color: #ffd23f; }
+:root[data-theme="galactus"] .bell { background: #ffd23f; border: 3px solid #000; box-shadow: 3px 3px 0 #000; }
+
+/* tabs are caption boxes; the open page crackles with the Power Cosmic */
+:root[data-theme="galactus"] :is(.tabs > a, .tools-btn) {
+  background: #ffd23f; color: #000; border: 3px solid #000; border-radius: 0; box-shadow: 4px 4px 0 #000;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: .05em;
+}
+:root[data-theme="galactus"] :is(.tabs > a, .tools-btn):hover { background: #ffe175; color: #000; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #000; }
+:root[data-theme="galactus"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on) {
+  background: radial-gradient(circle at 30% 40%, #ffffff, #ffe8a0 45%, #ffd23f); color: #000; box-shadow: 4px 4px 0 #ff4fb8, 0 0 22px rgba(255, 210, 63, .85);
+}
+
+/* panels: comic panels, inked heavy, with halftone dots */
+:root[data-theme="galactus"] :is(.panel, .dialog-card) {
+  background: var(--halftone), var(--panel); border: 3px solid #000; box-shadow: 6px 6px 0 #000;
+}
+/* buttons punch out of the page */
+:root[data-theme="galactus"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
+  border: 3px solid #000; box-shadow: 4px 4px 0 #000; filter: none; font-family: var(--font-display); font-weight: 400;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+:root[data-theme="galactus"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile):hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #000; filter: none; }
+:root[data-theme="galactus"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile, .tabs > a):active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+:root[data-theme="galactus"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open) { background: #ffd23f; color: #000; }
+:root[data-theme="galactus"] .seg { border: 3px solid #000; box-shadow: 3px 3px 0 #000; }
+:root[data-theme="galactus"] .seg-btn + .seg-btn { border-left: 3px solid #000; }
+/* speech balloons */
+:root[data-theme="galactus"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
+  background-color: #ffffff; color: #000; border: 3px solid #000; border-radius: 18px; box-shadow: 3px 3px 0 #000;
+}
+:root[data-theme="galactus"] :is(.tile, .deck-tile) { border: 3px solid #000; border-radius: 4px; box-shadow: 5px 5px 0 #000; }
+:root[data-theme="galactus"] :is(.tile, .deck-tile):hover { box-shadow: 7px 7px 0 #ffd23f; }
+:root[data-theme="galactus"] .bignum { border: 3px solid #000; border-radius: 3px; box-shadow: 5px 5px 0 #000; background-image: radial-gradient(circle, rgba(0, 0, 0, .12) 1.1px, transparent 1.6px); background-size: 7px 7px; }
+:root[data-theme="galactus"] .tools-list { background: var(--halftone), #1a1340; border: 3px solid #000; border-radius: 4px; box-shadow: 6px 6px 0 #ffd23f; }
+:root[data-theme="galactus"] .tools-list :is(a, button) { background: transparent; border: 0; border-radius: 0; }
+:root[data-theme="galactus"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #ffd23f; color: #000; }
+:root[data-theme="galactus"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #2a1a00; }
+:root[data-theme="galactus"] .toast { background: #ffd23f; color: #000; border: 3px solid #000; border-radius: 0; box-shadow: 4px 4px 0 #000; font-family: var(--font-display); letter-spacing: .04em; text-transform: uppercase; }
+
+/* ---- themes not yet redone ---- */
 :root[data-theme="unicorn"] {
   --bg: #f4ecff; --bg-deep: #ead9ff; --bg-blob: #fbe8f6;
   --panel: #fffcff; --panel-2: #f8f0ff; --panel-3: #ecdcff; --well: #fffaff;
@@ -184,15 +775,7 @@
 :root[data-theme="lemonhead"] .dh-name h1 { text-shadow: 3px 3px 0 var(--pink); }
 :root[data-theme="olympic"] .dh-name h1 { text-shadow: 3px 3px 0 var(--cyan); }
 :root[data-theme="spqr"] .dh-name h1 { text-shadow: 3px 3px 0 var(--yellow); }
-:root[data-theme="galactus"] .dh-name h1 { text-shadow: 0 0 14px rgba(167, 123, 255, .6), 3px 3px 0 #000; }
 :root[data-theme="sasquatch"] .dh-name h1 { text-shadow: 3px 3px 0 #3a2410; }
-
-/* ---- Windows 95 (More themes) ----
-   The teal desktop, silver chrome with bevels, navy title bars, square corners and the system font.
-   Panels are white like an Explorer window: the accents are both fills behind black text and text
-   on panels, and on silver no color can be both (each accent here keeps 3:1 against white and
-   4.5:1 against black, as in Light). The look needs more than colors, so the block after the
-   palette restyles the chrome for this theme only. */
 :root[data-theme="win95"] {
   --bg: #008080; --bg-deep: #c0c0c0; --bg-blob: #008080;
   --panel: #ffffff; --panel-2: #f4f4f4; --panel-3: #e0e0e0; --well: #ffffff;
@@ -227,15 +810,11 @@
 :root[data-theme="win95"] :focus-visible { outline: 1px dotted #000; outline-offset: -4px; }
 :root[data-theme="win95"] a { color: #0000c0; }
 :root[data-theme="win95"] a:hover { color: #000080; }
-
-/* The top bar is the taskbar. */
 :root[data-theme="win95"] .topbar { background: #c0c0c0; border-bottom: 0; box-shadow: var(--raised); }
 :root[data-theme="win95"] .logo-text .l2 { color: #000; }
 :root[data-theme="win95"] .logo-text .l2-card, :root[data-theme="win95"] .logo-text .l1 { color: #000080; }
 :root[data-theme="win95"] .header-stats { color: #000; }
 :root[data-theme="win95"] .header-stats b { color: #000080; }
-
-/* Buttons, tabs, chips: raised gray; pressed or chosen: sunken, with the checked dither. */
 :root[data-theme="win95"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .seg, .page-chip, .mini-chip, .bell, .shape-tile) {
   background: #c0c0c0; color: #000; border: 0; box-shadow: var(--raised); filter: none; font-weight: 700;
 }
@@ -245,7 +824,7 @@
 :root[data-theme="win95"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile):active {
   transform: none; box-shadow: var(--sunken);
 }
-:root[data-theme="win95"] .btn.go { outline: 1px solid #000; outline-offset: -1px; }   /* the default button */
+:root[data-theme="win95"] .btn.go { outline: 1px solid #000; outline-offset: -1px; }
 :root[data-theme="win95"] :is(.tabs > a[aria-current="page"], .tools-btn[aria-expanded="true"], .tools-btn.on,
   .seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open, .icon-btn.star.on) {
   background: var(--dither); color: #000; box-shadow: var(--sunken);
@@ -253,14 +832,9 @@
 :root[data-theme="win95"] .seg { padding: 2px; gap: 2px; }
 :root[data-theme="win95"] .seg-btn { background: #c0c0c0; color: #000; box-shadow: var(--raised); border: 0 !important; }
 :root[data-theme="win95"] .icon-btn.close { background: #c0c0c0; color: #000; }
-
-/* Text boxes and lists: white and sunken. */
 :root[data-theme="win95"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
   background-color: #fff; color: #000; border: 0; box-shadow: var(--sunken);
 }
-
-/* Windows: a raised frame. A panel's heading is its title bar, full width; the controls that share
-   its heading row drop below it, like a window's toolbar. */
 :root[data-theme="win95"] :is(.panel, .dialog-card, .tools-list, .toast, .page-nav) {
   box-shadow: var(--raised), 1px 1px 0 #000; padding: 4px 6px 10px;
   border: 3px solid #c0c0c0;
@@ -278,8 +852,6 @@
 :root[data-theme="win95"] .panel > :not(.panel-head):not(h3) { margin-left: 6px; margin-right: 6px; }
 :root[data-theme="win95"] .page-nav { background: #c0c0c0; }
 :root[data-theme="win95"] .modal-backdrop { background: rgba(0, 0, 0, .35); }
-
-/* The More menu is a Windows menu: plain rows on gray, the hovered one in navy. */
 :root[data-theme="win95"] .tools-list { background: #c0c0c0; padding: 3px; }
 :root[data-theme="win95"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; color: #000; }
 :root[data-theme="win95"] .tools-list :is(a, button) span { color: #404040; }
@@ -289,20 +861,11 @@
 :root[data-theme="win95"] .tools-list :is(a, button):is(:hover, :focus-visible) span,
 :root[data-theme="win95"] .tools-list a[aria-current="page"] span { color: #e8e8ff; }
 :root[data-theme="win95"] .tools-sep { border: 0; border-top: 1px solid #808080; border-bottom: 1px solid #fff; }
-
-/* Number tiles: little windows with their color as a title stripe. */
 :root[data-theme="win95"] .bignum { background: #fff; color: #000; box-shadow: var(--raised); border: 0; border-top: 6px solid currentColor; }
-
-/* Scrollbars, where the browser lets a page draw them (Chrome, Edge and the Windows app). */
 :root[data-theme="win95"] ::-webkit-scrollbar { width: 16px; height: 16px; }
 :root[data-theme="win95"] ::-webkit-scrollbar-track { background: var(--dither); }
 :root[data-theme="win95"] ::-webkit-scrollbar-thumb { background: #c0c0c0; box-shadow: var(--raised); }
 :root[data-theme="win95"] ::-webkit-scrollbar-corner { background: #c0c0c0; }
-
-/* ---- Mac OS 8 (More themes) ----
-   Platinum: the purple-gray patterned desktop, a light gray menu bar, square windows with pinstriped
-   title bars and the title centered, rounded beveled buttons, and Charcoal where a Mac has it.
-   Window contents are white, so the accents keep Light's contrast (3:1 on white, 4.5:1 behind black). */
 :root[data-theme="mac8"] {
   --bg: #66669a; --bg-deep: #dddddd; --bg-blob: #66669a;
   --panel: #ffffff; --panel-2: #f2f2f2; --panel-3: #e2e2e2; --well: #ffffff;
@@ -330,7 +893,6 @@
 :root[data-theme="mac8"] ::selection { background: #ccccff; color: #000; }
 :root[data-theme="mac8"] :focus-visible { outline: 2px solid #6666cc; outline-offset: 1px; }
 :root[data-theme="mac8"] a { color: #2a52b8; }
-/* the menu bar */
 :root[data-theme="mac8"] .topbar { background: #dddddd; border-bottom: 1px solid #000; box-shadow: var(--bevel); }
 :root[data-theme="mac8"] .logo-text .l2, :root[data-theme="mac8"] .logo-text .l2-card { color: #000; }
 :root[data-theme="mac8"] .header-stats { color: #000; }
@@ -338,7 +900,6 @@
 :root[data-theme="mac8"] .tabs > a { background: transparent; border-color: transparent; box-shadow: none; font-weight: 700; }
 :root[data-theme="mac8"] .tabs > a:hover { background: transparent; transform: none; box-shadow: none; color: #000; }
 :root[data-theme="mac8"] .tabs > a[aria-current="page"] { background: #333399; color: #fff; }
-/* buttons: rounded, beveled platinum */
 :root[data-theme="mac8"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .seg, .shape-tile) {
   background: var(--platinum); color: #000; border: 1px solid #000; box-shadow: var(--bevel); filter: none; font-weight: 700;
 }
@@ -349,12 +910,11 @@
 :root[data-theme="mac8"] :is(.seg-btn.on, .mini-chip[aria-pressed="true"], .shape-tile.open, .tools-btn[aria-expanded="true"]) {
   background: linear-gradient(#9a9a9a, #bdbdbd); color: #000; transform: none; box-shadow: inset 1px 1px #666;
 }
-:root[data-theme="mac8"] .btn.go { box-shadow: var(--bevel), 0 0 0 2px #dddddd, 0 0 0 3px #000; }   /* the default button's ring */
+:root[data-theme="mac8"] .btn.go { box-shadow: var(--bevel), 0 0 0 2px #dddddd, 0 0 0 3px #000; }
 :root[data-theme="mac8"] .seg-btn { background: transparent; color: #000; border-color: #000 !important; }
 :root[data-theme="mac8"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
   background-color: #fff; color: #000; border: 1px solid #000; box-shadow: inset 1px 1px #999;
 }
-/* windows: a pinstriped title bar with the title centered */
 :root[data-theme="mac8"] :is(.panel, .dialog-card, .tools-list, .toast) { border: 1px solid #000; box-shadow: var(--bevel), 1px 1px 0 #000; }
 :root[data-theme="mac8"] :is(.panel, .dialog-card) > .panel-head > :is(h1, h2, h3), :root[data-theme="mac8"] .stat-panel > h3 {
   flex: 1 0 100%; display: flex; align-items: center; gap: 8px; font-size: .95rem; color: #000;
@@ -368,11 +928,6 @@
 :root[data-theme="mac8"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
 :root[data-theme="mac8"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #333399; color: #fff; }
 :root[data-theme="mac8"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #e4e4ff; }
-
-/* ---- macOS 27 (More themes) ----
-   Liquid Glass: frosted, translucent panels over a bright wallpaper, deep rounding, soft shadows,
-   glass pill buttons and the system font. The panels stay nearly opaque white where text sits, so
-   the accents keep Light's contrast. */
 :root[data-theme="mac27"] {
   --bg: #6f8cff; --bg-deep: rgba(255, 255, 255, .55); --bg-blob: #6f8cff;
   --panel: rgba(255, 255, 255, .82); --panel-2: rgba(255, 255, 255, .62); --panel-3: rgba(255, 255, 255, .95);
@@ -415,7 +970,6 @@
 :root[data-theme="mac27"] .logo-text .l2-card { color: #1a62d6; }
 :root[data-theme="mac27"] .header-stats { color: #3a3a44; }
 :root[data-theme="mac27"] .header-stats b { color: #1d1d1f; }
-/* glass pills; the default button is the system blue */
 :root[data-theme="mac27"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .seg, .shape-tile) {
   background: rgba(255, 255, 255, .6); color: #1d1d1f; border: 1px solid rgba(255, 255, 255, .85);
   box-shadow: 0 1px 3px rgba(30, 30, 90, .12), inset 0 1px 0 rgba(255, 255, 255, .9);
@@ -437,11 +991,6 @@
 :root[data-theme="mac27"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
 :root[data-theme="mac27"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #1a62d6; color: #fff; }
 :root[data-theme="mac27"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #e4ecff; }
-
-/* ---- Windows XP (More themes) ----
-   Luna: the Bliss hill and sky behind blue-framed windows with round-topped gradient title bars,
-   a blue taskbar with a green Start button, and soft buttons that glow orange under the pointer.
-   Window contents are white, so the accents keep Light's contrast. */
 :root[data-theme="xp"] {
   --bg: #5a9ee8; --bg-deep: #245de1; --bg-blob: #5a9ee8;
   --panel: #ffffff; --panel-2: #f4f3ee; --panel-3: #e7e4d6; --well: #ffffff;
@@ -473,7 +1022,6 @@
 :root[data-theme="xp"] :is(h1, h2, h3, h4) { font-weight: 700; color: #0b3aa8; letter-spacing: 0; }
 :root[data-theme="xp"] ::selection { background: #316ac5; color: #fff; }
 :root[data-theme="xp"] a { color: #0645c8; }
-/* the taskbar, with Cardclops as the Start button */
 :root[data-theme="xp"] .topbar {
   background: linear-gradient(#3168d5 0%, #4993e6 3%, #2157d7 7%, #2663e0 12%, #245de1 90%, #1941a5 100%);
   border-bottom: 0; box-shadow: 0 2px 4px rgba(0, 0, 0, .35); color: #fff;
@@ -488,7 +1036,6 @@
 :root[data-theme="xp"] .tabs > a { background: linear-gradient(#5c99f2, #3c81f3 50%, #2f6fe0); color: #fff; border: 1px solid #1c49b8; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35); font-weight: 700; }
 :root[data-theme="xp"] .tabs > a:hover { background: linear-gradient(#73a9f5, #4f8ef5); color: #fff; transform: none; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45); }
 :root[data-theme="xp"] .tabs > a[aria-current="page"] { background: linear-gradient(#1e52b7, #1a48a4); color: #fff; box-shadow: inset 1px 1px 3px rgba(0, 0, 0, .45); }
-/* buttons: soft, with an orange glow under the pointer */
 :root[data-theme="xp"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .seg, .shape-tile) {
   background: var(--luna-button); color: #000; border: 1px solid #003c74; box-shadow: none; filter: none;
 }
@@ -504,7 +1051,6 @@
 :root[data-theme="xp"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
   background-color: #fff; color: #000; border: 1px solid #7f9db9; box-shadow: none;
 }
-/* windows: a blue frame and a round-topped title bar */
 :root[data-theme="xp"] :is(.panel, .dialog-card) { border: 3px solid #0054e3; border-top-width: 0; padding-top: 0; }
 :root[data-theme="xp"] :is(.panel, .dialog-card) > .panel-head { margin: 0 -18px 10px; }
 :root[data-theme="xp"] :is(.panel, .dialog-card) > .panel-head > :is(h1, h2, h3) {
@@ -519,10 +1065,6 @@
 :root[data-theme="xp"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
 :root[data-theme="xp"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #316ac5; color: #fff; }
 :root[data-theme="xp"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #dbe8ff; }
-
-/* ---- Windows 8 (More themes) ----
-   Metro on the Start screen's deep purple: flat, square and borderless; solid color tiles, light
-   lowercase headings, a pivot of plain words for the tabs, and Segoe UI. */
 :root[data-theme="win8"] {
   --bg: #1b0b3a; --bg-deep: #1b0b3a; --bg-blob: #1b0b3a;
   --panel: #2a1a52; --panel-2: #23164a; --panel-3: #3a2770; --well: #160a30;
@@ -550,12 +1092,10 @@
 :root[data-theme="win8"] .topbar { background: transparent; box-shadow: none; border: 0; }
 :root[data-theme="win8"] .logo-text .l2 { color: #fff; font-family: var(--font-display); font-weight: 300; font-size: 1.9rem; }
 :root[data-theme="win8"] .logo-text .l2-card { color: #fff; }
-/* tabs are a pivot: plain lowercase words, the current one white */
 :root[data-theme="win8"] .tabs > a { background: transparent; color: #8f84ad; font-family: var(--font-display); font-weight: 300; font-size: 1.35rem; text-transform: lowercase; padding: 2px 8px; }
 :root[data-theme="win8"] .tabs > a:hover { background: transparent; color: #fff; transform: none; }
 :root[data-theme="win8"] .tabs > a[aria-current="page"] { background: transparent; color: #fff; }
 :root[data-theme="win8"] .tools-btn { background: transparent; color: #8f84ad; font-weight: 300; font-size: 1.35rem; text-transform: lowercase; }
-/* flat buttons: a solid fill, and a white edge under the pointer */
 :root[data-theme="win8"] :is(.btn, .icon-btn, .tools-btn, .page-chip, .mini-chip, .bell, .shape-tile):hover {
   transform: none; box-shadow: none; outline: 2px solid #fff; outline-offset: -2px; filter: none;
 }
@@ -568,11 +1108,6 @@
 :root[data-theme="win8"] .tools-list { background: #2a1a52; }
 :root[data-theme="win8"] .tools-list :is(a, button) { background: transparent; border: 0; }
 :root[data-theme="win8"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #3a2770; }
-
-/* ---- PlayStation 2 (More themes) ----
-   The PS2's menus: black space with the boot screen's glowing blue towers, translucent blue glass
-   panels with thin lit edges, thin wide-spaced capitals, and the controller's symbol colors as the
-   accents: triangle green, circle red, cross blue and square pink. */
 :root[data-theme="ps2"] {
   --bg: #02040c; --bg-deep: rgba(4, 10, 32, .82); --bg-blob: #02040c;
   --panel: rgba(14, 26, 60, .72); --panel-2: rgba(10, 20, 50, .7); --panel-3: rgba(40, 70, 150, .55); --well: rgba(4, 10, 32, .7);
@@ -624,7 +1159,6 @@
 :root[data-theme="ps2"] .logo-text .l2 { color: #f2f6ff; font-weight: 300; letter-spacing: .12em; text-transform: uppercase; text-shadow: var(--lit) !important; }
 :root[data-theme="ps2"] .logo-text .l2-card { color: #7ab4ff; }
 :root[data-theme="ps2"] .header-stats b { color: #ffd86b; }
-/* buttons: glass with a lit edge; the chosen one glows full */
 :root[data-theme="ps2"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .seg, .shape-tile) {
   background: rgba(20, 40, 100, .45); color: #e8f0ff; border: 1px solid rgba(120, 170, 255, .6); box-shadow: var(--shadow-sm);
   font-weight: 400; letter-spacing: .06em; filter: none;
@@ -642,11 +1176,6 @@
 }
 :root[data-theme="ps2"] .tools-list :is(a, button) { background: transparent; border: 0; }
 :root[data-theme="ps2"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: rgba(60, 110, 230, .5); box-shadow: var(--lit); }
-
-/* ---- Nintendo 64 (More themes) ----
-   The console's charcoal plastic, chunky rounded parts that sit on a shadow, heavy italic type like
-   the logo, the logo's red, green, blue and yellow as a stripe under every heading, and the
-   controller's buttons as the accents. */
 :root[data-theme="n64"] {
   --bg: #1c1c22; --bg-deep: #2a2a31; --bg-blob: #1c1c22;
   --panel: #2c2c33; --panel-2: #26262c; --panel-3: #3a3a44; --well: #222228;
@@ -678,7 +1207,6 @@
 :root[data-theme="n64"] .logo-text .l2 { color: #fff; font-style: italic; font-weight: 900; }
 :root[data-theme="n64"] .logo-text .l2-card { color: #ff4d4d; }
 :root[data-theme="n64"] .header-stats b { color: #ffd21a; }
-/* chunky plastic parts that press down onto their shadow */
 :root[data-theme="n64"] :is(.btn, .icon-btn, .tools-btn, .tabs > a, .page-chip, .mini-chip, .bell, .shape-tile) {
   font-style: italic; font-weight: 800; filter: none;
 }
@@ -692,10 +1220,6 @@
 :root[data-theme="n64"] :is(.text-input, .select, .num-input, textarea, input[type="search"], input[type="text"], input[type="number"]) {
   background-color: #17171b; color: #f2f2f2; border: 3px solid #0d0d10;
 }
-
-/* ---- PlayStation 3 (More themes) ----
-   The XMB: a dark gradient with the slow white wave across it, piano-black glossy panels, thin
-   white type, and the chosen item lit rather than boxed. */
 :root[data-theme="ps3"] {
   --bg: #0d0f14; --bg-deep: rgba(10, 12, 16, .85); --bg-blob: #0d0f14;
   --panel: #121418; --panel-2: #0f1115; --panel-3: #22262e; --well: #0a0b0e;
@@ -736,10 +1260,6 @@
 :root[data-theme="ps3"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #0a0b0e; color: #f0f2f5; border: 1px solid rgba(255, 255, 255, .18); }
 :root[data-theme="ps3"] .tools-list :is(a, button) { background: transparent; border: 0; }
 :root[data-theme="ps3"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 12px rgba(255, 255, 255, .12); }
-
-/* ---- PlayStation 4 (More themes) ----
-   The PS4 home screen: PlayStation blue fading to deep navy, soft drifting bokeh, flat rounded
-   tiles, and the focused item ringed in white. */
 :root[data-theme="ps4"] {
   --bg: #04163d; --bg-deep: rgba(3, 14, 40, .8); --bg-blob: #04163d;
   --panel: rgba(11, 31, 74, .86); --panel-2: rgba(8, 24, 60, .85); --panel-3: rgba(30, 64, 140, .8); --well: rgba(3, 14, 40, .85);
@@ -783,10 +1303,6 @@
 :root[data-theme="ps4"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: rgba(2, 12, 36, .7); color: #f2f6ff; border: 1px solid rgba(160, 195, 255, .3); }
 :root[data-theme="ps4"] .tools-list :is(a, button) { background: transparent; border: 0; }
 :root[data-theme="ps4"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #0070d1; color: #fff; }
-
-/* ---- Sega Genesis (More themes) ----
-   The black console and its box art: glossy black, the 16-BIT red-and-gold, Sega blue, speed
-   stripes, heavy italic capitals and a faint grid. */
 :root[data-theme="genesis"] {
   --bg: #050506; --bg-deep: #0a0a0c; --bg-blob: #050506;
   --panel: #141416; --panel-2: #101012; --panel-3: #24242a; --well: #0b0b0d;
@@ -824,11 +1340,6 @@
 :root[data-theme="genesis"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #0b0b0d; color: #f4f4f6; border: 2px solid #2c2c33; }
 :root[data-theme="genesis"] .tools-list :is(a, button) { background: transparent; border: 0; }
 :root[data-theme="genesis"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #c81e1e; color: #fff; }
-
-/* ---- Game Boy Color (More themes) ----
-   A teal shell around a pale screen: square pixel edges, stair-stepped pixel shadows, the Atomic
-   Purple top bar, chunky monospace capitals and berry A and B buttons. The screen is light, so the
-   accents keep Light's contrast. */
 :root[data-theme="gbc"] {
   --bg: #1fa3b4; --bg-deep: #6f58a8; --bg-blob: #1fa3b4;
   --panel: #eef3e2; --panel-2: #e4ead4; --panel-3: #d6dec2; --well: #f5f8ec;
@@ -865,10 +1376,6 @@
 :root[data-theme="gbc"] .btn.go { background: #e0237f; color: #000; }
 :root[data-theme="gbc"] .tabs > a { background: #eef3e2; color: #1c2616; }
 :root[data-theme="gbc"] :is(textarea, input[type="search"], input[type="text"], input[type="number"], .text-input, .select, .num-input) { background-color: #f5f8ec; color: #1c2616; border: 3px solid #1c2616; font-family: var(--font-display); }
-
-/* ---- ColecoVision (More themes) ----
-   The 1982 console: a black case with a brushed-silver strip, the logo's warm stripes in orange,
-   amber and red, keypad-style buttons and wide bold type. */
 :root[data-theme="coleco"] {
   --bg: #0c0c0d; --bg-deep: #c6c6c8; --bg-blob: #0c0c0d;
   --panel: #1b1b1d; --panel-2: #161618; --panel-3: #2a2a2e; --well: #121214;
@@ -908,10 +1415,6 @@
 :root[data-theme="coleco"] .tools-list :is(a, button) { background: transparent; border: 0; }
 :root[data-theme="coleco"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #e06a00; color: #000; }
 :root[data-theme="coleco"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #2a1200; }
-
-/* ---- Cyberpunk (More themes) ----
-   Night City's interfaces: black with scan lines and a faint grid, warning yellow, neon red and
-   cyan, panels and buttons with their corners cut off, condensed capitals with a slight glitch. */
 :root[data-theme="cyberpunk"] {
   --bg: #050508; --bg-deep: #0b0b10; --bg-blob: #050508;
   --panel: #0b0b10; --panel-2: #09090d; --panel-3: #1a1a24; --well: #07070a;
@@ -956,13 +1459,6 @@
 :root[data-theme="cyberpunk"] .tools-list :is(a, button) { background: transparent; border: 0; }
 :root[data-theme="cyberpunk"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: #fcee0a; color: #050508; }
 :root[data-theme="cyberpunk"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #2a2600; }
-
-/* ---- Hokkaido (More themes) ----
-   Winter on Hokkaido, with more than colors changed: a pale sky with slowly falling snow (still when
-   motion is reduced) and Mount Yotei's snowcap at the foot of the page; an indigo top bar in the
-   seigaiha wave pattern; tabs that hang from it like noren curtains; washi-paper panels under a
-   brushed ink stroke; a vermilion seal before each heading; Mincho type for headings. The paper is
-   near-white, so the accents keep Light's contrast. */
 :root[data-theme="hokkaido"] {
   --bg: #e3ecf5; --bg-deep: #1f3a5f; --bg-blob: #e3ecf5;
   --panel: #fbf8f1; --panel-2: #f5f0e4; --panel-3: #ebe4d3; --well: #fffdf8;
@@ -1007,12 +1503,10 @@
 :root[data-theme="hokkaido"] :focus-visible { outline: 2px solid var(--vermilion); outline-offset: 2px; }
 :root[data-theme="hokkaido"] a { color: #24508a; }
 :root[data-theme="hokkaido"] a:hover { color: var(--vermilion); }
-/* panels: washi under a brushed ink stroke */
 :root[data-theme="hokkaido"] :is(.panel, .dialog-card) {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 12' preserveAspectRatio='none'%3E%3Cpath d='M2 7C40 3 90 4 150 5S300 3 398 6C340 9 250 8 160 9S50 10 2 7Z' fill='%231f3a5f'/%3E%3C/svg%3E") top / 100% 10px no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg stroke='%23e9e2d2' stroke-width='.8' fill='none'%3E%3Cpath d='M10 20q20 6 34-2M60 70q18 10 40 2M20 96q14-8 30 0M80 30q10 8 26 4'/%3E%3C/g%3E%3C/svg%3E"), var(--panel);
   border: 1px solid #ddd3bf; border-top: 0; padding-top: 22px;
 }
-/* the top bar: indigo seigaiha; the tabs hang from it like noren */
 :root[data-theme="hokkaido"] .topbar { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24'%3E%3Cg fill='%231f3a5f' stroke='%233a5f8f' stroke-width='1.6'%3E%3Ccircle cx='0' cy='12' r='15'/%3E%3Ccircle cx='0' cy='12' r='10'/%3E%3Ccircle cx='0' cy='12' r='5'/%3E%3Ccircle cx='48' cy='12' r='15'/%3E%3Ccircle cx='48' cy='12' r='10'/%3E%3Ccircle cx='48' cy='12' r='5'/%3E%3Ccircle cx='24' cy='24' r='15'/%3E%3Ccircle cx='24' cy='24' r='10'/%3E%3Ccircle cx='24' cy='24' r='5'/%3E%3C/g%3E%3C/svg%3E"), var(--indigo); background-size: 48px 24px; border-bottom: 3px solid var(--vermilion); box-shadow: none; padding-bottom: 0; align-items: flex-start; }
 :root[data-theme="hokkaido"] .logo, :root[data-theme="hokkaido"] .bell, :root[data-theme="hokkaido"] .header-stats { margin-bottom: 10px; }
 :root[data-theme="hokkaido"] .logo-text .l2 { color: #fffdf8; font-family: var(--font-display); font-weight: 600; letter-spacing: .08em; }
@@ -1030,7 +1524,6 @@
 :root[data-theme="hokkaido"] .tools-btn { font-family: var(--font-display); background: #274a76; color: #fffdf8; border: 0; box-shadow: none; }
 :root[data-theme="hokkaido"] .tools-btn:hover, :root[data-theme="hokkaido"] .tools-btn[aria-expanded="true"] { background: #2f5a8f; color: #fff; transform: none; box-shadow: none; }
 :root[data-theme="hokkaido"] .bell { background: #fbf8f1; border: 0; box-shadow: none; }
-/* buttons: indigo-edged paper; under the pointer, indigo ink */
 :root[data-theme="hokkaido"] :is(.btn, .icon-btn, .page-chip, .mini-chip, .shape-tile) {
   background: #fffdf8; color: var(--indigo); border: 1.5px solid var(--indigo); box-shadow: none; font-weight: 600; filter: none;
 }
@@ -1045,8 +1538,6 @@
 :root[data-theme="hokkaido"] .tools-list :is(a, button) { background: transparent; border: 0; box-shadow: none; }
 :root[data-theme="hokkaido"] .tools-list :is(a, button):is(:hover, :focus-visible) { background: var(--indigo); color: #fff; }
 :root[data-theme="hokkaido"] .tools-list :is(a, button):is(:hover, :focus-visible) span { color: #d5deea; }
-
-/* Settings → Appearance: reduce motion (as the system setting does), no foil shimmer. */
 :root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
   animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important;
 }
