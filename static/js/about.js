@@ -53,7 +53,7 @@ export function showAbout() {
     h('section.panel',
       h('div.panel-head', h('h2', 'Privacy')),
       browserEdition ? h('ul.pref-list',
-        h('li', h('b', 'Your collection, decks and settings stay in this browser. '), 'Imports are read here; nothing you import is uploaded. There are no accounts, analytics or ads, and Cardclops sets no cookies.'),
+        h('li', h('b', 'Your collection, decks and settings stay in this browser. '), 'Imports are read here; nothing you import is uploaded. There are no accounts or ads, and Cardclops sets no cookies.'),
         h('li', h('b', 'What this page requests: '), 'the site and its card data from cardclops.com (hosted by Cloudflare, which keeps ordinary server logs); details and rulings for your cards from Scryfall’s API, by card id; card images and set symbols from Scryfall.'),
         h('li', h('b', 'The Ask box, only if you add your own key, '), 'sends your question and a list of card-function tags to Anthropic’s API with that key. The key stays in this browser.'),
         h('li', h('b', 'Clearing this site’s data in your browser deletes your collection here, '), 'so keep a backup (Settings → Backup).'))

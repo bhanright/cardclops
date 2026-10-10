@@ -121,10 +121,12 @@ def headers(html, data_url):
     files a release replaces."""
     from gallery.page_policy import content_security_policy
     data_origin = "{0.scheme}://{0.netloc}".format(urllib.parse.urlsplit(data_url)) if "://" in data_url else ""
-    # Only the site's own scripts run (a visitor's Anthropic API key can be in the page), and it talks
-    # only to itself, the card data, Scryfall's API and Anthropic's. Pyodide compiles WebAssembly.
-    policy = content_security_policy(html, connect=(data_origin, "https://api.scryfall.com", "https://api.anthropic.com"),
-                                     webassembly=True)
+    # Only the site's own scripts run (a visitor's Anthropic API key can be in the page), plus the
+    # cookieless visit counter Cloudflare adds to the site (Web Analytics), and the page talks only to
+    # itself, the card data, Scryfall's API, Anthropic's and that counter. Pyodide compiles WebAssembly.
+    policy = content_security_policy(html, connect=(data_origin, "https://api.scryfall.com", "https://api.anthropic.com",
+                                                    "https://cloudflareinsights.com"),
+                                     webassembly=True, scripts_from=("https://static.cloudflareinsights.com",))
     lines = ["/*", f"  Content-Security-Policy: {policy}", "  X-Content-Type-Options: nosniff",
              "  Referrer-Policy: strict-origin-when-cross-origin"]
     # The service worker, the engine and the page's own scripts are always revalidated, so a release

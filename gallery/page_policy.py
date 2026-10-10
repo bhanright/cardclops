@@ -16,10 +16,11 @@ def inline_script_hashes(html):
             for script in re.findall(r"<script>(.*?)</script>", html, re.S)]
 
 
-def content_security_policy(html, connect=(), webassembly=False):
+def content_security_policy(html, connect=(), webassembly=False, scripts_from=()):
     """The policy for `html`. `connect` lists the other origins the page may call (the browser
-    edition's card data, Scryfall's API, Anthropic's); `webassembly` lets Pyodide compile."""
-    scripts = ["'self'"] + (["'wasm-unsafe-eval'"] if webassembly else []) + inline_script_hashes(html)
+    edition's card data, Scryfall's API, Anthropic's); `webassembly` lets Pyodide compile;
+    `scripts_from` lists other origins whose scripts may run (the public site's visit counter)."""
+    scripts = ["'self'"] + (["'wasm-unsafe-eval'"] if webassembly else []) + list(scripts_from) + inline_script_hashes(html)
     return "; ".join([
         "default-src 'self'",
         "script-src " + " ".join(scripts),
